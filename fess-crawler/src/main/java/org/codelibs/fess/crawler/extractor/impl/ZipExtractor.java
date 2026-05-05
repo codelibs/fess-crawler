@@ -20,14 +20,10 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.CountingInputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -75,6 +71,15 @@ public class ZipExtractor extends AbstractExtractor {
      * combined. Defaults to 2 GiB. Set to {@code -1} to disable.
      */
     protected long maxBytes = 1L << 31;
+
+    /**
+     * Maximum uncompressed bytes that may be buffered for a SINGLE entry.
+     * This guards against a legitimate-looking but oversized entry (e.g. a
+     * 1.9 GiB file inside an otherwise small archive) exhausting the JVM
+     * heap when buffered into memory. Defaults to 256 MiB. Set to
+     * {@code -1} to disable. Enforced independently of {@link #maxBytes}.
+     */
+    protected long maxBytesPerEntry = 256L * 1024L * 1024L;
 
     /**
      * Maximum allowed compression ratio (uncompressed / compressed). Entries
@@ -163,12 +168,19 @@ public class ZipExtractor extends AbstractExtractor {
                 final long actualBytes;
                 final byte[] entryBytes;
                 try {
-                    final long readLimit;
+                    final long totalReadLimit;
                     if (maxBytes > 0) {
-                        readLimit = Math.max(0L, maxBytes - totalBytes) + 1L;
+                        totalReadLimit = Math.max(0L, maxBytes - totalBytes) + 1L;
                     } else {
-                        readLimit = Long.MAX_VALUE;
+                        totalReadLimit = Long.MAX_VALUE;
                     }
+                    // Enforce a per-entry cap independently of the total
+                    // cap so that a single oversized entry cannot exhaust
+                    // the JVM heap. We read one byte beyond the cap so the
+                    // explicit overflow check below can distinguish
+                    // "exactly at the cap" from "exceeds the cap".
+                    final long perEntryReadLimit = maxBytesPerEntry > 0 ? maxBytesPerEntry + 1L : Long.MAX_VALUE;
+                    final long readLimit = Math.min(totalReadLimit, perEntryReadLimit);
                     final ByteArrayOutputStream out = new ByteArrayOutputStream();
                     actualBytes = copyBounded(ais, out, readLimit);
                     entryBytes = out.toByteArray();
@@ -178,6 +190,11 @@ public class ZipExtractor extends AbstractExtractor {
                         logger.debug("Failed to read zip entry: name={}", filename, ioe);
                     }
                     continue;
+                }
+
+                if (maxBytesPerEntry > 0 && actualBytes > maxBytesPerEntry) {
+                    throw new MaxLengthExceededException(
+                            "zip per-entry size exceeded: name=" + filename + " size=" + actualBytes + " max=" + maxBytesPerEntry);
                 }
 
                 totalBytes += actualBytes;
@@ -242,61 +259,6 @@ public class ZipExtractor extends AbstractExtractor {
     }
 
     /**
-     * Returns true when the supplied entry name escapes the conceptual
-     * extraction root via path-traversal segments. The check is performed on
-     * a normalised form of the path.
-     *
-     * @param name the entry name as reported by the archive
-     * @return {@code true} if the name should be rejected
-     */
-    protected boolean isPathTraversal(final String name) {
-        if (name == null || name.isEmpty()) {
-            return true;
-        }
-        // Absolute paths (Unix or Windows-style) are unsafe in the
-        // context of an archive extracted into a sandbox root.
-        if (name.startsWith("/") || name.startsWith("\\")) {
-            return true;
-        }
-        if (name.length() >= 2 && name.charAt(1) == ':') {
-            return true;
-        }
-        try {
-            final Path normalised = Paths.get(name).normalize();
-            final String normStr = normalised.toString().replace('\\', '/');
-            if (normStr.equals("..") || normStr.startsWith("../") || normStr.contains("/../")) {
-                return true;
-            }
-            for (final Path part : normalised) {
-                if ("..".equals(part.toString())) {
-                    return true;
-                }
-            }
-        } catch (final InvalidPathException ipe) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Copies up to {@code limit} bytes from {@code in} to {@code out}. Returns
-     * the actual number of bytes copied.
-     */
-    private long copyBounded(final InputStream in, final ByteArrayOutputStream out, final long limit) throws IOException {
-        if (limit <= 0) {
-            return 0;
-        }
-        final byte[] buffer = new byte[8192];
-        long total = 0;
-        int read;
-        while (total < limit && (read = in.read(buffer, 0, (int) Math.min(buffer.length, limit - total))) != IOUtils.EOF) {
-            out.write(buffer, 0, read);
-            total += read;
-        }
-        return total;
-    }
-
-    /**
      * Sets the maximum content size.
      * @param maxContentSize The maximum content size to set.
      */
@@ -310,6 +272,16 @@ public class ZipExtractor extends AbstractExtractor {
      */
     public void setMaxBytes(final long maxBytes) {
         this.maxBytes = maxBytes;
+    }
+
+    /**
+     * Sets the per-entry cap on uncompressed bytes buffered in memory. Set
+     * to {@code -1} to disable.
+     *
+     * @param maxBytesPerEntry the per-entry maximum
+     */
+    public void setMaxBytesPerEntry(final long maxBytesPerEntry) {
+        this.maxBytesPerEntry = maxBytesPerEntry;
     }
 
     /**

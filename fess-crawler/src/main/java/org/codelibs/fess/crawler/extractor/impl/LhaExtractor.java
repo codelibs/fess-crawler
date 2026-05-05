@@ -19,9 +19,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Enumeration;
 import java.util.Map;
 
@@ -66,6 +63,14 @@ public class LhaExtractor extends AbstractExtractor {
      * combined. Defaults to 2 GiB. Set to {@code -1} to disable.
      */
     protected long maxBytes = 1L << 31;
+
+    /**
+     * Maximum uncompressed bytes for a SINGLE entry (as reported by the LHA
+     * header). Guards against an oversized entry being routed to a buffered
+     * downstream extractor. Defaults to 256 MiB. Set to {@code -1} to
+     * disable. Enforced independently of {@link #maxBytes}.
+     */
+    protected long maxBytesPerEntry = 256L * 1024L * 1024L;
 
     /**
      * Maximum allowed number of entries to iterate. Defaults to 100,000.
@@ -120,7 +125,12 @@ public class LhaExtractor extends AbstractExtractor {
                 if (maxEntries > 0 && entryCount > maxEntries) {
                     throw new MaxLengthExceededException("lha entry count exceeded: count=" + entryCount + " max=" + maxEntries);
                 }
-                contentSize += head.getOriginalSize();
+                final long entrySize = head.getOriginalSize();
+                if (maxBytesPerEntry > 0 && entrySize > maxBytesPerEntry) {
+                    throw new MaxLengthExceededException(
+                            "lha per-entry size exceeded: name=" + head.getPath() + " size=" + entrySize + " max=" + maxBytesPerEntry);
+                }
+                contentSize += entrySize;
                 if (maxBytes > 0 && contentSize > maxBytes) {
                     throw new MaxLengthExceededException("lha uncompressed size exceeded: total=" + contentSize + " max=" + maxBytes);
                 }
@@ -174,40 +184,6 @@ public class LhaExtractor extends AbstractExtractor {
     }
 
     /**
-     * Returns true when the supplied entry name escapes the conceptual
-     * extraction root via path-traversal segments.
-     *
-     * @param name the entry name as reported by the archive
-     * @return {@code true} if the name should be rejected
-     */
-    protected boolean isPathTraversal(final String name) {
-        if (name == null || name.isEmpty()) {
-            return true;
-        }
-        if (name.startsWith("/") || name.startsWith("\\")) {
-            return true;
-        }
-        if (name.length() >= 2 && name.charAt(1) == ':') {
-            return true;
-        }
-        try {
-            final Path normalised = Paths.get(name).normalize();
-            final String normStr = normalised.toString().replace('\\', '/');
-            if (normStr.equals("..") || normStr.startsWith("../") || normStr.contains("/../")) {
-                return true;
-            }
-            for (final Path part : normalised) {
-                if ("..".equals(part.toString())) {
-                    return true;
-                }
-            }
-        } catch (final InvalidPathException ipe) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * Sets the maximum content size for extraction.
      *
      * @param maxContentSize the maximum content size to set (-1 for no limit)
@@ -222,6 +198,16 @@ public class LhaExtractor extends AbstractExtractor {
      */
     public void setMaxBytes(final long maxBytes) {
         this.maxBytes = maxBytes;
+    }
+
+    /**
+     * Sets the per-entry cap on the original (uncompressed) size reported by
+     * the LHA header. Set to {@code -1} to disable.
+     *
+     * @param maxBytesPerEntry the per-entry maximum
+     */
+    public void setMaxBytesPerEntry(final long maxBytesPerEntry) {
+        this.maxBytesPerEntry = maxBytesPerEntry;
     }
 
     /**

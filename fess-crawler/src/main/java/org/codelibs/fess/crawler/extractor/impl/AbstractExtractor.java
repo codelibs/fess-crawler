@@ -18,10 +18,15 @@ package org.codelibs.fess.crawler.extractor.impl;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
 import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
@@ -228,5 +233,78 @@ public abstract class AbstractExtractor implements Extractor {
         if (in == null) {
             throw new CrawlerSystemException("The inputstream is null.");
         }
+    }
+
+    /**
+     * Returns true when the supplied entry name escapes the conceptual
+     * extraction root via path-traversal segments. The check is performed on
+     * a normalised form of the path and is shared between the archive
+     * extractors (Zip / Tar / Lha) so the rejection rules stay in lock step.
+     *
+     * <p>
+     * An entry is rejected when it is null/empty, when it is rooted at
+     * {@code /} or {@code \}, when it begins with a Windows drive letter
+     * (e.g. {@code C:}), when its normalised form contains a {@code ..}
+     * segment, or when {@link Paths#get} treats it as malformed.
+     * </p>
+     *
+     * @param name the entry name as reported by the archive
+     * @return {@code true} if the name should be rejected
+     */
+    protected static boolean isPathTraversal(final String name) {
+        if (name == null || name.isEmpty()) {
+            return true;
+        }
+        // Absolute paths (Unix or Windows-style) are unsafe in the
+        // context of an archive extracted into a sandbox root.
+        if (name.startsWith("/") || name.startsWith("\\")) {
+            return true;
+        }
+        if (name.length() >= 2 && name.charAt(1) == ':') {
+            return true;
+        }
+        try {
+            final Path normalised = Paths.get(name).normalize();
+            final String normStr = normalised.toString().replace('\\', '/');
+            if (normStr.equals("..") || normStr.startsWith("../") || normStr.contains("/../")) {
+                return true;
+            }
+            for (final Path part : normalised) {
+                if ("..".equals(part.toString())) {
+                    return true;
+                }
+            }
+        } catch (final InvalidPathException ipe) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Copies up to {@code limit} bytes from {@code in} to {@code out}, returning
+     * the actual number of bytes copied. Used by archive extractors to bound
+     * the amount of memory consumed when buffering an entry's uncompressed
+     * payload.
+     *
+     * @param in the source stream
+     * @param out the sink stream
+     * @param limit the maximum number of bytes to copy (inclusive). Values
+     *              {@code <= 0} cause the method to return without reading.
+     * @return the number of bytes actually copied
+     * @throws IOException if reading from {@code in} or writing to {@code out}
+     *                     fails
+     */
+    protected static long copyBounded(final InputStream in, final OutputStream out, final long limit) throws IOException {
+        if (limit <= 0) {
+            return 0;
+        }
+        final byte[] buffer = new byte[8192];
+        long total = 0;
+        int read;
+        while (total < limit && (read = in.read(buffer, 0, (int) Math.min(buffer.length, limit - total))) != IOUtils.EOF) {
+            out.write(buffer, 0, read);
+            total += read;
+        }
+        return total;
     }
 }

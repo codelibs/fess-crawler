@@ -439,6 +439,59 @@ public class ArchiveExtractorSecurityTest extends PlainTestCase {
     // Lha recursion-depth check (uses isPathTraversal helper too)
     // ---------------------------------------------------------------------
 
+    // ---------------------------------------------------------------------
+    // Per-entry size cap — guards against a single oversized entry
+    // ---------------------------------------------------------------------
+
+    @Test
+    public void test_perEntryCapEnforced() throws Exception {
+        // Build a zip whose single entry holds 300 MiB of (highly
+        // compressible) zeroes. The extractor must trip the per-entry cap
+        // before buffering the entire 300 MiB into memory.
+        final int entrySize = 300 * 1024 * 1024;
+        final byte[] payload = new byte[entrySize];
+
+        final java.util.zip.Deflater def = new java.util.zip.Deflater(java.util.zip.Deflater.BEST_COMPRESSION);
+        def.setInput(payload);
+        def.finish();
+        final ByteArrayOutputStream compBuf = new ByteArrayOutputStream();
+        final byte[] tmpBuf = new byte[8192];
+        while (!def.finished()) {
+            final int n = def.deflate(tmpBuf);
+            compBuf.write(tmpBuf, 0, n);
+        }
+        def.end();
+        final java.util.zip.CRC32 crc = new java.util.zip.CRC32();
+        crc.update(payload);
+
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try (ZipArchiveOutputStream zos = new ZipArchiveOutputStream(baos)) {
+            final ZipArchiveEntry entry = new ZipArchiveEntry("big.bin");
+            entry.setMethod(ZipArchiveEntry.DEFLATED);
+            entry.setSize(payload.length);
+            entry.setCompressedSize(compBuf.size());
+            entry.setCrc(crc.getValue());
+            zos.putArchiveEntry(entry);
+            zos.write(payload);
+            zos.closeArchiveEntry();
+            zos.finish();
+        }
+        final byte[] data = baos.toByteArray();
+
+        // Disable the total-size and ratio checks so only the per-entry cap
+        // can trigger. Default per-entry cap (256 MiB) must reject the
+        // 300 MiB entry.
+        zipExtractor.setMaxBytes(-1);
+        zipExtractor.setMaxContentSize(-1);
+        zipExtractor.setMaxCompressionRatio(-1);
+        try (InputStream in = new ByteArrayInputStream(data)) {
+            zipExtractor.getText(in, null);
+            fail();
+        } catch (final MaxLengthExceededException e) {
+            assertTrue(e.getMessage().contains("per-entry size exceeded"));
+        }
+    }
+
     @Test
     public void test_lha_recursionDepth_exceeded() {
         final Map<String, String> params = new HashMap<>();

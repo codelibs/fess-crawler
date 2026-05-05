@@ -326,9 +326,9 @@ public class EmlExtractorTest extends PlainTestCase {
     @Test
     public void test_maxBodyBytes_largeInputIsBounded() throws Exception {
         // Regression: previous binary-search truncation called text.substring(0, mid).getBytes(UTF_8)
-        // O(log N) times, each allocating up to ~N bytes. For very large text parts this
-        // self-OOMs and is also catastrophically slow. The CharsetEncoder-based path
-        // allocates only ~maxBodyBytes worth of memory once.
+        // O(log N) times, each allocating up to ~N bytes — catastrophically slow on multi-MiB
+        // text parts. The current path encodes once and walks back over UTF-8 continuation
+        // bytes to land on a code-point boundary.
         final EmlExtractor extractor = new EmlExtractor();
         extractor.setMaxBodyBytes(1024);
 
@@ -355,6 +355,34 @@ public class EmlExtractorTest extends PlainTestCase {
             // Sanity: the streaming truncation must complete quickly (well under a second).
             logger.info("test_maxBodyBytes_largeInputIsBounded elapsed={}ms contentLen={}", elapsedMs, content.length());
             assertTrue(elapsedMs < 1000);
+        }
+    }
+
+    @Test
+    public void test_maxBodyBytes_truncatesAtUtf8CodePointBoundary() throws Exception {
+        // The body is 10 copies of "あ" (3 bytes each in UTF-8 = 30 bytes total).
+        // With maxBodyBytes=10, the cap falls inside the 4th character. The truncation
+        // must walk back over continuation bytes and land at byte 9 (3 complete chars),
+        // never producing a half-encoded code point or a U+FFFD replacement.
+        final EmlExtractor extractor = new EmlExtractor();
+        extractor.setMaxBodyBytes(10);
+
+        final MimeMessage msg = new MimeMessage(newSession());
+        msg.setFrom(new InternetAddress("sender@example.com"));
+        msg.setRecipients(Message.RecipientType.TO, new InternetAddress[] { new InternetAddress("recipient@example.com") });
+        msg.setSubject("multibyte", "UTF-8");
+        final StringBuilder body = new StringBuilder();
+        for (int i = 0; i < 10; i++) {
+            body.append('あ'); // あ
+        }
+        msg.setText(body.toString(), "UTF-8");
+        msg.saveChanges();
+
+        try (final InputStream in = toStream(msg)) {
+            final ExtractData data = extractor.getText(in, null);
+            final String content = data.getContent();
+            // Truncation must not leak U+FFFD from a partial code point.
+            assertFalse(content.contains("�"));
         }
     }
 

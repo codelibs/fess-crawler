@@ -36,6 +36,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -92,6 +93,9 @@ public class CommandExtractor extends AbstractExtractor {
 
     /** Maximum bytes the subprocess is allowed to write to a single drained stream (stdout/stderr). */
     protected long maxOutputSize = 10L * 1024L * 1024L; // 10 MiB
+
+    /** Whether {@link #setMaxOutputSize(long)} has been called explicitly, preventing {@link #setMaxOutputLine(int)} from overriding it. */
+    private boolean maxOutputSizeExplicit = false;
 
     /** Maximum bytes copied from the input stream into the temporary input file. */
     protected long maxInputSize = 100L * 1024L * 1024L; // 100 MiB
@@ -171,6 +175,11 @@ public class CommandExtractor extends AbstractExtractor {
 
             final String stderrText = executeCommand(inputFile, outputFile);
 
+            if (outputFile.length() > maxOutputSize) {
+                logger.warn("output file size exceeded limit: size={} limit={} command={}", outputFile.length(), maxOutputSize, command);
+                throw new ExtractException("output file size exceeded limit: limit=" + maxOutputSize);
+            }
+
             final StringBuilder contentBuf = new StringBuilder();
             contentBuf.append(new String(FileUtil.readBytes(outputFile), outputEncoding));
             // For backward compatibility with the legacy implementation that used
@@ -247,11 +256,11 @@ public class CommandExtractor extends AbstractExtractor {
         if (workingDirectory != null) {
             pb.directory(workingDirectory);
         }
-        if (standardOutput) {
-            pb.redirectOutput(outputFile);
-        }
-        // Note: do not redirect error stream when standardOutput=true; we want stderr drained separately.
-        // When standardOutput=false stdout is captured by us via getInputStream(); both streams must be drained.
+        // Do not use pb.redirectOutput(outputFile) for standardOutput=true: OS-level redirection
+        // bypasses the BoundedStreamReader, allowing unbounded writes. Instead, pipe stdout through
+        // a BoundedFileWriter that enforces maxOutputSize.
+
+        // Note: do not redirect error stream; we want stderr drained separately always.
 
         Process currentProcess = null;
         ExecutorService streamPool = null;
@@ -267,14 +276,14 @@ public class CommandExtractor extends AbstractExtractor {
 
             streamPool = Executors.newFixedThreadPool(2, new DaemonThreadFactory("CommandExtractor-stream"));
 
-            // Drain stdout (only if we are not redirecting it to a file).
             final Process processRef = currentProcess;
             final Charset charset = outCharset;
             final long limit = maxOutputSize;
             final Future<String> stdoutFuture;
             if (standardOutput) {
-                // stdout is being written directly to outputFile by the JVM redirection; nothing to drain.
-                stdoutFuture = null;
+                // Drain stdout into outputFile with a byte-count bound to honour maxOutputSize.
+                stdoutFuture =
+                        streamPool.submit(new BoundedFileWriter(processRef.getInputStream(), outputFile, limit, processRef, "stdout"));
             } else {
                 stdoutFuture =
                         streamPool.submit(new BoundedStreamReader(processRef.getInputStream(), charset, limit, processRef, "stdout"));
@@ -348,11 +357,36 @@ public class CommandExtractor extends AbstractExtractor {
 
     /**
      * Sends SIGTERM, waits a grace period, then SIGKILL to the process and any descendants.
+     * Descendants are snapshotted before sending SIGTERM so that children reparented to
+     * PID 1 after the parent exits are still reachable.
      *
      * @param process the process to terminate
      */
     protected void destroyProcessTree(final Process process) {
         if (process == null) {
+            return;
+        }
+        // Snapshot descendants before sending SIGTERM. If the parent shell receives SIGTERM and
+        // exits gracefully its children may be reparented to PID 1, making them invisible via
+        // process.descendants() after the fact. Taking the snapshot first ensures we still reach them.
+        final List<ProcessHandle> descendantSnapshot;
+        try {
+            descendantSnapshot = process.descendants().collect(Collectors.toList());
+        } catch (final Exception e) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Failed to snapshot descendants.", e);
+            }
+            // Fall back to an empty list; we will still kill the parent below.
+            try {
+                process.destroy();
+            } catch (final Exception ex) {
+                // ignore
+            }
+            try {
+                process.destroyForcibly();
+            } catch (final Exception ex) {
+                // ignore
+            }
             return;
         }
         try {
@@ -361,33 +395,24 @@ public class CommandExtractor extends AbstractExtractor {
             // ignore
         }
         try {
-            if (!process.waitFor(destroyGracePeriodMillis, TimeUnit.MILLISECONDS)) {
-                try {
-                    process.descendants().forEach(ProcessHandle::destroyForcibly);
-                } catch (final Exception e) {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Failed to forcibly destroy descendants.", e);
-                    }
-                }
-                try {
-                    process.destroyForcibly();
-                } catch (final Exception e) {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Failed to forcibly destroy process.", e);
-                    }
-                }
-            }
+            process.waitFor(destroyGracePeriodMillis, TimeUnit.MILLISECONDS);
         } catch (final InterruptedException ie) {
             Thread.currentThread().interrupt();
+        }
+        // Forcibly kill parent and all snapshotted descendants regardless of whether the parent
+        // exited cleanly during the grace period.
+        for (final ProcessHandle h : descendantSnapshot) {
             try {
-                process.descendants().forEach(ProcessHandle::destroyForcibly);
+                h.destroyForcibly();
             } catch (final Exception e) {
                 // ignore
             }
-            try {
-                process.destroyForcibly();
-            } catch (final Exception e) {
-                // ignore
+        }
+        try {
+            process.destroyForcibly();
+        } catch (final Exception e) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Failed to forcibly destroy process.", e);
             }
         }
     }
@@ -525,12 +550,10 @@ public class CommandExtractor extends AbstractExtractor {
                 while ((n = is.read(buf)) != -1) {
                     total += n;
                     if (total > limit) {
-                        // Kill the process so the producer stops; otherwise we may keep getting bytes.
-                        try {
-                            process.destroyForcibly();
-                        } catch (final Exception e) {
-                            // ignore
-                        }
+                        // Throw immediately; the caller (executeCommand) is responsible for
+                        // killing the process tree via destroyProcessTree so that descendants
+                        // are also terminated (Fix 3: eager kill removed from here to avoid
+                        // racing with the snapshot-based destroyProcessTree in the caller).
                         throw new OutputSizeExceededException(
                                 "command output exceeded limit on " + streamName + ": limit=" + limit + " bytes");
                     }
@@ -561,6 +584,63 @@ public class CommandExtractor extends AbstractExtractor {
          */
         public OutputSizeExceededException(final String message) {
             super(message);
+        }
+    }
+
+    /**
+     * Copies bytes from an {@link InputStream} to a {@link File} up to {@code limit} bytes.
+     * When the limit is exceeded an {@link OutputSizeExceededException} is thrown so that the
+     * caller can invoke {@link CommandExtractor#destroyProcessTree(Process)} to terminate the
+     * subprocess and its descendants. The return value is always an empty string; the written
+     * content is in the output file.
+     */
+    protected static class BoundedFileWriter implements Callable<String> {
+        private final InputStream stream;
+        private final File outputFile;
+        private final long limit;
+        private final Process process;
+        private final String streamName;
+
+        /**
+         * Constructs a new BoundedFileWriter.
+         *
+         * @param stream the input stream to drain
+         * @param outputFile the file to write output to
+         * @param limit the maximum number of bytes accepted before the process is killed
+         * @param process the process whose stream is being drained (kept for API symmetry with BoundedStreamReader)
+         * @param streamName a label used in error messages and logs
+         */
+        public BoundedFileWriter(final InputStream stream, final File outputFile, final long limit, final Process process,
+                final String streamName) {
+            this.stream = stream;
+            this.outputFile = outputFile;
+            this.limit = limit;
+            this.process = process;
+            this.streamName = streamName;
+        }
+
+        @Override
+        public String call() throws IOException {
+            final byte[] buf = new byte[8192];
+            long total = 0L;
+            try (InputStream is = stream; BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(outputFile))) {
+                int n;
+                while ((n = is.read(buf)) != -1) {
+                    total += n;
+                    if (total > limit) {
+                        throw new OutputSizeExceededException(
+                                "command output exceeded limit on " + streamName + ": limit=" + limit + " bytes");
+                    }
+                    out.write(buf, 0, n);
+                }
+            } catch (final OutputSizeExceededException e) {
+                throw e;
+            } catch (final IOException ioe) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("stream read interrupted: stream={}", streamName, ioe);
+                }
+            }
+            return "";
         }
     }
 
@@ -713,15 +793,23 @@ public class CommandExtractor extends AbstractExtractor {
     /**
      * Sets the maximum number of output lines to buffer.
      *
+     * <p>This setter is deprecated; use {@link #setMaxOutputSize(long)} instead.
+     * For backward compatibility, calling this method conservatively shrinks
+     * {@link #maxOutputSize} to {@code max(64 KiB, n * 1024)} bytes (1 line ≈ 1 KiB),
+     * but only when {@link #setMaxOutputSize(long)} has <em>not</em> been called
+     * explicitly on this instance. When both setters are called, the explicit
+     * {@link #setMaxOutputSize(long)} value always wins regardless of call order.
+     *
      * @param maxOutputLine The maximum output lines to set.
-     * @deprecated The line-count cap has been removed; the byte-count cap supersedes
-     *             it. Use {@link #setMaxOutputSize(long)} to bound the number of bytes
-     *             read from stdout/stderr instead. Calls to this method are silently
-     *             retained for backward compatibility but no longer affect behavior.
+     * @deprecated Use {@link #setMaxOutputSize(long)} to set the byte-count bound directly.
      */
     @Deprecated
     public void setMaxOutputLine(final int maxOutputLine) {
         this.maxOutputLine = maxOutputLine;
+        final long inferred = Math.max(64L * 1024L, (long) maxOutputLine * 1024L);
+        if (!maxOutputSizeExplicit) {
+            this.maxOutputSize = Math.min(this.maxOutputSize, inferred);
+        }
     }
 
     /**
@@ -734,12 +822,24 @@ public class CommandExtractor extends AbstractExtractor {
 
     /**
      * Sets the maximum number of bytes the subprocess may write to a single stream
-     * (stdout or stderr) before the process is killed.
+     * (stdout or stderr) before the process is killed. Calling this method marks the
+     * size as explicitly set, preventing a subsequent {@link #setMaxOutputLine(int)}
+     * call from overriding it.
      *
      * @param maxOutputSize the limit in bytes
      */
     public void setMaxOutputSize(final long maxOutputSize) {
         this.maxOutputSize = maxOutputSize;
+        this.maxOutputSizeExplicit = true;
+    }
+
+    /**
+     * Returns the current maximum output size limit in bytes.
+     *
+     * @return the maximum number of bytes the subprocess may write to a single stream
+     */
+    public long getMaxOutputSize() {
+        return maxOutputSize;
     }
 
     /**

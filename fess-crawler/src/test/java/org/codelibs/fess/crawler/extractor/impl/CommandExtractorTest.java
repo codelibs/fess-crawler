@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.SystemUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.exception.IORuntimeException;
 import org.codelibs.core.io.FileUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
@@ -38,6 +40,8 @@ import org.junit.jupiter.api.Test;
  *
  */
 public class CommandExtractorTest extends PlainTestCase {
+
+    private static final Logger logger = LogManager.getLogger(CommandExtractorTest.class);
 
     private File createScriptTempFile(final int sleep) {
         String extention;
@@ -483,5 +487,194 @@ public class CommandExtractorTest extends PlainTestCase {
         final String text = data.getContent();
         assertTrue(text.contains("OUT"));
         assertFalse(text.contains("ERR"));
+    }
+
+    // ==========================================================
+    // Fix 1: outputFile exceeds maxOutputSize → ExtractException
+    // ==========================================================
+
+    /**
+     * Fix 1 (standardOutput=true): when the command writes more than maxOutputSize bytes to
+     * stdout, getText() must throw ExtractException rather than loading the entire file into
+     * memory.
+     */
+    @Test
+    public void test_outputFileExceedsMaxOutputSize_throws() throws IOException {
+        if (!SystemUtils.IS_OS_UNIX) {
+            return;
+        }
+        final CommandExtractor extractor = new CommandExtractor();
+        // cat $INPUT_FILE sends content to stdout; we will pipe a 5-MiB input with standardOutput=true.
+        // 5 MiB output > 1 MiB limit should trigger the guard.
+        extractor.standardOutput = true;
+        extractor.command = "sh -c \"head -c 5242880 /dev/zero\"";
+        extractor.executionTimeout = 30_000L;
+        extractor.maxOutputSize = 1024L * 1024L; // 1 MiB
+
+        try {
+            extractor.getText(new ByteArrayInputStream(new byte[0]), new HashMap<>());
+            fail();
+        } catch (final ExtractException e) {
+            // expected
+        }
+    }
+
+    /**
+     * Fix 1 (standardOutput=false): when the command writes more than maxOutputSize bytes to
+     * $OUTPUT_FILE, getText() must throw ExtractException (length-check defensive line).
+     */
+    @Test
+    public void test_outputFileExceedsMaxOutputSize_standardOutputFalse_throws() throws IOException {
+        if (!SystemUtils.IS_OS_UNIX) {
+            return;
+        }
+        final File scriptFile;
+        try {
+            scriptFile = File.createTempFile("big_output_", ".sh");
+            scriptFile.deleteOnExit();
+            // Write 5 MiB of zeros to $OUTPUT_FILE directly (bypasses BoundedStreamReader).
+            FileUtil.writeBytes(scriptFile.getAbsolutePath(), "#!/bin/bash\nhead -c 5242880 /dev/zero > \"$2\"\n".getBytes());
+        } catch (final IOException e) {
+            throw new IORuntimeException(e);
+        }
+
+        final CommandExtractor extractor = new CommandExtractor();
+        extractor.command = "sh " + scriptFile.getAbsolutePath() + " $INPUT_FILE $OUTPUT_FILE";
+        extractor.executionTimeout = 30_000L;
+        extractor.maxOutputSize = 1024L * 1024L; // 1 MiB
+
+        try {
+            extractor.getText(new ByteArrayInputStream(new byte[0]), new HashMap<>());
+            fail();
+        } catch (final ExtractException e) {
+            // expected
+        }
+    }
+
+    // ==========================================================
+    // Fix 2: descendants are killed even when parent exits cleanly
+    // ==========================================================
+
+    /**
+     * Fix 2: verifies that after a timeout the spawned child process (sleep) is killed even
+     * when the parent shell exits gracefully before the grace period expires and would otherwise
+     * cause descendants() to return an empty snapshot.
+     */
+    @Test
+    public void test_processDescendants_killed_orphan_gone() throws Exception {
+        if (!SystemUtils.IS_OS_UNIX) {
+            return;
+        }
+        final CommandExtractor extractor = new CommandExtractor();
+        // The shell spawns a background sleep and prints its PID to stdout, then waits.
+        // standardOutput=false so we can read stdout text via BoundedStreamReader.
+        extractor.command = "sh -c \"sleep 30 & echo $!; wait\"";
+        extractor.executionTimeout = 800L;
+        extractor.destroyGracePeriodMillis = 200L;
+
+        try {
+            extractor.getText(new ByteArrayInputStream(new byte[0]), new HashMap<>());
+            fail();
+        } catch (final ExecutionTimeoutException e) {
+            // expected — but we did not capture stdout here since the exception fires before we collect it.
+        } catch (final Exception e) {
+            // acceptable
+        }
+
+        // Give the OS a moment to reap the child.
+        Thread.sleep(500);
+
+        // Best-effort check: find any process with "sleep 30" in its command that is still alive.
+        final boolean orphanAlive = ProcessHandle.allProcesses()
+                .filter(ProcessHandle::isAlive)
+                .anyMatch(ph -> ph.info().command().map(c -> c.contains("sleep")).orElse(false) && ph.info().arguments().map(args -> {
+                    for (final String a : args) {
+                        if ("30".equals(a)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }).orElse(false));
+
+        if (orphanAlive) {
+            logger.warn("test_processDescendants_killed_orphan_gone: orphan 'sleep 30' still alive after kill attempt");
+        }
+        assertFalse(orphanAlive);
+    }
+
+    // ==========================================================
+    // Fix 3: overflow kills descendants via destroyProcessTree
+    // ==========================================================
+
+    /**
+     * Fix 3: when BoundedStreamReader detects overflow it throws OutputSizeExceededException
+     * without calling destroyForcibly itself; destroyProcessTree (with snapshot) is called by
+     * executeCommand and must reap the background sleep child.
+     */
+    @Test
+    public void test_overflow_killsDescendants() throws Exception {
+        if (!SystemUtils.IS_OS_UNIX) {
+            return;
+        }
+        final CommandExtractor extractor = new CommandExtractor();
+        // Spawn a background sleep, then flood stderr with zeros to trigger overflow.
+        // standardOutput=false so stdout is piped; stderr triggers BoundedStreamReader overflow.
+        extractor.command = "sh -c \"sleep 30 & head -c 5242880 /dev/zero 1>&2; wait\"";
+        extractor.executionTimeout = 30_000L;
+        extractor.maxOutputSize = 1024L * 1024L; // 1 MiB
+        extractor.destroyGracePeriodMillis = 200L;
+
+        try {
+            extractor.getText(new ByteArrayInputStream(new byte[0]), new HashMap<>());
+            fail();
+        } catch (final ExtractException e) {
+            // expected
+        }
+
+        Thread.sleep(500);
+
+        final boolean orphanAlive = ProcessHandle.allProcesses()
+                .filter(ProcessHandle::isAlive)
+                .anyMatch(ph -> ph.info().command().map(c -> c.contains("sleep")).orElse(false) && ph.info().arguments().map(args -> {
+                    for (final String a : args) {
+                        if ("30".equals(a)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }).orElse(false));
+
+        if (orphanAlive) {
+            logger.warn("test_overflow_killsDescendants: orphan 'sleep 30' still alive after kill attempt");
+        }
+        assertFalse(orphanAlive);
+    }
+
+    // ==========================================================
+    // Fix 4: setMaxOutputLine conservatively shrinks maxOutputSize
+    // ==========================================================
+
+    /**
+     * Fix 4a: setMaxOutputLine(1) should shrink maxOutputSize to max(64KiB, 1*1024) = 64 KiB
+     * when setMaxOutputSize has not been called.
+     */
+    @Test
+    public void test_setMaxOutputLine_shrinksMaxOutputSize() {
+        final CommandExtractor extractor = new CommandExtractor();
+        // Default maxOutputSize is 10 MiB; setMaxOutputLine(1) infers 64 KiB (floor), which is smaller.
+        extractor.setMaxOutputLine(1);
+        assertTrue(extractor.getMaxOutputSize() <= 64L * 1024L);
+    }
+
+    /**
+     * Fix 4b: when setMaxOutputSize has been called explicitly, a subsequent setMaxOutputLine
+     * must not override it — the explicit value must be preserved regardless of call order.
+     */
+    @Test
+    public void test_setMaxOutputLine_doesNotOverrideExplicitMaxOutputSize() {
+        final CommandExtractor extractor = new CommandExtractor();
+        extractor.setMaxOutputSize(50L * 1024L * 1024L); // 50 MiB explicit
+        extractor.setMaxOutputLine(1); // would infer 64 KiB but must not override explicit
+        assertEquals(50L * 1024L * 1024L, extractor.getMaxOutputSize());
     }
 }

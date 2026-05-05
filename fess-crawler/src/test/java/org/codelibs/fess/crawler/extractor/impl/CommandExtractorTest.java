@@ -361,6 +361,9 @@ public class CommandExtractorTest extends PlainTestCase {
         final CommandExtractor extractor = new CommandExtractor();
         extractor.executionTimeout = 30_000L;
         extractor.command = "sh " + scriptFile.getAbsolutePath() + " $INPUT_FILE $OUTPUT_FILE";
+        // This test focuses on draining stderr so the process does not block;
+        // suppress stderr-in-output so the assertion compares only the file content.
+        extractor.setIncludeStderrInOutput(false);
 
         final ExtractData data = extractor.getText(new FileInputStream(contentFile), new HashMap<>());
         assertEquals(content, data.getContent());
@@ -416,5 +419,69 @@ public class CommandExtractorTest extends PlainTestCase {
         final long elapsed = System.currentTimeMillis() - start;
         // Total wall clock should be close to the timeout, not the 30-sec sleep.
         assertTrue(elapsed < 10_000L);
+    }
+
+    /**
+     * Verifies that when {@code standardOutput=false} and the subprocess writes to
+     * stderr, the captured stderr text is appended to the extracted content. This
+     * preserves backward compatibility with the legacy implementation which used
+     * {@code ProcessBuilder.redirectErrorStream(true)} and therefore included
+     * stderr in the extracted output.
+     */
+    @Test
+    public void test_stderrAppendedToOutput_whenStandardOutputFalse() throws IOException {
+        if (!SystemUtils.IS_OS_UNIX) {
+            return;
+        }
+        // Script writes "OUT" to $OUTPUT_FILE and "ERR" to stderr.
+        final File scriptFile;
+        try {
+            scriptFile = File.createTempFile("stderr_in_out_", ".sh");
+            scriptFile.deleteOnExit();
+            FileUtil.writeBytes(scriptFile.getAbsolutePath(), "#!/bin/bash\necho OUT > \"$2\"\necho ERR >&2\n".getBytes());
+        } catch (final IOException e) {
+            throw new IORuntimeException(e);
+        }
+
+        final File contentFile = createContentFile(".txt", new byte[] { 0 });
+        final CommandExtractor extractor = new CommandExtractor();
+        extractor.command = "sh " + scriptFile.getAbsolutePath() + " $INPUT_FILE $OUTPUT_FILE";
+        extractor.executionTimeout = 30_000L;
+        // standardOutput defaults to false, includeStderrInOutput defaults to true.
+
+        final ExtractData data = extractor.getText(new FileInputStream(contentFile), new HashMap<>());
+        final String text = data.getContent();
+        assertTrue(text.contains("OUT"));
+        assertTrue(text.contains("ERR"));
+    }
+
+    /**
+     * Verifies that {@code setIncludeStderrInOutput(false)} suppresses appending
+     * stderr to the extracted content even when {@code standardOutput=false}.
+     */
+    @Test
+    public void test_stderrSuppressedFromOutput_whenIncludeStderrInOutputFalse() throws IOException {
+        if (!SystemUtils.IS_OS_UNIX) {
+            return;
+        }
+        final File scriptFile;
+        try {
+            scriptFile = File.createTempFile("stderr_suppressed_", ".sh");
+            scriptFile.deleteOnExit();
+            FileUtil.writeBytes(scriptFile.getAbsolutePath(), "#!/bin/bash\necho OUT > \"$2\"\necho ERR >&2\n".getBytes());
+        } catch (final IOException e) {
+            throw new IORuntimeException(e);
+        }
+
+        final File contentFile = createContentFile(".txt", new byte[] { 0 });
+        final CommandExtractor extractor = new CommandExtractor();
+        extractor.command = "sh " + scriptFile.getAbsolutePath() + " $INPUT_FILE $OUTPUT_FILE";
+        extractor.executionTimeout = 30_000L;
+        extractor.setIncludeStderrInOutput(false);
+
+        final ExtractData data = extractor.getText(new FileInputStream(contentFile), new HashMap<>());
+        final String text = data.getContent();
+        assertTrue(text.contains("OUT"));
+        assertFalse(text.contains("ERR"));
     }
 }

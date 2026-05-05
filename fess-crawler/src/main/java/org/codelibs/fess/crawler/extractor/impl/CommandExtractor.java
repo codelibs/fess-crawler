@@ -75,7 +75,16 @@ public class CommandExtractor extends AbstractExtractor {
     /** The encoding for the command's output. */
     protected String commandOutputEncoding = Charset.defaultCharset().displayName();
 
-    /** The maximum number of lines to buffer from command output. */
+    /**
+     * The (formerly) maximum number of lines to buffer from command output.
+     *
+     * @deprecated The line-count cap has been removed in favor of a byte-count cap.
+     *             This field is no longer consulted; use {@link #setMaxOutputSize(long)}
+     *             to bound how many bytes are read from stdout/stderr. The field is
+     *             retained only for source/binary compatibility with callers that set
+     *             it via {@link #setMaxOutputLine(int)} or via reflection.
+     */
+    @Deprecated
     protected int maxOutputLine = 1000;
 
     /** Whether to redirect standard output to a file. */
@@ -89,6 +98,15 @@ public class CommandExtractor extends AbstractExtractor {
 
     /** Grace period (ms) given to a process after destroy() before destroyForcibly() is invoked. */
     protected long destroyGracePeriodMillis = 2000L;
+
+    /**
+     * Whether to append captured stderr text to the extracted content when
+     * {@link #standardOutput} is {@code false}. Defaults to {@code true} for
+     * backward compatibility with the legacy implementation that called
+     * {@code ProcessBuilder.redirectErrorStream(true)} and therefore included
+     * stderr in the extracted output.
+     */
+    protected boolean includeStderrInOutput = true;
 
     /**
      * Constructs a new CommandExtractor.
@@ -151,9 +169,17 @@ public class CommandExtractor extends AbstractExtractor {
             // store to a file (bounded by maxInputSize)
             copyToFileBounded(in, inputFile, maxInputSize);
 
-            executeCommand(inputFile, outputFile);
+            final String stderrText = executeCommand(inputFile, outputFile);
 
-            final ExtractData extractData = new ExtractData(new String(FileUtil.readBytes(outputFile), outputEncoding));
+            final StringBuilder contentBuf = new StringBuilder();
+            contentBuf.append(new String(FileUtil.readBytes(outputFile), outputEncoding));
+            // For backward compatibility with the legacy implementation that used
+            // ProcessBuilder.redirectErrorStream(true) when standardOutput=false,
+            // append captured stderr text to the extracted content.
+            if (!standardOutput && includeStderrInOutput && StringUtil.isNotEmpty(stderrText)) {
+                contentBuf.append(stderrText);
+            }
+            final ExtractData extractData = new ExtractData(contentBuf.toString());
             if (StringUtil.isNotBlank(resourceName)) {
                 extractData.putValues("resourceName", new String[] { resourceName });
             }
@@ -202,7 +228,7 @@ public class CommandExtractor extends AbstractExtractor {
         return name;
     }
 
-    private void executeCommand(final File inputFile, final File outputFile) {
+    private String executeCommand(final File inputFile, final File outputFile) {
 
         if (StringUtil.isBlank(command)) {
             throw new CrawlerSystemException("External command is empty. Please configure a valid command for CommandExtractor.");
@@ -299,6 +325,7 @@ public class CommandExtractor extends AbstractExtractor {
                     logger.info("Process Stderr:\n{}", truncateForLog(stderrText));
                 }
             }
+            return stderrText;
         } catch (final CrawlerSystemException e) {
             throw e;
         } catch (final InterruptedException e) {
@@ -538,6 +565,96 @@ public class CommandExtractor extends AbstractExtractor {
     }
 
     /**
+     * Legacy thread that used to monitor and terminate processes exceeding the
+     * timeout.
+     *
+     * @deprecated The timeout/kill machinery is now handled inline by
+     *             {@link CommandExtractor#executeCommand(File, File)} using
+     *             {@link Process#waitFor(long, TimeUnit)} and
+     *             {@link CommandExtractor#destroyProcessTree(Process)}. This class is
+     *             unused internally and is retained only as an empty stub so that
+     *             existing third-party subclasses or callers that referenced
+     *             {@code CommandExtractor.MonitorThread} continue to compile and
+     *             link. New code should not extend or instantiate it.
+     */
+    @Deprecated
+    protected static class MonitorThread extends Thread {
+
+        /**
+         * Constructs a new MonitorThread.
+         *
+         * @param process the process to monitor (ignored; retained for source compat)
+         * @param timeout the timeout (ignored; retained for source compat)
+         */
+        public MonitorThread(final Process process, final long timeout) {
+            // NOP - retained only for source compatibility.
+        }
+
+        @Override
+        public void run() {
+            // NOP
+        }
+
+        /**
+         * Sets the finished flag.
+         *
+         * @param finished the finished flag (ignored)
+         */
+        public void setFinished(final boolean finished) {
+            // NOP - retained only for source compatibility.
+        }
+
+        /**
+         * Returns whether the process was terminated.
+         *
+         * @return always {@code false}; this stub never terminates anything.
+         */
+        public boolean isTeminated() {
+            return false;
+        }
+    }
+
+    /**
+     * Legacy thread that used to read and buffer output from an input stream.
+     *
+     * @deprecated Stream draining is now performed by
+     *             {@link CommandExtractor.BoundedStreamReader} which is byte-bounded
+     *             rather than line-bounded. This class is unused internally and is
+     *             retained only as an empty stub so that existing third-party
+     *             subclasses or callers that referenced
+     *             {@code CommandExtractor.InputStreamThread} continue to compile and
+     *             link. New code should not extend or instantiate it.
+     */
+    @Deprecated
+    protected static class InputStreamThread extends Thread {
+
+        /**
+         * Constructs a new InputStreamThread.
+         *
+         * @param is the input stream (ignored; retained for source compat)
+         * @param charset the charset (ignored; retained for source compat)
+         * @param maxOutputLineBuffer the line buffer size (ignored; retained for source compat)
+         */
+        public InputStreamThread(final InputStream is, final String charset, final int maxOutputLineBuffer) {
+            // NOP - retained only for source compatibility.
+        }
+
+        @Override
+        public void run() {
+            // NOP
+        }
+
+        /**
+         * Returns the buffered output as a String.
+         *
+         * @return always an empty string; this stub never reads anything.
+         */
+        public String getOutput() {
+            return "";
+        }
+    }
+
+    /**
      * Sets the encoding for the output.
      * @param outputEncoding The output encoding to set.
      */
@@ -594,9 +711,15 @@ public class CommandExtractor extends AbstractExtractor {
     }
 
     /**
-     * Sets the maximum number of output lines to process.
+     * Sets the maximum number of output lines to buffer.
+     *
      * @param maxOutputLine The maximum output lines to set.
+     * @deprecated The line-count cap has been removed; the byte-count cap supersedes
+     *             it. Use {@link #setMaxOutputSize(long)} to bound the number of bytes
+     *             read from stdout/stderr instead. Calls to this method are silently
+     *             retained for backward compatibility but no longer affect behavior.
      */
+    @Deprecated
     public void setMaxOutputLine(final int maxOutputLine) {
         this.maxOutputLine = maxOutputLine;
     }
@@ -638,5 +761,19 @@ public class CommandExtractor extends AbstractExtractor {
      */
     public void setDestroyGracePeriodMillis(final long destroyGracePeriodMillis) {
         this.destroyGracePeriodMillis = destroyGracePeriodMillis;
+    }
+
+    /**
+     * Sets whether captured stderr text should be appended to the extracted content
+     * when {@link #standardOutput} is {@code false}. Defaults to {@code true} for
+     * backward compatibility with the legacy implementation that called
+     * {@code ProcessBuilder.redirectErrorStream(true)} and therefore included stderr
+     * in the extracted output.
+     *
+     * @param includeStderrInOutput {@code true} to append stderr to the extracted
+     *                              content; {@code false} to keep the file content only
+     */
+    public void setIncludeStderrInOutput(final boolean includeStderrInOutput) {
+        this.includeStderrInOutput = includeStderrInOutput;
     }
 }

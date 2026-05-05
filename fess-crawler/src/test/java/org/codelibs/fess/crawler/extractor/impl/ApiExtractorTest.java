@@ -117,6 +117,7 @@ public class ApiExtractorTest extends PlainTestCase {
         // Misconfigure the default URL; the override in params should be used instead.
         final ApiExtractor overrideExtractor = new ApiExtractor();
         overrideExtractor.setUrl("http://127.0.0.1:1/does-not-exist");
+        overrideExtractor.setAllowExtractorUrlOverride(true);
         overrideExtractor.init();
         try {
             final Map<String, String> params = new HashMap<>();
@@ -125,6 +126,42 @@ public class ApiExtractorTest extends PlainTestCase {
             assertEquals(ATTR_NAME + ",ovr", text.getContent());
         } finally {
             overrideExtractor.destroy();
+        }
+    }
+
+    @Test
+    public void test_extractorUrlOverride_disabledByDefault_isIgnored() throws Exception {
+        // With allowExtractorUrlOverride defaulting to false, the params override must be ignored
+        // and the configured (working) URL must be used regardless of the bogus override.
+        final ApiExtractor extractor = new ApiExtractor();
+        extractor.setUrl("http://127.0.0.1:" + port + "/");
+        extractor.init();
+        try {
+            final Map<String, String> params = new HashMap<>();
+            params.put(ApiExtractor.PARAM_EXTRACTOR_URL, "http://127.0.0.1:1/should-be-ignored");
+            final ExtractData text = extractor.getText(new ByteArrayInputStream("def".getBytes()), params);
+            // Successful extraction proves the configured URL was used, not the unreachable override.
+            assertEquals(ATTR_NAME + ",def", text.getContent());
+        } finally {
+            extractor.destroy();
+        }
+    }
+
+    @Test
+    public void test_extractorUrlOverride_disallowedSchemeRejected() throws Exception {
+        // Even when override is enabled, non-http(s) schemes must be rejected. The configured URL
+        // is used instead, so the request still succeeds against the in-process server.
+        final ApiExtractor extractor = new ApiExtractor();
+        extractor.setUrl("http://127.0.0.1:" + port + "/");
+        extractor.setAllowExtractorUrlOverride(true);
+        extractor.init();
+        try {
+            final Map<String, String> params = new HashMap<>();
+            params.put(ApiExtractor.PARAM_EXTRACTOR_URL, "file:///etc/passwd");
+            final ExtractData text = extractor.getText(new ByteArrayInputStream("rej".getBytes()), params);
+            assertEquals(ATTR_NAME + ",rej", text.getContent());
+        } finally {
+            extractor.destroy();
         }
     }
 
@@ -486,6 +523,7 @@ public class ApiExtractorTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_sleepQuietly_interruptedThrowsAndPreservesFlag() throws Exception {
         final ApiExtractor extractor = new ApiExtractor();
         extractor.setUrl("http://127.0.0.1:1/unused");
@@ -507,6 +545,7 @@ public class ApiExtractorTest extends PlainTestCase {
         }
     }
 
+    @Test
     public void test_executeWithRetries_interruptStopsRetryLoop() throws Exception {
         final SimpleHttpServer server = new SimpleHttpServer();
         final AtomicInteger attempts = new AtomicInteger();

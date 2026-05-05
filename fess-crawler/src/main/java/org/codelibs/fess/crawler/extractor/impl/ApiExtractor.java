@@ -111,6 +111,15 @@ public class ApiExtractor extends AbstractExtractor {
     /** Initial backoff in milliseconds between retries (doubled per attempt). */
     protected long retryBackoffMs = 500L;
 
+    /**
+     * When {@code true}, an {@link #PARAM_EXTRACTOR_URL} entry in the per-call params Map overrides
+     * the configured {@link #url}. Defaults to {@code false} so callers cannot redirect the extractor
+     * to an arbitrary endpoint unless the operator explicitly enables it. When enabling this, the
+     * caller is responsible for ensuring that the params Map cannot be populated from untrusted
+     * data — otherwise this becomes an SSRF gadget against internal hosts.
+     */
+    protected boolean allowExtractorUrlOverride = false;
+
     /** The map of authentication scheme providers. */
     protected Map<String, AuthSchemeProvider> authSchemeProviderMap;
 
@@ -262,23 +271,56 @@ public class ApiExtractor extends AbstractExtractor {
     }
 
     /**
+     * Resolves the URL the extractor should POST to for this call. Falls back to the configured
+     * {@link #url} unless the operator has set {@link #allowExtractorUrlOverride} to {@code true}
+     * <em>and</em> the params Map carries a non-blank {@link #PARAM_EXTRACTOR_URL} entry whose
+     * scheme is {@code http} or {@code https}. Disallowed override values are logged and ignored.
+     */
+    protected String resolveTargetUrl(final Map<String, String> params) {
+        if (params == null) {
+            return url;
+        }
+        final String override = params.get(PARAM_EXTRACTOR_URL);
+        if (StringUtil.isBlank(override)) {
+            return url;
+        }
+        if (!allowExtractorUrlOverride) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Ignoring {} param because allowExtractorUrlOverride is disabled.", PARAM_EXTRACTOR_URL);
+            }
+            return url;
+        }
+        if (!isAllowedOverrideScheme(override)) {
+            logger.warn("Ignoring {} param with disallowed scheme: {}", PARAM_EXTRACTOR_URL, override);
+            return url;
+        }
+        if (logger.isInfoEnabled()) {
+            logger.info("Overriding extractor URL: configured={} override={}", url, override);
+        }
+        return override;
+    }
+
+    private static boolean isAllowedOverrideScheme(final String candidate) {
+        try {
+            final String scheme = java.net.URI.create(candidate).getScheme();
+            return "http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme);
+        } catch (final IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    /**
      * Extracts text from the input stream using the API endpoint.
      *
      * @param in the input stream to extract text from
-     * @param params additional parameters (an {@code extractorUrl} entry overrides the configured URL)
+     * @param params additional parameters; an {@code extractorUrl} entry overrides the configured URL
+     *               only when {@link #allowExtractorUrlOverride} is {@code true} (default {@code false})
      * @return the extracted data
      * @throws ExtractException if extraction fails
      */
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
-        // Allow per-call URL override.
-        String targetUrl = url;
-        if (params != null) {
-            final String override = params.get(PARAM_EXTRACTOR_URL);
-            if (StringUtil.isNotBlank(override)) {
-                targetUrl = override;
-            }
-        }
+        final String targetUrl = resolveTargetUrl(params);
 
         if (logger.isDebugEnabled()) {
             logger.debug("Accessing {}", targetUrl);
@@ -727,6 +769,16 @@ public class ApiExtractor extends AbstractExtractor {
      */
     public void setRetryBackoffMs(final long retryBackoffMs) {
         this.retryBackoffMs = retryBackoffMs;
+    }
+
+    /**
+     * Enables or disables the per-call {@link #PARAM_EXTRACTOR_URL} override. Defaults to {@code false};
+     * enable only when the operator can guarantee that the params Map cannot be populated from
+     * untrusted data, otherwise this becomes an SSRF gadget.
+     * @param allowExtractorUrlOverride {@code true} to honor the {@code extractorUrl} param
+     */
+    public void setAllowExtractorUrlOverride(final boolean allowExtractorUrlOverride) {
+        this.allowExtractorUrlOverride = allowExtractorUrlOverride;
     }
 
 }

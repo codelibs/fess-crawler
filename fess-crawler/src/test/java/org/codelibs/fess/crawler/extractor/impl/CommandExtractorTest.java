@@ -426,11 +426,9 @@ public class CommandExtractorTest extends PlainTestCase {
     }
 
     /**
-     * Verifies that when {@code standardOutput=false} and the subprocess writes to
-     * stderr, the captured stderr text is appended to the extracted content. This
-     * preserves backward compatibility with the legacy implementation which used
-     * {@code ProcessBuilder.redirectErrorStream(true)} and therefore included
-     * stderr in the extracted output.
+     * Verifies that when {@code standardOutput=false} and {@code includeStderrInOutput=true},
+     * captured stderr text is appended to the extracted content.
+     * Note: the opt-in flag must be set explicitly because the default is {@code false}.
      */
     @Test
     public void test_stderrAppendedToOutput_whenStandardOutputFalse() throws IOException {
@@ -451,12 +449,46 @@ public class CommandExtractorTest extends PlainTestCase {
         final CommandExtractor extractor = new CommandExtractor();
         extractor.command = "sh " + scriptFile.getAbsolutePath() + " $INPUT_FILE $OUTPUT_FILE";
         extractor.executionTimeout = 30_000L;
-        // standardOutput defaults to false, includeStderrInOutput defaults to true.
+        // Explicitly opt in — default is false (pre-3.x behavior).
+        extractor.setIncludeStderrInOutput(true);
 
         final ExtractData data = extractor.getText(new FileInputStream(contentFile), new HashMap<>());
         final String text = data.getContent();
         assertTrue(text.contains("OUT"));
         assertTrue(text.contains("ERR"));
+    }
+
+    /**
+     * Verifies that by default ({@code includeStderrInOutput=false}), stderr is NOT
+     * appended to the extracted content even when {@code standardOutput=false}. This
+     * matches the pre-3.x behavior where stderr was only routed to logs, never to
+     * extracted text.
+     */
+    @Test
+    public void test_stderrNotInOutput_byDefault() throws IOException {
+        if (!SystemUtils.IS_OS_UNIX) {
+            return;
+        }
+        // Script writes "content" to $OUTPUT_FILE and "warning" to stderr.
+        final File scriptFile;
+        try {
+            scriptFile = File.createTempFile("stderr_default_", ".sh");
+            scriptFile.deleteOnExit();
+            FileUtil.writeBytes(scriptFile.getAbsolutePath(), "#!/bin/bash\necho content > \"$2\"\necho warning >&2\n".getBytes());
+        } catch (final IOException e) {
+            throw new IORuntimeException(e);
+        }
+
+        final File contentFile = createContentFile(".txt", new byte[] { 0 });
+        final CommandExtractor extractor = new CommandExtractor();
+        extractor.command = "sh " + scriptFile.getAbsolutePath() + " $INPUT_FILE $OUTPUT_FILE";
+        extractor.executionTimeout = 30_000L;
+        // Do NOT call setIncludeStderrInOutput — default must be false.
+
+        final ExtractData data = extractor.getText(new FileInputStream(contentFile), new HashMap<>());
+        final String text = data.getContent();
+        assertTrue(text.contains("content"));
+        assertFalse(text.contains("warning")); // stderr should not appear in extracted text by default
     }
 
     /**
@@ -607,9 +639,10 @@ public class CommandExtractorTest extends PlainTestCase {
     // ==========================================================
 
     /**
-     * Fix 3: when BoundedStreamReader detects overflow it throws OutputSizeExceededException
-     * without calling destroyForcibly itself; destroyProcessTree (with snapshot) is called by
-     * executeCommand and must reap the background sleep child.
+     * Fix 3 + overflow fail-fast: when BoundedStreamReader detects overflow it throws
+     * OutputSizeExceededException and sets the overflow flag so the main thread breaks
+     * out of its polling loop and calls destroyProcessTree immediately — well before the
+     * full executionTimeout elapses. Also verifies the background sleep child is reaped.
      */
     @Test
     public void test_overflow_killsDescendants() throws Exception {
@@ -620,16 +653,21 @@ public class CommandExtractorTest extends PlainTestCase {
         // Spawn a background sleep, then flood stderr with zeros to trigger overflow.
         // standardOutput=false so stdout is piped; stderr triggers BoundedStreamReader overflow.
         extractor.command = "sh -c \"sleep 30 & head -c 5242880 /dev/zero 1>&2; wait\"";
-        extractor.executionTimeout = 30_000L;
+        // Use 10 s timeout — test must complete well below this if fail-fast works.
+        extractor.executionTimeout = 10_000L;
         extractor.maxOutputSize = 1024L * 1024L; // 1 MiB
         extractor.destroyGracePeriodMillis = 200L;
 
+        final long start = System.currentTimeMillis();
         try {
             extractor.getText(new ByteArrayInputStream(new byte[0]), new HashMap<>());
             fail();
         } catch (final ExtractException e) {
-            // expected
+            // expected — overflow detected
         }
+        final long elapsed = System.currentTimeMillis() - start;
+        // Overflow should be detected and process killed well before the 10 s timeout.
+        assertTrue(elapsed < 5000L); // overflow should kill process tree in < 5 s
 
         Thread.sleep(500);
 

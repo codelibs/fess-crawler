@@ -35,6 +35,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -105,12 +106,16 @@ public class CommandExtractor extends AbstractExtractor {
 
     /**
      * Whether to append captured stderr text to the extracted content when
-     * {@link #standardOutput} is {@code false}. Defaults to {@code true} for
-     * backward compatibility with the legacy implementation that called
-     * {@code ProcessBuilder.redirectErrorStream(true)} and therefore included
-     * stderr in the extracted output.
+     * {@link #standardOutput} is {@code false}. Defaults to {@code false} to
+     * match pre-3.x behavior where stderr was only routed to logs, never to
+     * extracted text. (The original {@code ProcessBuilder.redirectErrorStream(true)}
+     * call only merged the streams for log draining; it never caused stderr to
+     * appear in {@code ExtractData}.)
+     *
+     * <p>Set to {@code true} to append captured stderr after the file content in
+     * the extracted body when {@code standardOutput=false}.
      */
-    protected boolean includeStderrInOutput = true;
+    protected boolean includeStderrInOutput = false;
 
     /**
      * Constructs a new CommandExtractor.
@@ -279,23 +284,60 @@ public class CommandExtractor extends AbstractExtractor {
             final Process processRef = currentProcess;
             final Charset charset = outCharset;
             final long limit = maxOutputSize;
+            final AtomicBoolean overflowFlag = new AtomicBoolean(false);
             final Future<String> stdoutFuture;
             if (standardOutput) {
                 // Drain stdout into outputFile with a byte-count bound to honour maxOutputSize.
                 stdoutFuture =
                         streamPool.submit(new BoundedFileWriter(processRef.getInputStream(), outputFile, limit, processRef, "stdout"));
             } else {
-                stdoutFuture =
-                        streamPool.submit(new BoundedStreamReader(processRef.getInputStream(), charset, limit, processRef, "stdout"));
+                stdoutFuture = streamPool
+                        .submit(new BoundedStreamReader(processRef.getInputStream(), charset, limit, processRef, "stdout", overflowFlag));
             }
-            final Future<String> stderrFuture =
-                    streamPool.submit(new BoundedStreamReader(processRef.getErrorStream(), charset, limit, processRef, "stderr"));
+            final Future<String> stderrFuture = streamPool
+                    .submit(new BoundedStreamReader(processRef.getErrorStream(), charset, limit, processRef, "stderr", overflowFlag));
 
-            final boolean finished = currentProcess.waitFor(executionTimeout, TimeUnit.MILLISECONDS);
-            if (!finished) {
-                logger.warn("command timed out: timeout={}ms command={}", executionTimeout, cmdList);
-                destroyProcessTree(currentProcess);
-                throw new ExecutionTimeoutException("The command execution is timeout: " + cmdList);
+            // Poll for process exit so that an overflow detected by a reader thread can
+            // break out immediately rather than blocking for the full executionTimeout.
+            final long deadline = System.currentTimeMillis() + executionTimeout;
+            boolean exited = false;
+            while (System.currentTimeMillis() < deadline) {
+                if (overflowFlag.get()) {
+                    // Reader thread detected overflow; kill the process tree immediately.
+                    break;
+                }
+                if (currentProcess.waitFor(200, TimeUnit.MILLISECONDS)) {
+                    exited = true;
+                    break;
+                }
+            }
+
+            if (!exited) {
+                if (overflowFlag.get()) {
+                    // Overflow path: kill the process tree, then surface the reader's exception.
+                    destroyProcessTree(currentProcess);
+                    // Collect exceptions from both futures with a short timeout.
+                    for (final Future<String> f : new Future[] { stdoutFuture, stderrFuture }) {
+                        try {
+                            f.get(2, TimeUnit.SECONDS);
+                        } catch (final ExecutionException ee) {
+                            final Throwable cause = ee.getCause();
+                            if (cause instanceof OutputSizeExceededException) {
+                                logger.warn("command output exceeded limit: limit={} command={}", maxOutputSize, cmdList);
+                                throw new ExtractException("command output exceeded limit: limit=" + maxOutputSize);
+                            }
+                        } catch (final TimeoutException | InterruptedException ignore) {
+                            // ignore — we already set the overflow flag
+                        }
+                    }
+                    // Should not reach here, but guard just in case.
+                    throw new ExtractException("command output exceeded limit: limit=" + maxOutputSize);
+                } else {
+                    // Timeout path.
+                    logger.warn("command timed out: timeout={}ms command={}", executionTimeout, cmdList);
+                    destroyProcessTree(currentProcess);
+                    throw new ExecutionTimeoutException("The command execution is timeout: " + cmdList);
+                }
             }
 
             // Process exited; collect drained output. Use a short timeout to avoid waiting forever
@@ -512,8 +554,10 @@ public class CommandExtractor extends AbstractExtractor {
 
     /**
      * Reads a stream fully (up to {@code limit} bytes) and returns it as a String.
-     * If the stream produces more than {@code limit} bytes, the associated process is
-     * destroyed and an {@link OutputSizeExceededException} is thrown.
+     * If the stream produces more than {@code limit} bytes, {@code overflowFlag} is
+     * set to {@code true} and an {@link OutputSizeExceededException} is thrown so
+     * that the main thread can detect the overflow without waiting for the full
+     * {@code executionTimeout}.
      */
     protected static class BoundedStreamReader implements Callable<String> {
         private final InputStream stream;
@@ -521,6 +565,7 @@ public class CommandExtractor extends AbstractExtractor {
         private final long limit;
         private final Process process;
         private final String streamName;
+        private final AtomicBoolean overflowFlag;
 
         /**
          * Constructs a new BoundedStreamReader.
@@ -530,14 +575,18 @@ public class CommandExtractor extends AbstractExtractor {
          * @param limit the maximum number of bytes accepted before the process is killed
          * @param process the process whose stream is being drained (used to destroy on overflow)
          * @param streamName a label used in error messages and logs
+         * @param overflowFlag shared flag that is set to {@code true} just before
+         *                     {@link OutputSizeExceededException} is thrown, allowing the main
+         *                     thread's polling loop to break early and kill the process tree
          */
         public BoundedStreamReader(final InputStream stream, final Charset charset, final long limit, final Process process,
-                final String streamName) {
+                final String streamName, final AtomicBoolean overflowFlag) {
             this.stream = stream;
             this.charset = charset;
             this.limit = limit;
             this.process = process;
             this.streamName = streamName;
+            this.overflowFlag = overflowFlag;
         }
 
         @Override
@@ -550,10 +599,10 @@ public class CommandExtractor extends AbstractExtractor {
                 while ((n = is.read(buf)) != -1) {
                     total += n;
                     if (total > limit) {
-                        // Throw immediately; the caller (executeCommand) is responsible for
-                        // killing the process tree via destroyProcessTree so that descendants
-                        // are also terminated (Fix 3: eager kill removed from here to avoid
-                        // racing with the snapshot-based destroyProcessTree in the caller).
+                        // Signal the main thread's polling loop before throwing so it can
+                        // break immediately and kill the process tree rather than blocking
+                        // for the remainder of executionTimeout.
+                        overflowFlag.set(true);
                         throw new OutputSizeExceededException(
                                 "command output exceeded limit on " + streamName + ": limit=" + limit + " bytes");
                     }
@@ -865,10 +914,12 @@ public class CommandExtractor extends AbstractExtractor {
 
     /**
      * Sets whether captured stderr text should be appended to the extracted content
-     * when {@link #standardOutput} is {@code false}. Defaults to {@code true} for
-     * backward compatibility with the legacy implementation that called
-     * {@code ProcessBuilder.redirectErrorStream(true)} and therefore included stderr
-     * in the extracted output.
+     * when {@link #standardOutput} is {@code false}. Defaults to {@code false} to
+     * match pre-3.x behavior where stderr was only logged, never included in
+     * {@code ExtractData}.
+     *
+     * <p>When set to {@code true} and {@code standardOutput=false}, captured stderr
+     * text is appended after the file content in the extracted body.
      *
      * @param includeStderrInOutput {@code true} to append stderr to the extracted
      *                              content; {@code false} to keep the file content only

@@ -15,9 +15,11 @@
  */
 package org.codelibs.fess.crawler.extractor.impl;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -49,6 +51,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.Multipart;
 import jakarta.mail.Part;
 import jakarta.mail.Session;
+import jakarta.mail.internet.ContentType;
 import jakarta.mail.internet.MailDateFormat;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeUtility;
@@ -396,18 +399,7 @@ public class EmlExtractor extends AbstractExtractor {
         }
 
         if (part.isMimeType("text/*")) {
-            final Object content;
-            try {
-                content = part.getContent();
-            } catch (final IOException e) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Failed to read text part content.", e);
-                }
-                return;
-            }
-            if (content != null) {
-                appendBody(ctx, content.toString());
-            }
+            appendTextPart(ctx, part);
             return;
         }
 
@@ -415,9 +407,10 @@ public class EmlExtractor extends AbstractExtractor {
             final Object content = part.getContent();
             if (content instanceof Multipart) {
                 final Multipart mp = (Multipart) content;
+                final int count = mp.getCount();
                 // Prefer text/plain alternative; fall back to first text/* alternative.
                 BodyPart chosen = null;
-                for (int i = 0; i < mp.getCount(); i++) {
+                for (int i = 0; i < count; i++) {
                     final BodyPart bp = mp.getBodyPart(i);
                     if (bp.isMimeType("text/plain")) {
                         chosen = bp;
@@ -425,7 +418,7 @@ public class EmlExtractor extends AbstractExtractor {
                     }
                 }
                 if (chosen == null) {
-                    for (int i = 0; i < mp.getCount(); i++) {
+                    for (int i = 0; i < count; i++) {
                         final BodyPart bp = mp.getBodyPart(i);
                         if (bp.isMimeType("text/*")) {
                             chosen = bp;
@@ -434,10 +427,20 @@ public class EmlExtractor extends AbstractExtractor {
                     }
                 }
                 if (chosen != null) {
+                    // Charge the partCount budget for every alternative — even those we
+                    // don't recurse into — so an attacker can't bypass maxParts by
+                    // stuffing thousands of unused alternatives. The chosen part is
+                    // counted via its own extractBody call below, so charge count - 1.
+                    if (count > 1) {
+                        ctx.partCount += count - 1;
+                        if (ctx.partCount > maxParts) {
+                            throw new MaxLengthExceededException("EML part count exceeded: max=" + maxParts);
+                        }
+                    }
                     extractBody(chosen, ctx, depth + 1);
                 } else {
-                    // No text alternative; recurse into all parts (attachments, nested multipart).
-                    for (int i = 0; i < mp.getCount(); i++) {
+                    // No text alternative; recurse into all parts (each counted normally).
+                    for (int i = 0; i < count; i++) {
                         extractBody(mp.getBodyPart(i), ctx, depth + 1);
                     }
                 }
@@ -497,7 +500,7 @@ public class EmlExtractor extends AbstractExtractor {
     /**
      * Appends body text to the extraction context, enforcing
      * {@link #maxBodyBytes}. Truncates any text that would push the total over
-     * the limit.
+     * the limit (including the trailing separator space).
      *
      * <p>Encodes the text once with {@link String#getBytes(java.nio.charset.Charset)}
      * (memory proportional to the input, not to the configured budget). When
@@ -516,16 +519,17 @@ public class EmlExtractor extends AbstractExtractor {
         }
         final byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
         final long remaining = maxBodyBytes - ctx.bodyBytes;
-        if (bytes.length <= remaining) {
+        // Reserve 1 byte for the trailing separator space so the strict cap holds.
+        if ((long) bytes.length + 1L <= remaining) {
             ctx.body.append(text).append(' ');
-            ctx.bodyBytes += bytes.length + 1;
+            ctx.bodyBytes += (long) bytes.length + 1L;
             return;
         }
         // Truncate at a UTF-8 code-point boundary that fits within the remaining
         // budget. Continuation bytes have the bit pattern 10xxxxxx, so walk back
         // until we land on a start byte (or zero). Bounded by 3 iterations.
         int cutoff = (int) Math.min(remaining, (long) bytes.length);
-        while (cutoff > 0 && (bytes[cutoff] & 0xC0) == 0x80) {
+        while (cutoff > 0 && cutoff < bytes.length && (bytes[cutoff] & 0xC0) == 0x80) {
             cutoff--;
         }
         if (cutoff > 0) {
@@ -534,6 +538,87 @@ public class EmlExtractor extends AbstractExtractor {
         ctx.bodyBytes = maxBodyBytes;
         if (logger.isDebugEnabled()) {
             logger.debug("EML body truncated at {} bytes.", maxBodyBytes);
+        }
+    }
+
+    /**
+     * Streams a text part's content into the extraction buffer with a hard
+     * memory cap, then delegates to {@link #appendBody} for byte-accurate
+     * truncation.
+     *
+     * <p>The previous implementation called {@link Part#getContent()}, which
+     * fully decoded the part into a Java {@code String}. A multi-GB
+     * {@code text/plain} part would peak heap usage at multiples of its raw
+     * size before any {@link #maxBodyBytes} check ran, defeating the DoS
+     * guard at the memory layer.</p>
+     *
+     * <p>This implementation reads from {@link Part#getInputStream} (which
+     * already decodes Content-Transfer-Encoding) capped at {@code 4 *
+     * remaining UTF-8 budget + 16} bytes — enough to fill any UTF-8 budget
+     * regardless of source charset (UTF-8 uses at most 4 bytes per code
+     * point), but bounded relative to {@link #maxBodyBytes} rather than to
+     * the part size.</p>
+     *
+     * @param ctx the extraction context
+     * @param part the {@code text/*} part
+     */
+    protected void appendTextPart(final BodyExtractionContext ctx, final Part part) {
+        if (ctx.bodyBytes >= maxBodyBytes) {
+            return;
+        }
+        final long remaining = maxBodyBytes - ctx.bodyBytes;
+        // Cap source reads at 4× the remaining UTF-8 budget plus a small pad,
+        // clamped to a sane upper bound so we never allocate a buffer larger
+        // than is needed to fill the UTF-8 cap.
+        final long sourceCapL;
+        if (remaining > (Integer.MAX_VALUE - 16L) / 4L) {
+            sourceCapL = Integer.MAX_VALUE - 16L;
+        } else {
+            sourceCapL = remaining * 4L + 16L;
+        }
+        final int sourceCap = (int) sourceCapL;
+
+        Charset charset = StandardCharsets.UTF_8;
+        try {
+            final String contentType = part.getContentType();
+            if (contentType != null) {
+                final String cs = new ContentType(contentType).getParameter("charset");
+                if (cs != null && !cs.isEmpty()) {
+                    try {
+                        charset = Charset.forName(MimeUtility.javaCharset(cs));
+                    } catch (final Exception ignored) {
+                        // Unknown / unsupported charset → fall back to UTF-8
+                    }
+                }
+            }
+        } catch (final MessagingException e) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Failed to parse content type of text part.", e);
+            }
+        }
+
+        try (InputStream is = part.getInputStream()) {
+            // Initial buffer scaled to the source cap, but never larger than 64KiB
+            // to keep small messages cheap. ByteArrayOutputStream grows on demand.
+            final ByteArrayOutputStream baos = new ByteArrayOutputStream(Math.min(sourceCap, 64 * 1024));
+            final byte[] buf = new byte[Math.min(sourceCap, 8 * 1024)];
+            int total = 0;
+            int n;
+            while (total < sourceCap && (n = is.read(buf, 0, Math.min(buf.length, sourceCap - total))) > 0) {
+                baos.write(buf, 0, n);
+                total += n;
+            }
+            if (total > 0) {
+                appendBody(ctx, new String(baos.toByteArray(), charset));
+            }
+        } catch (final IOException e) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Failed to read text part content.", e);
+            }
+        } catch (final MessagingException e) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Failed to access text part input stream.", e);
+            }
         }
     }
 

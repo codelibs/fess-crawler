@@ -387,6 +387,70 @@ public class EmlExtractorTest extends PlainTestCase {
     }
 
     @Test
+    public void test_multipartAlternative_partsCountedTowardMaxParts() throws Exception {
+        // Regression: multipart/alternative previously charged only the chosen
+        // part (and the parent multipart node) to ctx.partCount, letting an
+        // attacker bypass maxParts by stuffing thousands of unused
+        // alternatives. The fix charges every alternative to the budget.
+        final EmlExtractor extractor = new EmlExtractor();
+        extractor.setMaxParts(5);
+
+        final MimeMessage msg = new MimeMessage(newSession());
+        msg.setFrom(new InternetAddress("sender@example.com"));
+        msg.setRecipients(Message.RecipientType.TO, new InternetAddress[] { new InternetAddress("recipient@example.com") });
+        msg.setSubject("alt bomb", "UTF-8");
+
+        final MimeMultipart alt = new MimeMultipart("alternative");
+        // 50 text/html alternatives + 1 text/plain that would otherwise be the
+        // only counted child; under the old code partCount stays at 2.
+        for (int i = 0; i < 50; i++) {
+            final MimeBodyPart bp = new MimeBodyPart();
+            bp.setContent("<html><body>HTML " + i + "</body></html>", "text/html; charset=UTF-8");
+            alt.addBodyPart(bp);
+        }
+        final MimeBodyPart plain = new MimeBodyPart();
+        plain.setText("plain", "UTF-8");
+        alt.addBodyPart(plain);
+
+        msg.setContent(alt);
+        msg.saveChanges();
+
+        try (final InputStream in = toStream(msg)) {
+            extractor.getText(in, null);
+            fail();
+        } catch (final MaxLengthExceededException e) {
+            assertTrue(e.getMessage().contains("part count"));
+        }
+    }
+
+    @Test
+    public void test_maxBodyBytes_strictCapIncludesTrailingSeparator() throws Exception {
+        // Regression: when the encoded body length exactly equals the
+        // remaining budget, the old code still appended a trailing space,
+        // pushing bodyBytes one byte past maxBodyBytes. The fix reserves the
+        // separator byte before deciding to append the full text.
+        final EmlExtractor extractor = new EmlExtractor();
+        extractor.setMaxBodyBytes(8);
+
+        final MimeMessage msg = new MimeMessage(newSession());
+        msg.setFrom(new InternetAddress("sender@example.com"));
+        msg.setRecipients(Message.RecipientType.TO, new InternetAddress[] { new InternetAddress("recipient@example.com") });
+        msg.setSubject("exact", "UTF-8");
+        // 8 ASCII bytes — exactly equals maxBodyBytes; the fit branch must NOT
+        // append a trailing space and exceed the cap.
+        msg.setText("12345678", "UTF-8");
+        msg.saveChanges();
+
+        try (final InputStream in = toStream(msg)) {
+            final ExtractData data = extractor.getText(in, null);
+            final String content = data.getContent();
+            // Must not exceed maxBodyBytes (8 bytes / 8 ASCII chars).
+            logger.info("test_maxBodyBytes_strictCapIncludesTrailingSeparator content.length={}", content.length());
+            assertTrue(content.length() <= 8);
+        }
+    }
+
+    @Test
     public void test_multipartAlternative_prefersPlainText() throws Exception {
         final MimeMessage msg = new MimeMessage(newSession());
         msg.setFrom(new InternetAddress("sender@example.com"));

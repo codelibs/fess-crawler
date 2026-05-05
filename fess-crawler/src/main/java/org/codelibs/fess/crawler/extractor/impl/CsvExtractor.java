@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -108,6 +109,23 @@ public class CsvExtractor extends AbstractExtractor {
 
     /** Separator for header-value association in text output. */
     protected String headerValueSeparator = ": ";
+
+    /**
+     * Whether to trim leading/trailing whitespace from parsed CSV fields.
+     *
+     * <p>RFC 4180 does NOT specify trimming, and unquoted leading/trailing
+     * whitespace is technically part of the field value. However, the legacy
+     * {@code CsvExtractor} (pre commons-csv) trimmed every field via
+     * {@code String.trim()} before emitting it. To preserve backward
+     * compatibility with downstream consumers that already expect trimmed
+     * output (and to keep search-relevance behavior unchanged when CSVs
+     * contain incidental whitespace such as {@code "a, b, c"}), the default
+     * here is {@code true}.
+     *
+     * <p>Set to {@code false} via {@link #setTrimFields(boolean)} for
+     * byte-exact RFC 4180 behavior.
+     */
+    protected boolean trimFields = true;
 
     /**
      * Constructs a new CsvExtractor.
@@ -224,7 +242,8 @@ public class CsvExtractor extends AbstractExtractor {
                 .setDelimiter(effectiveDelimiter) //
                 .setQuote(quoteCharacter) //
                 .setEscape(escapeCharacter) //
-                .setIgnoreEmptyLines(true);
+                .setIgnoreEmptyLines(true) //
+                .setTrim(trimFields);
         return builder.get();
     }
 
@@ -291,8 +310,19 @@ public class CsvExtractor extends AbstractExtractor {
      * returns the auto-detected delimiter. The stream position is restored on
      * exit so the parser still sees the full content.
      *
+     * <p>The peek window is decoded as ISO-8859-1 (a byte-identity mapping)
+     * rather than the actual file charset. This is intentional: the candidate
+     * delimiters ({@code ,}, {@code \t}, {@code ;}, {@code |}) are all
+     * single-byte ASCII characters, and decoding as ISO-8859-1 guarantees
+     * that each byte maps 1:1 to one Java {@code char}. Decoding as the file
+     * charset (e.g. UTF-8 or UTF-16) is unsafe here because the 4096-byte
+     * window may slice a multi-byte sequence at the tail, leading to a
+     * decoding error or a substitution character that drops a real delimiter
+     * byte from the count. ISO-8859-1 sidesteps this entirely.
+     *
      * @param bis a mark-supporting buffered input stream
-     * @param charset charset to use when decoding the peeked bytes
+     * @param charset charset to use when decoding the peeked bytes (currently
+     *                unused; retained for API stability)
      * @return the detected delimiter, or {@code null} on failure
      */
     protected Character peekAndDetectDelimiter(final BufferedInputStream bis, final Charset charset) {
@@ -303,7 +333,10 @@ public class CsvExtractor extends AbstractExtractor {
             if (read <= 0) {
                 return null;
             }
-            final String head = new String(buf, 0, read, charset);
+            // Use ISO-8859-1 (byte-identity) so single-byte delimiter counting
+            // is unaffected by truncated multi-byte sequences at the window
+            // boundary. See JavaDoc above.
+            final String head = new String(buf, 0, read, StandardCharsets.ISO_8859_1);
             for (final String line : head.split("\\r?\\n")) {
                 if (StringUtil.isNotBlank(line)) {
                     return detectDelimiter(line);
@@ -570,5 +603,27 @@ public class CsvExtractor extends AbstractExtractor {
      */
     public void setHeaderValueSeparator(final String headerValueSeparator) {
         this.headerValueSeparator = headerValueSeparator;
+    }
+
+    /**
+     * Sets whether to trim leading/trailing whitespace from each parsed CSV
+     * field.
+     *
+     * <p><b>Note:</b> RFC 4180 does <em>not</em> specify trimming, and
+     * unquoted leading/trailing whitespace is technically part of the field
+     * value. However, the legacy {@code CsvExtractor} (pre commons-csv)
+     * trimmed every field via {@code String.trim()} before emitting it, so
+     * the default here is {@code true} to preserve that backward-compatible
+     * extraction output (e.g. {@code "a, b, c"} continues to yield fields
+     * {@code "a", "b", "c"} rather than {@code "a", " b", " c"}).
+     *
+     * <p>Set to {@code false} to obtain byte-exact RFC 4180 behavior, which
+     * preserves whitespace in unquoted fields.
+     *
+     * @param trimFields {@code true} (default) to trim every field;
+     *                   {@code false} for strict RFC 4180 behavior
+     */
+    public void setTrimFields(final boolean trimFields) {
+        this.trimFields = trimFields;
     }
 }

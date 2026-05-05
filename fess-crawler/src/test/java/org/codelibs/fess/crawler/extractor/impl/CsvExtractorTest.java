@@ -294,6 +294,38 @@ public class CsvExtractorTest extends PlainTestCase {
         assertEquals("2", extractData.getValues("row_count")[0]);
     }
 
+    // ----------------------------------------------------------------------
+    // Field trimming (backward compatibility with pre commons-csv parser)
+    // ----------------------------------------------------------------------
+
+    @Test
+    public void test_trim_default_stripsWhitespace() {
+        // Default behavior MUST match the legacy parser: every unquoted
+        // leading/trailing whitespace character is stripped.
+        csvExtractor.setHasHeader(false);
+        final ExtractData extractData = csvExtractor.getText(csv("a, b, c\n"), null);
+        final String content = extractData.getContent();
+        // Field separator in output is a single space, so the rendered row
+        // should be exactly "a b c" with no extra leading/trailing spaces
+        // around any field.
+        assertEquals("a b c", content);
+        assertEquals("1", extractData.getValues("row_count")[0]);
+    }
+
+    @Test
+    public void test_setTrimFalse_keepsWhitespace() {
+        // With trim disabled, unquoted whitespace must be preserved as part
+        // of the field value (strict RFC 4180 behavior).
+        csvExtractor.setHasHeader(false);
+        csvExtractor.setTrimFields(false);
+        final ExtractData extractData = csvExtractor.getText(csv("a, b, c\n"), null);
+        final String content = extractData.getContent();
+        // Fields are: "a", " b", " c". Joined with " " separator => "a  b  c"
+        // (note the doubled spaces between fields).
+        assertEquals("a  b  c", content);
+        assertEquals("1", extractData.getValues("row_count")[0]);
+    }
+
     @Test
     public void test_malformedCsv_throwsExtractException() {
         // Unterminated quote at EOF.

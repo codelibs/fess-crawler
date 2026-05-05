@@ -15,6 +15,8 @@
  */
 package org.codelibs.fess.crawler.extractor.impl;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
@@ -25,7 +27,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BoundedInputStream;
+import org.apache.commons.io.output.DeferredFileOutputStream;
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -55,6 +60,7 @@ import org.apache.logging.log4j.Logger;
 import org.codelibs.core.beans.BeanDesc;
 import org.codelibs.core.beans.PropertyDesc;
 import org.codelibs.core.beans.factory.BeanDescFactory;
+import org.codelibs.core.io.FileUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.timer.TimeoutManager;
 import org.codelibs.core.timer.TimeoutTask;
@@ -93,6 +99,14 @@ public class ApiExtractor extends AbstractExtractor {
     /** The socket timeout in milliseconds. */
     protected Integer soTimeout;
 
+    /**
+     * Maximum time in milliseconds to wait for a connection to be checked out from the pool.
+     * Without this bound, requests block indefinitely once {@link #maxConnections} or
+     * {@link #maxConnectionsPerRoute} is exhausted by slow upstream responses, defeating the
+     * point of the connect/socket timeouts above.
+     */
+    protected Integer connectionRequestTimeout;
+
     /** Maximum total connections in the pool. */
     protected int maxConnections = 50;
 
@@ -105,11 +119,26 @@ public class ApiExtractor extends AbstractExtractor {
     /** Maximum size in bytes accepted for an outgoing request body. Default is 100 MiB. */
     protected long maxRequestSize = 100L * 1024L * 1024L;
 
+    /**
+     * Threshold in bytes at which the request body spills from memory to a temp file. Bodies
+     * smaller than this stay in a {@code byte[]}; larger ones are written to a temp file via
+     * {@link DeferredFileOutputStream} so concurrent extractors don't pile up multi-MiB arrays
+     * on the heap.
+     */
+    protected int requestSpoolThreshold = 1024 * 1024;
+
     /** Maximum number of retry attempts on transient failures. */
     protected int maxRetries = 2;
 
     /** Initial backoff in milliseconds between retries (doubled per attempt). */
     protected long retryBackoffMs = 500L;
+
+    /**
+     * Hard upper bound in milliseconds applied to a server-supplied {@code Retry-After} value.
+     * Without this cap, a hostile or misbehaving server could stall an extractor thread for
+     * arbitrary time (e.g. {@code Retry-After: 86400}). Default 60 seconds.
+     */
+    protected long maxRetryAfterMs = 60_000L;
 
     /**
      * When {@code true}, an {@link #PARAM_EXTRACTOR_URL} entry in the per-call params Map overrides
@@ -180,6 +209,15 @@ public class ApiExtractor extends AbstractExtractor {
         } else {
             // sane default to mitigate slow loris servers
             requestConfigBuilder.setSocketTimeout(30000);
+        }
+        final Integer connectionRequestTimeoutParam = connectionRequestTimeout;
+        if (connectionRequestTimeoutParam != null) {
+            requestConfigBuilder.setConnectionRequestTimeout(connectionRequestTimeoutParam);
+        } else {
+            // Without an explicit cap HC4 defaults to -1 (wait forever) — once the pool is full
+            // of slow requests, every new caller blocks indefinitely. Default to the same 5s used
+            // for connect timeout so socket exhaustion is visible to the caller, not silent.
+            requestConfigBuilder.setConnectionRequestTimeout(5000);
         }
 
         // AuthSchemeFactory
@@ -355,27 +393,51 @@ public class ApiExtractor extends AbstractExtractor {
     /**
      * Executes the API request with bounded retries on transient failures.
      *
+     * <p>The input stream is spooled into a {@link DeferredFileOutputStream}: small bodies stay
+     * in memory while bigger ones spill to a temp file, so concurrent extractors do not retain
+     * multi-MiB arrays on the heap. The total bytes accepted is capped at {@link #maxRequestSize}
+     * so a hostile or oversized source cannot exhaust memory or disk.</p>
+     *
      * @param in the input stream to forward to the API endpoint
      * @param targetUrl the URL to call
      * @return the extracted data
      */
     protected ExtractData executeWithRetries(final InputStream in, final String targetUrl) {
-        // Buffer the input once so we can re-send it on retry. Bounded to maxRequestSize so a
-        // hostile/large source document cannot OOM the extractor.
-        final byte[] requestBody;
-        try (BoundedInputStream bounded = BoundedInputStream.builder().setInputStream(in).setMaxCount(maxRequestSize + 1L).get()) {
-            requestBody = bounded.readAllBytes();
+        // Spool the input once so we can re-send it on retry. Small bodies stay in memory; larger
+        // ones spill to a temp file so we don't pin maxRequestSize bytes of heap per concurrent call.
+        File spoolFile = null;
+        try (DeferredFileOutputStream dfos = DeferredFileOutputStream.builder()
+                .setThreshold(requestSpoolThreshold)
+                .setPrefix("apiExtractor-")
+                .setSuffix(".tmp")
+                .setDirectory(SystemUtils.getJavaIoTmpDir())
+                .get();
+                BoundedInputStream bounded = BoundedInputStream.builder().setInputStream(in).setMaxCount(maxRequestSize + 1L).get()) {
+            final long copied = IOUtils.copyLarge(bounded, dfos);
+            dfos.close();
+            if (copied > maxRequestSize) {
+                throw new ExtractException("ApiExtractor request body exceeded limit: limit=" + maxRequestSize);
+            }
+            if (!dfos.isInMemory()) {
+                spoolFile = dfos.getFile();
+            }
+            return runRetryLoop(dfos, targetUrl);
+        } catch (final ExtractException e) {
+            throw e;
         } catch (final IOException e) {
             throw new ExtractException("Failed to read input stream for API extractor", e);
+        } finally {
+            if (spoolFile != null) {
+                FileUtil.deleteInBackground(spoolFile);
+            }
         }
-        if (requestBody.length > maxRequestSize) {
-            throw new ExtractException("ApiExtractor request body exceeded limit: limit=" + maxRequestSize);
-        }
+    }
 
+    private ExtractData runRetryLoop(final DeferredFileOutputStream dfos, final String targetUrl) {
         IOException lastIoException = null;
         for (int attempt = 0; attempt <= maxRetries; attempt++) {
             try {
-                return executeOnce(requestBody, targetUrl, attempt);
+                return executeOnce(dfos, targetUrl, attempt);
             } catch (final RetryableStatusException e) {
                 final long sleepMs = computeBackoff(attempt, e.retryAfterMs);
                 if (attempt >= maxRetries) {
@@ -429,62 +491,76 @@ public class ApiExtractor extends AbstractExtractor {
     /**
      * Executes a single API call.
      *
-     * @param requestBody bytes to upload as the multipart body
+     * <p>The body is sourced from the spooled {@link DeferredFileOutputStream}: an in-memory copy
+     * is wrapped in a {@link ByteArrayInputStream}, while a spilled body is streamed from its temp
+     * file. The InputStream is closed before the method returns, but the underlying spool persists
+     * across attempts so retries can re-issue the same body without re-reading the original.</p>
+     *
+     * @param dfos spooled request body produced by {@link #executeWithRetries(InputStream, String)}
      * @param targetUrl URL to POST to
      * @param attempt current attempt number (0-based) — included for logging
      * @return the extracted data on success
      * @throws RetryableStatusException when the response status is retryable
      * @throws IOException on transport-level failure
      */
-    protected ExtractData executeOnce(final byte[] requestBody, final String targetUrl, final int attempt) throws IOException {
+    protected ExtractData executeOnce(final DeferredFileOutputStream dfos, final String targetUrl, final int attempt) throws IOException {
         if (attempt > 0 && logger.isDebugEnabled()) {
             logger.debug("Executing API request (url={}, attempt={})", targetUrl, attempt);
         }
         final HttpPost httpPost = new HttpPost(targetUrl);
-        final HttpEntity postEntity = MultipartEntityBuilder.create()
-                .setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
-                .setCharset(Charset.forName("UTF-8"))
-                .addBinaryBody("filedata", requestBody)
-                .build();
-        httpPost.setEntity(postEntity);
-
-        try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
-            final int statusCode = response.getStatusLine().getStatusCode();
-            if (statusCode != Constants.OK_STATUS_CODE) {
-                if (isRetryableStatus(statusCode)) {
-                    final long retryAfterMs = parseRetryAfterMs(response.getFirstHeader("Retry-After"));
-                    // Drain entity so the connection can be reused. Bound the drain so a hostile
-                    // server cannot stream an unbounded body just to keep us reading.
-                    drainBounded(response.getEntity());
-                    throw new RetryableStatusException(statusCode, retryAfterMs);
-                }
-                logger.warn("Failed to access API extractor endpoint: url={}, statusCode={}, attempt={}", targetUrl, statusCode, attempt);
-                drainBounded(response.getEntity());
-                return null;
-            }
-
-            final ExtractData data = new ExtractData();
-            final HttpEntity entity = response.getEntity();
-            if (entity != null) {
-                final Charset charset = resolveCharset(entity);
-                try (InputStream entityStream = entity.getContent();
-                        BoundedInputStream bounded =
-                                BoundedInputStream.builder().setInputStream(entityStream).setMaxCount(maxResponseSize + 1L).get()) {
-                    final byte[] body = bounded.readAllBytes();
-                    if (body.length > maxResponseSize) {
-                        throw new ExtractException("ApiExtractor response exceeded limit: limit=" + maxResponseSize);
+        try (InputStream bodyStream = openSpooledBody(dfos)) {
+            final HttpEntity postEntity = MultipartEntityBuilder.create()
+                    .setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
+                    .setCharset(Charset.forName("UTF-8"))
+                    .addBinaryBody("filedata", bodyStream, org.apache.http.entity.ContentType.APPLICATION_OCTET_STREAM, "filedata")
+                    .build();
+            httpPost.setEntity(postEntity);
+            try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
+                final int statusCode = response.getStatusLine().getStatusCode();
+                if (statusCode != Constants.OK_STATUS_CODE) {
+                    if (isRetryableStatus(statusCode)) {
+                        final long retryAfterMs = parseRetryAfterMs(response.getFirstHeader("Retry-After"));
+                        // Drain entity so the connection can be reused. Bound the drain so a hostile
+                        // server cannot stream an unbounded body just to keep us reading.
+                        drainBounded(response.getEntity());
+                        throw new RetryableStatusException(statusCode, retryAfterMs);
                     }
-                    data.setContent(new String(body, charset));
+                    logger.warn("Failed to access API extractor endpoint: url={}, statusCode={}, attempt={}", targetUrl, statusCode,
+                            attempt);
+                    drainBounded(response.getEntity());
+                    return null;
                 }
-            } else {
-                data.setContent("");
+
+                final ExtractData data = new ExtractData();
+                final HttpEntity entity = response.getEntity();
+                if (entity != null) {
+                    final Charset charset = resolveCharset(entity);
+                    try (InputStream entityStream = entity.getContent();
+                            BoundedInputStream bounded =
+                                    BoundedInputStream.builder().setInputStream(entityStream).setMaxCount(maxResponseSize + 1L).get()) {
+                        final byte[] body = bounded.readAllBytes();
+                        if (body.length > maxResponseSize) {
+                            throw new ExtractException("ApiExtractor response exceeded limit: limit=" + maxResponseSize);
+                        }
+                        data.setContent(new String(body, charset));
+                    }
+                } else {
+                    data.setContent("");
+                }
+                final Header[] headers = response.getAllHeaders();
+                for (final Header header : headers) {
+                    data.putValue(header.getName(), header.getValue());
+                }
+                return data;
             }
-            final Header[] headers = response.getAllHeaders();
-            for (final Header header : headers) {
-                data.putValue(header.getName(), header.getValue());
-            }
-            return data;
         }
+    }
+
+    private InputStream openSpooledBody(final DeferredFileOutputStream dfos) throws IOException {
+        if (dfos.isInMemory()) {
+            return new ByteArrayInputStream(dfos.getData());
+        }
+        return new java.io.BufferedInputStream(new java.io.FileInputStream(dfos.getFile()));
     }
 
     /**
@@ -542,7 +618,10 @@ public class ApiExtractor extends AbstractExtractor {
     /**
      * Computes exponential backoff for a retry attempt. A small random jitter in the range
      * {@code [0, retryBackoffMs)} is added to the exponential base to avoid thundering-herd
-     * retry storms when many extractors hit the same upstream concurrently.
+     * retry storms when many extractors hit the same upstream concurrently. Server-supplied
+     * {@code Retry-After} hints take precedence but are clamped to {@link #maxRetryAfterMs}
+     * so a hostile or misbehaving upstream cannot pin the extractor thread for arbitrary time
+     * (e.g. {@code Retry-After: 86400}).
      *
      * @param attempt 0-based attempt number
      * @param retryAfterMs server-suggested delay; non-negative values take precedence
@@ -550,7 +629,7 @@ public class ApiExtractor extends AbstractExtractor {
      */
     protected long computeBackoff(final int attempt, final long retryAfterMs) {
         if (retryAfterMs >= 0L) {
-            return retryAfterMs;
+            return Math.min(retryAfterMs, Math.max(0L, maxRetryAfterMs));
         }
         final long base = retryBackoffMs * (1L << attempt);
         final long jitter = retryBackoffMs > 0L ? ThreadLocalRandom.current().nextLong(0L, retryBackoffMs) : 0L;
@@ -673,6 +752,16 @@ public class ApiExtractor extends AbstractExtractor {
     }
 
     /**
+     * Sets the maximum time in milliseconds to wait for a connection from the pool. Without
+     * this cap, callers block indefinitely once the pool is exhausted by slow upstream
+     * responses, defeating the connect/socket timeouts.
+     * @param connectionRequestTimeout pool checkout timeout in milliseconds
+     */
+    public void setConnectionRequestTimeout(final Integer connectionRequestTimeout) {
+        this.connectionRequestTimeout = connectionRequestTimeout;
+    }
+
+    /**
      * Sets the map of authentication scheme providers.
      * @param authSchemeProviderMap The map of authentication scheme providers.
      */
@@ -769,6 +858,26 @@ public class ApiExtractor extends AbstractExtractor {
      */
     public void setRetryBackoffMs(final long retryBackoffMs) {
         this.retryBackoffMs = retryBackoffMs;
+    }
+
+    /**
+     * Sets the upper bound applied to a server-supplied {@code Retry-After} value. A hostile or
+     * misbehaving upstream returning {@code Retry-After: 86400} otherwise pins this thread for
+     * 24 hours; clamping it to a sane ceiling keeps retries responsive.
+     * @param maxRetryAfterMs maximum effective Retry-After value in milliseconds
+     */
+    public void setMaxRetryAfterMs(final long maxRetryAfterMs) {
+        this.maxRetryAfterMs = maxRetryAfterMs;
+    }
+
+    /**
+     * Sets the byte threshold at which the request body spills from memory to a temp file.
+     * Bodies smaller than this stay in a {@code byte[]}; larger bodies are written to disk so
+     * concurrent extractors do not pin {@link #maxRequestSize} bytes of heap each.
+     * @param requestSpoolThreshold byte threshold for memory-to-file spillover
+     */
+    public void setRequestSpoolThreshold(final int requestSpoolThreshold) {
+        this.requestSpoolThreshold = requestSpoolThreshold;
     }
 
     /**

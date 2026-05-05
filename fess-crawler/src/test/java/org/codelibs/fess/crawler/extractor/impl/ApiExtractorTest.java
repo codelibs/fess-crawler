@@ -550,6 +550,177 @@ public class ApiExtractorTest extends PlainTestCase {
         }
     }
 
+    /**
+     * When the connection pool is exhausted by a slow upstream, a new caller must surface a
+     * pool-checkout timeout instead of blocking indefinitely. Without
+     * {@link RequestConfig#setConnectionRequestTimeout(int)} the second call would hang for
+     * the full duration of the slow handler.
+     */
+    @Test
+    public void test_connectionRequestTimeout_failsFastWhenPoolExhausted() throws Exception {
+        final SimpleHttpServer simple = new SimpleHttpServer();
+        // Slow handler holds the only available connection for several seconds.
+        simple.setHandler(exchange -> {
+            drain(exchange.getRequestBody());
+            try {
+                Thread.sleep(3_000L);
+            } catch (final InterruptedException ie) {
+                Thread.currentThread().interrupt();
+            }
+            exchange.sendResponseHeaders(200, -1);
+            exchange.close();
+        });
+        simple.start();
+        try {
+            final ApiExtractor capped = new ApiExtractor();
+            capped.setUrl("http://127.0.0.1:" + simple.port() + "/");
+            capped.setMaxConnections(1);
+            capped.setMaxConnectionsPerRoute(1);
+            capped.setConnectionRequestTimeout(200);
+            capped.setMaxRetries(0);
+            capped.init();
+            try {
+                // First caller occupies the only pooled connection in a background thread.
+                final Thread occupier = new Thread(() -> {
+                    try {
+                        capped.getText(new ByteArrayInputStream("a".getBytes()), new HashMap<>());
+                    } catch (final Exception ignore) {
+                        // ignore
+                    }
+                });
+                occupier.setDaemon(true);
+                occupier.start();
+                // Give the occupier a moment to issue its request and acquire the connection.
+                Thread.sleep(300L);
+
+                // Second caller must fail quickly because the pool is exhausted.
+                final long t0 = System.currentTimeMillis();
+                try {
+                    capped.getText(new ByteArrayInputStream("b".getBytes()), new HashMap<>());
+                    fail();
+                } catch (final ExtractException e) {
+                    final long elapsed = System.currentTimeMillis() - t0;
+                    org.junit.jupiter.api.Assertions.assertTrue(elapsed < 2_000L,
+                            "second call must fail fast on pool exhaustion (was " + elapsed + "ms)");
+                }
+                occupier.interrupt();
+                occupier.join(2_000L);
+            } finally {
+                capped.destroy();
+            }
+        } finally {
+            simple.stop();
+        }
+    }
+
+    /**
+     * A request body larger than the spool threshold must succeed (proving the spool-to-disk
+     * path works) and the server must observe the exact uploaded bytes. This exercises the
+     * branch that streams from a temp file rather than a {@code byte[]}.
+     */
+    @Test
+    public void test_requestSpoolThreshold_spillsToFileAndUploadsSuccessfully() throws Exception {
+        final SimpleHttpServer simple = new SimpleHttpServer();
+        final int payloadSize = 32 * 1024;
+        final byte[] payload = new byte[payloadSize];
+        for (int i = 0; i < payload.length; i++) {
+            payload[i] = (byte) ('A' + (i % 26));
+        }
+        final java.util.concurrent.atomic.AtomicReference<byte[]> received = new java.util.concurrent.atomic.AtomicReference<>();
+        simple.setHandler(exchange -> {
+            // Read the complete multipart body verbatim so the test can verify the payload bytes.
+            final java.io.ByteArrayOutputStream sink = new java.io.ByteArrayOutputStream();
+            final byte[] buf = new byte[4096];
+            int n;
+            while ((n = exchange.getRequestBody().read(buf)) >= 0) {
+                sink.write(buf, 0, n);
+            }
+            received.set(sink.toByteArray());
+            final byte[] body = "spooled".getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=UTF-8");
+            exchange.sendResponseHeaders(200, body.length);
+            try (OutputStream out = exchange.getResponseBody()) {
+                out.write(body);
+            }
+        });
+        simple.start();
+        try {
+            final ApiExtractor spooled = new ApiExtractor();
+            spooled.setUrl("http://127.0.0.1:" + simple.port() + "/");
+            // Force every body to spill to a temp file by setting threshold smaller than the payload.
+            spooled.setRequestSpoolThreshold(1024);
+            spooled.setMaxRetries(0);
+            spooled.init();
+            try {
+                final ExtractData data = spooled.getText(new ByteArrayInputStream(payload), new HashMap<>());
+                assertNotNull(data);
+                assertEquals("spooled", data.getContent());
+                final byte[] body = received.get();
+                assertNotNull(body);
+                // Multipart framing wraps the payload, so just verify the payload bytes are embedded
+                // verbatim somewhere inside the multipart body.
+                org.junit.jupiter.api.Assertions.assertTrue(body.length >= payload.length,
+                        "received body must be at least the payload size");
+                org.junit.jupiter.api.Assertions.assertTrue(indexOf(body, payload) >= 0,
+                        "spooled payload bytes must appear in the multipart body");
+            } finally {
+                spooled.destroy();
+            }
+        } finally {
+            simple.stop();
+        }
+    }
+
+    /**
+     * A hostile {@code Retry-After} value must be clamped to {@code maxRetryAfterMs} so a
+     * 24-hour value cannot stall the extractor thread.
+     */
+    @Test
+    public void test_retryAfterClampedToMaxRetryAfter() throws Exception {
+        final SimpleHttpServer simple = new SimpleHttpServer();
+        final AtomicInteger calls = new AtomicInteger();
+        simple.setHandler(exchange -> {
+            drain(exchange.getRequestBody());
+            final int n = calls.incrementAndGet();
+            if (n == 1) {
+                // 24 hours — without clamping this would block the test forever.
+                exchange.getResponseHeaders().add("Retry-After", "86400");
+                exchange.sendResponseHeaders(503, -1);
+                exchange.close();
+            } else {
+                final byte[] body = "ok".getBytes(StandardCharsets.UTF_8);
+                exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=UTF-8");
+                exchange.sendResponseHeaders(200, body.length);
+                try (OutputStream out = exchange.getResponseBody()) {
+                    out.write(body);
+                }
+            }
+        });
+        simple.start();
+        try {
+            final ApiExtractor clamped = new ApiExtractor();
+            clamped.setUrl("http://127.0.0.1:" + simple.port() + "/");
+            clamped.setMaxRetries(1);
+            clamped.setRetryBackoffMs(10L);
+            clamped.setMaxRetryAfterMs(150L);
+            clamped.init();
+            try {
+                final long t0 = System.currentTimeMillis();
+                final ExtractData data = clamped.getText(new ByteArrayInputStream("x".getBytes()), new HashMap<>());
+                final long elapsed = System.currentTimeMillis() - t0;
+                assertNotNull(data);
+                assertEquals("ok", data.getContent());
+                assertEquals(2, calls.get());
+                org.junit.jupiter.api.Assertions.assertTrue(elapsed < 5_000L,
+                        "Retry-After must be clamped, not honored as 24h (elapsed=" + elapsed + "ms)");
+            } finally {
+                clamped.destroy();
+            }
+        } finally {
+            simple.stop();
+        }
+    }
+
     @Test
     public void test_executeWithRetries_interruptStopsRetryLoop() throws Exception {
         final SimpleHttpServer server = new SimpleHttpServer();
@@ -618,6 +789,21 @@ public class ApiExtractorTest extends PlainTestCase {
         while (in.read(buf) >= 0) {
             // discard
         }
+    }
+
+    private static int indexOf(final byte[] haystack, final byte[] needle) {
+        if (needle.length == 0 || haystack.length < needle.length) {
+            return -1;
+        }
+        outer: for (int i = 0; i <= haystack.length - needle.length; i++) {
+            for (int j = 0; j < needle.length; j++) {
+                if (haystack[i + j] != needle[j]) {
+                    continue outer;
+                }
+            }
+            return i;
+        }
+        return -1;
     }
 
     /** Lightweight HTTP server used for retry / size / status tests. */

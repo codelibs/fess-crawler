@@ -21,7 +21,6 @@ import java.util.Map;
 
 import org.apache.poi.hpbf.extractor.PublisherTextExtractor;
 import org.codelibs.fess.crawler.entity.ExtractData;
-import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
 
 /**
@@ -41,21 +40,23 @@ public class MsPublisherExtractor extends AbstractExtractor {
 
     /**
      * Extracts text from the Publisher input stream.
+     * <p>
+     * The {@link PublisherTextExtractor} is wrapped in a try-with-resources
+     * block so that the underlying {@code POIFSFileSystem} (and therefore the
+     * provided input stream) is always closed even when extraction fails
+     * partway through.
+     * </p>
      * @param in The input stream.
      * @param params The parameters.
      * @return The extracted data.
      */
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
-        if (in == null) {
-            throw new CrawlerSystemException("Microsoft Publisher input stream is null. Cannot extract text from null input.");
-        }
-        try {
-            @SuppressWarnings("resource")
-            final PublisherTextExtractor publisherTextExtractor = new PublisherTextExtractor(in);
+        validateInputStream(in);
+        try (PublisherTextExtractor publisherTextExtractor = new PublisherTextExtractor(in)) {
             return new ExtractData(publisherTextExtractor.getText());
         } catch (final IOException e) {
-            throw new ExtractException(e);
+            throw new ExtractException("Failed to extract text from Publisher document.", e);
         }
     }
 

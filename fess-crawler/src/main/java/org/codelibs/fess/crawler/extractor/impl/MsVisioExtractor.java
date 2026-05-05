@@ -21,7 +21,6 @@ import java.util.Map;
 
 import org.apache.poi.hdgf.extractor.VisioTextExtractor;
 import org.codelibs.fess.crawler.entity.ExtractData;
-import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
 
 /**
@@ -41,21 +40,23 @@ public class MsVisioExtractor extends AbstractExtractor {
 
     /**
      * Extracts text from the Visio input stream.
+     * <p>
+     * The {@link VisioTextExtractor} is wrapped in a try-with-resources block
+     * so that the underlying {@code POIFSFileSystem} (and therefore the
+     * provided input stream) is always closed even when extraction fails
+     * partway through.
+     * </p>
      * @param in The input stream.
      * @param params The parameters.
      * @return The extracted data.
      */
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
-        if (in == null) {
-            throw new CrawlerSystemException("Microsoft Visio input stream is null. Cannot extract text from null input.");
-        }
-        try {
-            @SuppressWarnings("resource")
-            final VisioTextExtractor visioTextExtractor = new VisioTextExtractor(in);
+        validateInputStream(in);
+        try (VisioTextExtractor visioTextExtractor = new VisioTextExtractor(in)) {
             return new ExtractData(visioTextExtractor.getText());
         } catch (final IOException e) {
-            throw new ExtractException(e);
+            throw new ExtractException("Failed to extract text from Visio document.", e);
         }
     }
 

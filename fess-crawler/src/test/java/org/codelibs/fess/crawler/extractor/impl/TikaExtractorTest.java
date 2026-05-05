@@ -959,6 +959,61 @@ public class TikaExtractorTest extends PlainTestCase {
     }
 
     /**
+     * Locks down the encoding contract for the muted-stream capture/replay path:
+     * regardless of {@link TikaExtractor#setOutputEncoding(String)}, bytes
+     * written to {@link System#out}/{@link System#err} during extraction must be
+     * decoded with {@link java.nio.charset.Charset#defaultCharset()} so that the
+     * replayed text is a lossless round-trip of what Tika/PDFBox/POI emitted
+     * (which they emit through {@link PrintStream}s the JVM wraps with the JVM
+     * default charset). A different output encoding here would risk character
+     * substitution for diagnostics containing non-ASCII text.
+     */
+    @Test
+    public void test_capturedSystemStreams_useDefaultCharsetRegardlessOfOutputEncoding() throws Exception {
+        final String marker = "Türkçe-日本語-✓";
+        // Round-trip is only meaningful when the JVM default charset can actually
+        // represent the marker. On platforms whose default is e.g. ISO-8859-1
+        // (rare on Java 21+), skip rather than report a false failure.
+        org.junit.jupiter.api.Assumptions.assumeTrue(java.nio.charset.Charset.defaultCharset().newEncoder().canEncode(marker),
+                "skipping: JVM default charset " + java.nio.charset.Charset.defaultCharset() + " cannot represent the test marker");
+        final List<String> replayedOut = java.util.Collections.synchronizedList(new ArrayList<>());
+
+        final TikaExtractor spy = new TikaExtractor() {
+            @Override
+            protected InputStream openMaterializedInput(final InputStream inputStream, final java.io.File tempFile,
+                    final boolean isByteStream) throws IOException {
+                System.out.println(marker);
+                return super.openMaterializedInput(inputStream, tempFile, isByteStream);
+            }
+
+            @Override
+            protected void onReplayCaptured(final String text, final boolean fromStderr) {
+                if (!fromStderr) {
+                    replayedOut.add(text);
+                }
+            }
+        };
+        spy.setTikaConfig(org.apache.tika.config.TikaConfig.getDefaultConfig());
+        // Pick an outputEncoding that cannot represent every code point in the
+        // marker; if the capture/replay path were (incorrectly) using
+        // outputEncoding, characters such as '日' would be substituted with '?'.
+        spy.setOutputEncoding("ISO-8859-1");
+        spy.init();
+
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.txt");
+        try {
+            spy.getText(in, null);
+        } finally {
+            CloseableUtil.closeQuietly(in);
+        }
+
+        Assertions.assertFalse(replayedOut.isEmpty(), "captured stdout was not replayed");
+        final String joined = String.join("\n", replayedOut);
+        Assertions.assertTrue(joined.contains(marker),
+                "replayed stdout must round-trip non-ASCII text via the JVM default charset, got: " + joined);
+    }
+
+    /**
      * Verifies that the bounded capture buffer caps at its configured size and
      * appends a truncation marker once instead of growing without bound.
      */

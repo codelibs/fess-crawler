@@ -158,7 +158,11 @@ public class TikaExtractor extends PasswordBasedExtractor {
     private static final String FILE_PASSWORD = "fess.file.password";
 
     /**
-     * Output encoding.
+     * Output encoding used when materializing extracted content into a byte
+     * stream (e.g. read-as-text fallbacks). This setter intentionally does
+     * <em>not</em> influence the JVM-stream capture/replay path used by
+     * {@link #muteSystemStreams()} / {@link #replayCapturedBytes(BoundedByteArrayOutputStream, boolean)};
+     * see those methods for the rationale.
      */
     protected String outputEncoding = Constants.UTF_8;
 
@@ -515,6 +519,16 @@ public class TikaExtractor extends PasswordBasedExtractor {
      * see Tika parser warnings (PDFBox font warnings, JBIG2 warnings, legacy POI
      * debug, etc.). The lock is released as soon as the swap is recorded so that
      * extractions never serialize on it.
+     *
+     * <p>The replacement {@link PrintStream}s are constructed with the auto-flush
+     * two-arg form, which the JVM wraps using {@link Charset#defaultCharset()}.
+     * The configured {@link #outputEncoding} is intentionally <em>not</em> applied
+     * here: third-party libraries (Tika, PDFBox, POI, JBIG2-ImageIO) write
+     * diagnostics through {@link System#out}/{@link System#err} using the JVM
+     * default charset, and forcing a different encoder would risk character
+     * substitution for code points not representable in that encoding. See
+     * {@link #replayCapturedBytes(BoundedByteArrayOutputStream, boolean)} for the
+     * matching decode side.
      */
     protected void muteSystemStreams() {
         synchronized (SYSTEM_STREAM_LOCK) {
@@ -586,6 +600,12 @@ public class TikaExtractor extends PasswordBasedExtractor {
      * WARN, matching the severity of the original Tika diagnostic channels.
      * Visible for testing so that subclasses can intercept the replayed text.
      *
+     * <p>The decode charset is deliberately {@link Charset#defaultCharset()} and
+     * <em>not</em> the configurable {@link #outputEncoding}. {@link #muteSystemStreams()}
+     * installs {@code PrintStream}s that wrap the JVM default charset, so this
+     * choice guarantees a lossless round-trip of whatever Tika/PDFBox/POI wrote
+     * to {@link System#out}/{@link System#err}.
+     *
      * @param buffer captured byte buffer; ignored when empty
      * @param fromStderr whether the buffer came from {@link System#err}
      */
@@ -593,9 +613,9 @@ public class TikaExtractor extends PasswordBasedExtractor {
         if (buffer == null || buffer.size() == 0) {
             return;
         }
-        // Default JVM stream encoding is platform-dependent; PrintStream(true)
-        // wraps Charset.defaultCharset(), so decode with the same charset for
-        // round-trip fidelity.
+        // Must match the encoder used by muteSystemStreams() — PrintStream(out, true)
+        // wraps Charset.defaultCharset(). outputEncoding is intentionally not used
+        // here; see the Javadoc above.
         final Charset charset = Charset.defaultCharset();
         final String text = new String(buffer.toByteArray(), charset);
         if (text.isEmpty()) {
@@ -905,7 +925,16 @@ public class TikaExtractor extends PasswordBasedExtractor {
     }
 
     /**
-     * Sets the output encoding.
+     * Sets the output encoding used for materializing extracted content.
+     *
+     * <p>Note: this setting does not affect how bytes captured from muted
+     * {@link System#out}/{@link System#err} are decoded for replay through the
+     * logger. Those bytes are written by Tika/PDFBox/POI through
+     * {@link PrintStream}s the JVM wraps with {@link Charset#defaultCharset()},
+     * so the capture/replay path always uses the JVM default charset to avoid
+     * lossy substitution of non-ASCII diagnostic text. See
+     * {@link #replayCapturedBytes(BoundedByteArrayOutputStream, boolean)}.
+     *
      * @param outputEncoding The output encoding.
      */
     public void setOutputEncoding(final String outputEncoding) {

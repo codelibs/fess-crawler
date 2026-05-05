@@ -78,8 +78,18 @@ public class HtmlExtractor extends AbstractXmlExtractor {
     /** Metadata key holding {@code @type} values from JSON-LD blocks. */
     public static final String JSONLD_TYPE_KEY = "jsonld.type";
 
-    /** XPath expression matching JSON-LD script blocks. */
-    protected static final String JSONLD_XPATH = "//SCRIPT[@type='application/ld+json']";
+    /**
+     * XPath expression matching JSON-LD script blocks.
+     *
+     * <p>Per RFC 6838 / HTML5, MIME types are case-insensitive and may carry
+     * surrounding whitespace, so {@code <script type="Application/LD+JSON">}
+     * and {@code <script type=" application/ld+json ">} must also match.
+     * NekoHTML uppercases element names but preserves attribute values
+     * verbatim, hence the explicit {@code translate(normalize-space(...))}
+     * normalisation here.</p>
+     */
+    protected static final String JSONLD_XPATH = "//SCRIPT[translate(normalize-space(@type),"
+            + "'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='application/ld+json']";
 
     /**
      * Single shared {@link XPathFactory}. {@code XPathFactory} itself is not
@@ -287,8 +297,14 @@ public class HtmlExtractor extends AbstractXmlExtractor {
 
     /**
      * Applies the configured default-field rules, populating {@code extractData}
-     * with extracted values. Existing keys (set via
-     * {@link #addMetadata(String, String)}) are preserved.
+     * with extracted values. Keys already populated with a non-blank value
+     * (set via {@link #addMetadata(String, String)}) are preserved; keys whose
+     * custom XPath returned no values or only blank strings fall back to the
+     * default rule. This matters because {@code metadataXpathMap} entries
+     * unconditionally call {@code putValues}, so even an empty XPath result
+     * leaves the key non-null in {@link ExtractData}; without the
+     * non-blank check, default backfills (notably {@code og:title} when
+     * {@code <title>} is missing) would be silently suppressed.
      *
      * @param document the parsed HTML DOM
      * @param extractData the extract data to populate
@@ -298,8 +314,8 @@ public class HtmlExtractor extends AbstractXmlExtractor {
             return;
         }
         defaultFieldRules.forEach((key, xpath) -> {
-            if (extractData.getValues(key) != null) {
-                // already populated by a custom rule; do not overwrite
+            if (hasNonBlankValue(extractData.getValues(key))) {
+                // already populated with a non-blank value by a custom rule; do not overwrite
                 return;
             }
             final String[] values = getStringsByXPath(document, xpath);
@@ -308,6 +324,23 @@ public class HtmlExtractor extends AbstractXmlExtractor {
                 extractData.putValues(key, nonBlank);
             }
         });
+    }
+
+    /**
+     * Returns {@code true} if {@code values} contains at least one non-blank
+     * entry. Used by {@link #applyDefaultFieldRules} to decide whether a key
+     * is meaningfully populated by a custom rule.
+     */
+    private static boolean hasNonBlankValue(final String[] values) {
+        if (values == null || values.length == 0) {
+            return false;
+        }
+        for (final String value : values) {
+            if (StringUtil.isNotBlank(value)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

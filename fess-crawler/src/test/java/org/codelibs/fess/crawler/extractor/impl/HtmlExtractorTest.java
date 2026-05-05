@@ -501,6 +501,92 @@ public class HtmlExtractorTest extends PlainTestCase {
     }
 
     @Test
+    public void test_titleBackfillsFromOgTitle_whenCustomTitleXPathIsEmpty() {
+        // Mirrors the standard fess-crawler-lasta config: extractor.xml
+        // registers addMetadata("title", "//TITLE"). On a page that has no
+        // <title> but does carry og:title, the metadataXpathMap loop unconditionally
+        // calls putValues("title", []), leaving the key non-null but blank.
+        // The default-rule backfill must still fire so the og:title fallback
+        // takes effect — otherwise the PR's "extract default HTML metadata"
+        // intent is silently disabled in real deployments.
+        final HtmlExtractor extractor = newExtractor();
+        extractor.addMetadata("title", "//TITLE");
+
+        final String html = "<html><head>" //
+                + "<meta property=\"og:title\" content=\"OG Backfill\">" //
+                + "</head><body>body</body></html>";
+        final ExtractData data = extractor.getText(toStream(html), null);
+
+        final String[] title = data.getValues("title");
+        assertNotNull(title);
+        Assertions.assertTrue(title.length > 0, "title must be backfilled from og:title");
+        assertEquals("OG Backfill", title[0]);
+    }
+
+    @Test
+    public void test_titleNotOverwritten_whenCustomTitleXPathHasValue() {
+        // Companion to the backfill test: when the custom rule actually
+        // produces a non-blank value, it must win over the default backfill
+        // (precedence rule preserved).
+        final HtmlExtractor extractor = newExtractor();
+        extractor.addMetadata("title", "//TITLE");
+
+        final String html = "<html><head>" //
+                + "<title>Page Title</title>" //
+                + "<meta property=\"og:title\" content=\"OG Title\">" //
+                + "</head><body>body</body></html>";
+        final ExtractData data = extractor.getText(toStream(html), null);
+
+        final String[] title = data.getValues("title");
+        assertNotNull(title);
+        assertEquals(1, title.length);
+        assertEquals("Page Title", title[0]);
+    }
+
+    @Test
+    public void test_jsonLd_typeAttributeIsCaseInsensitiveAndTrimmed() {
+        // RFC 6838 / HTML5: media types are case-insensitive and may carry
+        // surrounding whitespace. The XPath must therefore match
+        // Application/LD+JSON, application/LD+JSON, and values padded with
+        // whitespace, in addition to the canonical lowercase form.
+        final HtmlExtractor extractor = newExtractor();
+        final String html = "<html><head>" //
+                + "<title>T</title>" //
+                + "<script type=\"Application/LD+JSON\">{\"@type\":\"A\"}</script>" //
+                + "<script type=\"  application/ld+json  \">{\"@type\":\"B\"}</script>" //
+                + "<script type=\"application/LD+json\">{\"@type\":\"C\"}</script>" //
+                + "</head><body>body</body></html>";
+
+        final ExtractData data = extractor.getText(toStream(html), null);
+        final String[] types = data.getValues(HtmlExtractor.JSONLD_TYPE_KEY);
+        assertNotNull(types);
+        final List<String> typeList = Arrays.asList(types);
+        Assertions.assertTrue(typeList.contains("A"), "expected A in " + typeList);
+        Assertions.assertTrue(typeList.contains("B"), "expected B in " + typeList);
+        Assertions.assertTrue(typeList.contains("C"), "expected C in " + typeList);
+
+        final String[] raw = data.getValues(HtmlExtractor.JSONLD_RAW_KEY);
+        assertNotNull(raw);
+        assertEquals(3, raw.length);
+    }
+
+    @Test
+    public void test_jsonLd_unrelatedScriptTypeIsIgnored() {
+        // Sanity check that the case-insensitive XPath does not over-match —
+        // application/javascript and arbitrary mime types must not be parsed
+        // as JSON-LD.
+        final HtmlExtractor extractor = newExtractor();
+        final String html = "<html><head>" //
+                + "<title>T</title>" //
+                + "<script type=\"application/javascript\">var x=1;</script>" //
+                + "<script type=\"text/javascript\">var y=2;</script>" //
+                + "</head><body>body</body></html>";
+        final ExtractData data = extractor.getText(toStream(html), null);
+        Assertions.assertNull(data.getValues(HtmlExtractor.JSONLD_TYPE_KEY), "non-JSON-LD scripts must not contribute jsonld.type");
+        Assertions.assertNull(data.getValues(HtmlExtractor.JSONLD_RAW_KEY), "non-JSON-LD scripts must not contribute jsonld.raw");
+    }
+
+    @Test
     public void test_destroyClearsThreadLocals() throws Exception {
         final HtmlExtractor extractor = newExtractor();
         extractor.setExtractDefaultMetadata(false);

@@ -18,6 +18,11 @@ package org.codelibs.fess.crawler.extractor.impl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.CharsetEncoder;
+import java.nio.charset.CoderResult;
+import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -499,6 +504,12 @@ public class EmlExtractor extends AbstractExtractor {
      * {@link #maxBodyBytes}. Truncates any text that would push the total over
      * the limit.
      *
+     * <p>Uses a single {@link CharsetEncoder} pass into a fixed-size
+     * {@link ByteBuffer} sized to the remaining byte budget, so memory usage is
+     * bounded by the budget rather than the input size. This avoids the
+     * pathological O(N log N) memory blow-up of repeatedly slicing and
+     * re-encoding very large strings.</p>
+     *
      * @param ctx the extraction context
      * @param text the text to append
      */
@@ -509,27 +520,40 @@ public class EmlExtractor extends AbstractExtractor {
         if (ctx.bodyBytes >= maxBodyBytes) {
             return;
         }
-        final byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
-        final long remaining = maxBodyBytes - ctx.bodyBytes;
-        if (bytes.length <= remaining) {
+        final long remainingLong = maxBodyBytes - ctx.bodyBytes;
+        // Cap the per-call buffer to Integer.MAX_VALUE; further input is rejected
+        // once the cumulative limit is reached on subsequent calls.
+        final int remaining = (int) Math.min(remainingLong, Integer.MAX_VALUE);
+
+        // Allocate a single buffer sized to the remaining budget. This is the
+        // only large allocation; we never materialize the full input as bytes.
+        final ByteBuffer out = ByteBuffer.allocate(remaining);
+        final CharBuffer in = CharBuffer.wrap(text);
+        final CharsetEncoder encoder = StandardCharsets.UTF_8.newEncoder()
+                .onMalformedInput(CodingErrorAction.REPLACE)
+                .onUnmappableCharacter(CodingErrorAction.REPLACE);
+        final CoderResult cr = encoder.encode(in, out, true);
+        // Flush any pending state; if it still overflows, we treat as truncated.
+        CoderResult flush = CoderResult.UNDERFLOW;
+        if (!cr.isOverflow()) {
+            flush = encoder.flush(out);
+        }
+        final boolean overflow = cr.isOverflow() || flush.isOverflow();
+        final int encoded = out.position();
+
+        if (!overflow) {
+            // The whole text fit within the remaining budget.
             ctx.body.append(text).append(' ');
-            ctx.bodyBytes += bytes.length + 1;
+            ctx.bodyBytes += encoded + 1;
         } else {
-            // Truncate at character boundary that fits within remaining budget.
-            int lo = 0;
-            int hi = text.length();
-            while (lo < hi) {
-                final int mid = lo + ((hi - lo + 1) >>> 1);
-                if (text.substring(0, mid).getBytes(StandardCharsets.UTF_8).length <= remaining) {
-                    lo = mid;
-                } else {
-                    hi = mid - 1;
-                }
-            }
-            if (lo > 0) {
-                final String truncated = text.substring(0, lo);
+            // Decode the actually-encoded prefix bytes back to a String. UTF-8
+            // decoding handles partial multi-byte sequences at the boundary by
+            // producing a replacement character or trimming, so the result is
+            // always a valid String — no manual character-boundary search.
+            out.flip();
+            final String truncated = StandardCharsets.UTF_8.decode(out).toString();
+            if (!truncated.isEmpty()) {
                 ctx.body.append(truncated);
-                ctx.bodyBytes += truncated.getBytes(StandardCharsets.UTF_8).length;
             }
             ctx.bodyBytes = maxBodyBytes;
             if (logger.isDebugEnabled()) {

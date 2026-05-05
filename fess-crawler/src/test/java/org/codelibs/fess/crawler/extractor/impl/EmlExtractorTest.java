@@ -324,6 +324,41 @@ public class EmlExtractorTest extends PlainTestCase {
     }
 
     @Test
+    public void test_maxBodyBytes_largeInputIsBounded() throws Exception {
+        // Regression: previous binary-search truncation called text.substring(0, mid).getBytes(UTF_8)
+        // O(log N) times, each allocating up to ~N bytes. For very large text parts this
+        // self-OOMs and is also catastrophically slow. The CharsetEncoder-based path
+        // allocates only ~maxBodyBytes worth of memory once.
+        final EmlExtractor extractor = new EmlExtractor();
+        extractor.setMaxBodyBytes(1024);
+
+        final MimeMessage msg = new MimeMessage(newSession());
+        msg.setFrom(new InternetAddress("sender@example.com"));
+        msg.setRecipients(Message.RecipientType.TO, new InternetAddress[] { new InternetAddress("recipient@example.com") });
+        msg.setSubject("huge body", "UTF-8");
+
+        // 5 MiB of 'a' characters — well within typical heap, but large enough that the
+        // old O(N log N) truncation would be visibly slow.
+        final int size = 5 * 1024 * 1024;
+        final char[] chars = new char[size];
+        Arrays.fill(chars, 'a');
+        msg.setText(new String(chars), "UTF-8");
+        msg.saveChanges();
+
+        try (final InputStream in = toStream(msg)) {
+            final long start = System.nanoTime();
+            final ExtractData data = extractor.getText(in, null);
+            final long elapsedMs = (System.nanoTime() - start) / 1_000_000L;
+            final String content = data.getContent();
+            // Bounded by maxBodyBytes (allow a small overhead for trailing space etc.).
+            assertTrue(content.length() <= 2048);
+            // Sanity: the streaming truncation must complete quickly (well under a second).
+            logger.info("test_maxBodyBytes_largeInputIsBounded elapsed={}ms contentLen={}", elapsedMs, content.length());
+            assertTrue(elapsedMs < 1000);
+        }
+    }
+
+    @Test
     public void test_multipartAlternative_prefersPlainText() throws Exception {
         final MimeMessage msg = new MimeMessage(newSession());
         msg.setFrom(new InternetAddress("sender@example.com"));

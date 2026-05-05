@@ -31,6 +31,8 @@ import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -156,7 +158,11 @@ public class TikaExtractor extends PasswordBasedExtractor {
     private static final String FILE_PASSWORD = "fess.file.password";
 
     /**
-     * Output encoding.
+     * Output encoding used when materializing extracted content into a byte
+     * stream (e.g. read-as-text fallbacks). This setter intentionally does
+     * <em>not</em> influence the JVM-stream capture/replay path used by
+     * {@link #muteSystemStreams()} / {@link #replayCapturedBytes(BoundedByteArrayOutputStream, boolean)};
+     * see those methods for the rationale.
      */
     protected String outputEncoding = Constants.UTF_8;
 
@@ -209,6 +215,50 @@ public class TikaExtractor extends PasswordBasedExtractor {
      * Tika config.
      */
     protected TikaConfig tikaConfig;
+
+    /**
+     * If true, System.out/System.err are muted during Tika parsing to suppress
+     * stray output produced by some bundled parsers. Defaults to {@code true}
+     * to preserve existing behavior. Disable when debugging or when callers
+     * want to keep the original streams intact.
+     */
+    protected boolean muteSystemStreams = true;
+
+    /**
+     * Class-wide lock guarding {@link #muteRefCount}, {@link #savedOut},
+     * {@link #savedErr} and the capture buffers. We never hold this lock during
+     * extraction itself, so concurrent extractions are not serialized; we only
+     * synchronize the (cheap) swap and restore of the JVM streams plus the
+     * post-run replay of captured bytes.
+     */
+    private static final Object SYSTEM_STREAM_LOCK = new Object();
+
+    /**
+     * Hard cap on the number of bytes captured from each muted stream
+     * (System.out and System.err) while extractions are running. Once the cap
+     * is reached, additional writes are discarded and a single truncation
+     * marker is appended to the buffer so the operator can tell the output was
+     * cut short.
+     */
+    private static final int CAPTURE_BUFFER_SIZE = 64 * 1024;
+
+    /** Truncation marker appended once when a capture buffer fills up. */
+    private static final byte[] CAPTURE_TRUNCATION_MARKER = "\n[truncated; further output discarded]\n".getBytes(StandardCharsets.UTF_8);
+
+    /** Number of extractions currently running with muted streams. */
+    private static int muteRefCount = 0;
+
+    /** Original {@link System#out}, captured by the first muting thread. */
+    private static PrintStream savedOut;
+
+    /** Original {@link System#err}, captured by the first muting thread. */
+    private static PrintStream savedErr;
+
+    /** Buffer capturing bytes written to the muted {@link System#out}. */
+    private static BoundedByteArrayOutputStream capturedOut;
+
+    /** Buffer capturing bytes written to the muted {@link System#err}. */
+    private static BoundedByteArrayOutputStream capturedErr;
 
     private final Map<String, TesseractOCRConfig> tesseractOCRConfigMap = new ConcurrentHashMap<>();
 
@@ -272,13 +322,11 @@ public class TikaExtractor extends PasswordBasedExtractor {
             tempFile = createTempFile("tikaExtractor-", ".out", null);
         }
 
+        final boolean muted = muteSystemStreams;
+        if (muted) {
+            muteSystemStreams();
+        }
         try {
-            final PrintStream originalOutStream = System.out;
-            final ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-            System.setOut(new PrintStream(outStream, true));
-            final PrintStream originalErrStream = System.err;
-            final ByteArrayOutputStream errStream = new ByteArrayOutputStream();
-            System.setErr(new PrintStream(errStream, true));
             try {
                 final String resourceName = params == null ? null : params.get(ExtractData.RESOURCE_NAME_KEY);
                 final String contentType = params == null ? null : params.get(ExtractData.CONTENT_TYPE);
@@ -287,65 +335,46 @@ public class TikaExtractor extends PasswordBasedExtractor {
                 final boolean stripHtmlTags = params != null && "true".equalsIgnoreCase(params.get(STRIP_HTML_TAGS));
                 final String password = getPassword(params);
 
+                // Materialize the input stream once into the existing tempFile (or keep the
+                // byte buffer in memory). Subsequent retries reuse the same on-disk file
+                // through TikaInputStream.get(Path), which prevents Tika from spooling the
+                // bytes a second time inside TikaDetectParser.
+                if (!isByteStream) {
+                    try (OutputStream out = new FileOutputStream(tempFile)) {
+                        CopyUtil.copy(inputStream, out);
+                    }
+                }
+
                 final Metadata metadata = createMetadata(resourceName, contentType, contentEncoding, password);
 
                 final Parser parser = new TikaDetectParser();
                 final ParseContext parseContext = createParseContext(parser, params);
 
                 String content = getContent(writer -> {
-                    InputStream in = null;
-                    try {
-                        if (!isByteStream) {
-                            try (OutputStream out = new FileOutputStream(tempFile)) {
-                                CopyUtil.copy(inputStream, out);
-                            }
-                            in = new FileInputStream(tempFile);
-                        } else {
-                            in = inputStream;
-                        }
+                    try (InputStream in = openMaterializedInput(inputStream, tempFile, isByteStream)) {
                         parser.parse(in, new BodyContentHandler(writer), metadata, parseContext);
-                    } finally {
-                        CloseableUtil.closeQuietly(in);
                     }
                 }, contentEncoding, normalizeText);
                 if (StringUtil.isBlank(content)) {
                     if (resourceName != null) {
                         if (logger.isDebugEnabled()) {
-                            logger.debug("retry without a resource name: {}", resourceName);
+                            logger.debug("retry without a resource name: resourceName={}", resourceName);
                         }
                         final Metadata metadata2 = createMetadata(null, contentType, contentEncoding, password);
                         content = getContent(writer -> {
-                            InputStream in = null;
-                            try {
-                                if (isByteStream) {
-                                    inputStream.reset();
-                                    in = inputStream;
-                                } else {
-                                    in = new FileInputStream(tempFile);
-                                }
+                            try (InputStream in = openMaterializedInput(inputStream, tempFile, isByteStream)) {
                                 parser.parse(in, new BodyContentHandler(writer), metadata2, parseContext);
-                            } finally {
-                                CloseableUtil.closeQuietly(in);
                             }
                         }, contentEncoding, normalizeText);
                     }
                     if (StringUtil.isBlank(content) && contentType != null) {
                         if (logger.isDebugEnabled()) {
-                            logger.debug("retry without a content type: {}", contentType);
+                            logger.debug("retry without a content type: contentType={}", contentType);
                         }
                         final Metadata metadata3 = createMetadata(null, null, contentEncoding, password);
                         content = getContent(writer -> {
-                            InputStream in = null;
-                            try {
-                                if (isByteStream) {
-                                    inputStream.reset();
-                                    in = inputStream;
-                                } else {
-                                    in = new FileInputStream(tempFile);
-                                }
+                            try (InputStream in = openMaterializedInput(inputStream, tempFile, isByteStream)) {
                                 parser.parse(in, new BodyContentHandler(writer), metadata3, parseContext);
-                            } finally {
-                                CloseableUtil.closeQuietly(in);
                             }
                         }, contentEncoding, normalizeText);
                     }
@@ -388,7 +417,8 @@ public class TikaExtractor extends PasswordBasedExtractor {
                                     writer.write(line);
                                 }
                             } catch (final Exception e) {
-                                logger.warn("Could not read " + (tempFile != null ? tempFile.getAbsolutePath() : "a byte stream"), e);
+                                logger.warn("Could not read source: source={}",
+                                        tempFile != null ? tempFile.getAbsolutePath() : "byteStream", e);
                             } finally {
                                 CloseableUtil.closeQuietly(br);
                             }
@@ -417,17 +447,8 @@ public class TikaExtractor extends PasswordBasedExtractor {
                 }
 
                 if (postFilter != null) {
-                    InputStream in = null;
-                    try {
-                        if (isByteStream) {
-                            inputStream.reset();
-                            in = inputStream;
-                        } else {
-                            in = new FileInputStream(tempFile);
-                        }
+                    try (InputStream in = openMaterializedInput(inputStream, tempFile, isByteStream)) {
                         postFilter.accept(extractData, in);
-                    } finally {
-                        CloseableUtil.closeQuietly(in);
                     }
                 }
 
@@ -437,64 +458,244 @@ public class TikaExtractor extends PasswordBasedExtractor {
 
                 return extractData;
             } catch (final TikaException e) {
-                if (e.getMessage().indexOf("bomb") >= 0) {
-                    throw new ExtractException("Zip bomb detected.", e);
+                if (e.getMessage() != null && e.getMessage().indexOf("bomb") >= 0) {
+                    throw new ExtractException("Failed to extract via Tika: reason=zipBombDetected", e);
                 }
                 final Throwable cause = e.getCause();
                 if (cause instanceof SAXException) {
                     final Extractor xmlExtractor = crawlerContainer.getComponent("xmlExtractor");
                     if (xmlExtractor != null) {
-                        InputStream in = null;
-                        try {
-                            if (isByteStream) {
-                                inputStream.reset();
-                                in = inputStream;
-                            } else {
-                                in = new FileInputStream(tempFile);
-                            }
+                        try (InputStream in = openMaterializedInput(inputStream, tempFile, isByteStream)) {
                             return xmlExtractor.getText(in, params);
-                        } finally {
-                            CloseableUtil.closeQuietly(in);
                         }
                     }
                 }
                 throw e;
+            }
+        } catch (final ExtractException e) {
+            throw e;
+        } catch (final Exception e) {
+            throw new ExtractException("Failed to extract via Tika: reason=unexpectedError", e);
+        } finally {
+            try {
+                FileUtil.deleteInBackground(tempFile);
             } finally {
-                if (originalOutStream != null) {
-                    try {
-                        System.setOut(originalOutStream);
-                    } catch (Exception e) {
-                        logger.warn("Failed to set originalOutStream.", e);
-                    }
-                }
-                if (originalErrStream != null) {
-                    try {
-                        System.setErr(originalErrStream);
-                    } catch (Exception e) {
-                        logger.warn("Failed to set originalErrStream.", e);
-                    }
-                }
-                try {
-                    if (logger.isInfoEnabled()) {
-                        final byte[] bs = outStream.toByteArray();
-                        if (bs.length != 0) {
-                            logger.info(new String(bs, outputEncoding));
-                        }
-                    }
-                    if (logger.isWarnEnabled()) {
-                        final byte[] bs = errStream.toByteArray();
-                        if (bs.length != 0) {
-                            logger.warn(new String(bs, outputEncoding));
-                        }
-                    }
-                } catch (final Exception e) {
-                    // NOP
+                if (muted) {
+                    unmuteSystemStreams();
                 }
             }
-        } catch (final Exception e) {
-            throw new ExtractException("Could not extract a content.", e);
-        } finally {
-            FileUtil.deleteInBackground(tempFile);
+        }
+    }
+
+    /**
+     * Opens an {@link InputStream} backed by the already-materialized source (the byte
+     * stream marked at the start, or the on-disk {@code tempFile}). When a temp file is
+     * present we wrap it as a {@link TikaInputStream} so that
+     * {@code TikaInputStream.get(stream, ...)} inside {@link TikaDetectParser#parse}
+     * can reuse the existing file path instead of spooling the bytes a second time.
+     *
+     * @param inputStream the original byte stream (used when {@code isByteStream})
+     * @param tempFile    the materialized on-disk copy (used otherwise); may be {@code null}
+     * @param isByteStream {@code true} iff the caller passed a {@link ByteArrayInputStream}
+     * @return a fresh, ready-to-read input stream
+     * @throws IOException if the on-disk file cannot be opened
+     */
+    protected InputStream openMaterializedInput(final InputStream inputStream, final File tempFile, final boolean isByteStream)
+            throws IOException {
+        if (isByteStream) {
+            inputStream.reset();
+            return inputStream;
+        }
+        return TikaInputStream.get(tempFile.toPath());
+    }
+
+    /**
+     * Mutes {@link System#out} and {@link System#err} for the duration of the current
+     * extraction. Concurrent extractions share a single muted state via a reference
+     * count — the first caller saves the original streams and swaps in bounded
+     * capture buffers; subsequent callers just bump the count. Captured bytes are
+     * not silently discarded: when the last outstanding mute is released the
+     * captured contents are emitted via the configured logger so operators still
+     * see Tika parser warnings (PDFBox font warnings, JBIG2 warnings, legacy POI
+     * debug, etc.). The lock is released as soon as the swap is recorded so that
+     * extractions never serialize on it.
+     *
+     * <p>The replacement {@link PrintStream}s are constructed with the auto-flush
+     * two-arg form, which the JVM wraps using {@link Charset#defaultCharset()}.
+     * The configured {@link #outputEncoding} is intentionally <em>not</em> applied
+     * here: third-party libraries (Tika, PDFBox, POI, JBIG2-ImageIO) write
+     * diagnostics through {@link System#out}/{@link System#err} using the JVM
+     * default charset, and forcing a different encoder would risk character
+     * substitution for code points not representable in that encoding. See
+     * {@link #replayCapturedBytes(BoundedByteArrayOutputStream, boolean)} for the
+     * matching decode side.
+     */
+    protected void muteSystemStreams() {
+        synchronized (SYSTEM_STREAM_LOCK) {
+            if (muteRefCount == 0) {
+                savedOut = System.out;
+                savedErr = System.err;
+                capturedOut = new BoundedByteArrayOutputStream(CAPTURE_BUFFER_SIZE);
+                capturedErr = new BoundedByteArrayOutputStream(CAPTURE_BUFFER_SIZE);
+                System.setOut(new PrintStream(capturedOut, true));
+                System.setErr(new PrintStream(capturedErr, true));
+            }
+            muteRefCount++;
+        }
+    }
+
+    /**
+     * Releases one reference acquired by {@link #muteSystemStreams()}. When the last
+     * outstanding mute is released, the original streams are restored and any
+     * bytes captured while the streams were muted are replayed via the logger
+     * (info for stdout, warn for stderr) so they are not silently lost. Calling
+     * this without a matching {@link #muteSystemStreams()} is a programming
+     * error and is tolerated only defensively (the count is clamped at zero).
+     */
+    protected void unmuteSystemStreams() {
+        BoundedByteArrayOutputStream outToReplay = null;
+        BoundedByteArrayOutputStream errToReplay = null;
+        synchronized (SYSTEM_STREAM_LOCK) {
+            if (muteRefCount <= 0) {
+                logger.warn("unmuteSystemStreams called without a matching mute; muteRefCount={}", muteRefCount);
+                return;
+            }
+            muteRefCount--;
+            if (muteRefCount == 0) {
+                if (savedOut != null) {
+                    try {
+                        System.setOut(savedOut);
+                    } catch (final Exception e) {
+                        logger.warn("Failed to restore System.out.", e);
+                    }
+                }
+                if (savedErr != null) {
+                    try {
+                        System.setErr(savedErr);
+                    } catch (final Exception e) {
+                        logger.warn("Failed to restore System.err.", e);
+                    }
+                }
+                savedOut = null;
+                savedErr = null;
+                outToReplay = capturedOut;
+                errToReplay = capturedErr;
+                capturedOut = null;
+                capturedErr = null;
+            }
+        }
+        // Emit captured output outside the lock so logging back-pressure
+        // never blocks future muteSystemStreams() callers.
+        if (outToReplay != null) {
+            replayCapturedBytes(outToReplay, false);
+        }
+        if (errToReplay != null) {
+            replayCapturedBytes(errToReplay, true);
+        }
+    }
+
+    /**
+     * Decodes the bytes captured from a muted JVM stream and re-emits them via
+     * the logger. Stdout-origin bytes are logged at INFO; stderr-origin bytes at
+     * WARN, matching the severity of the original Tika diagnostic channels.
+     * Visible for testing so that subclasses can intercept the replayed text.
+     *
+     * <p>The decode charset is deliberately {@link Charset#defaultCharset()} and
+     * <em>not</em> the configurable {@link #outputEncoding}. {@link #muteSystemStreams()}
+     * installs {@code PrintStream}s that wrap the JVM default charset, so this
+     * choice guarantees a lossless round-trip of whatever Tika/PDFBox/POI wrote
+     * to {@link System#out}/{@link System#err}.
+     *
+     * @param buffer captured byte buffer; ignored when empty
+     * @param fromStderr whether the buffer came from {@link System#err}
+     */
+    protected void replayCapturedBytes(final BoundedByteArrayOutputStream buffer, final boolean fromStderr) {
+        if (buffer == null || buffer.size() == 0) {
+            return;
+        }
+        // Must match the encoder used by muteSystemStreams() — PrintStream(out, true)
+        // wraps Charset.defaultCharset(). outputEncoding is intentionally not used
+        // here; see the Javadoc above.
+        final Charset charset = Charset.defaultCharset();
+        final String text = new String(buffer.toByteArray(), charset);
+        if (text.isEmpty()) {
+            return;
+        }
+        onReplayCaptured(text, fromStderr);
+        if (fromStderr) {
+            logger.warn("Captured System.err output during Tika extraction:\n{}", text);
+        } else {
+            logger.info("Captured System.out output during Tika extraction:\n{}", text);
+        }
+    }
+
+    /**
+     * Hook invoked just before the captured bytes from a muted JVM stream are
+     * emitted via the logger. Default implementation is a no-op; tests and
+     * subclasses can override to observe (or otherwise act on) the replayed
+     * text.
+     *
+     * @param text       captured text decoded with the JVM default charset
+     * @param fromStderr {@code true} if the bytes were captured from
+     *                   {@link System#err}, {@code false} for {@link System#out}
+     */
+    protected void onReplayCaptured(final String text, final boolean fromStderr) {
+        // hook for subclasses; intentionally empty
+    }
+
+    /**
+     * A {@link ByteArrayOutputStream} with a hard upper bound. Once the bound is
+     * reached a single truncation marker is appended and any further writes are
+     * silently dropped. This prevents a runaway parser from consuming arbitrary
+     * heap while still preserving an operator-visible record that output was
+     * truncated.
+     */
+    static final class BoundedByteArrayOutputStream extends ByteArrayOutputStream {
+        private final int capacity;
+        private boolean truncated;
+
+        BoundedByteArrayOutputStream(final int capacity) {
+            super(Math.min(1024, capacity));
+            this.capacity = capacity;
+        }
+
+        @Override
+        public synchronized void write(final int b) {
+            if (truncated) {
+                return;
+            }
+            if (size() >= capacity) {
+                appendTruncationMarker();
+                return;
+            }
+            super.write(b);
+        }
+
+        @Override
+        public synchronized void write(final byte[] b, final int off, final int len) {
+            if (truncated) {
+                return;
+            }
+            final int remaining = capacity - size();
+            if (remaining <= 0) {
+                appendTruncationMarker();
+                return;
+            }
+            if (len <= remaining) {
+                super.write(b, off, len);
+                return;
+            }
+            super.write(b, off, remaining);
+            appendTruncationMarker();
+        }
+
+        private void appendTruncationMarker() {
+            if (truncated) {
+                return;
+            }
+            truncated = true;
+            // Direct super.write to bypass our cap (the marker itself is small).
+            super.write(CAPTURE_TRUNCATION_MARKER, 0, CAPTURE_TRUNCATION_MARKER.length);
         }
     }
 
@@ -724,7 +925,16 @@ public class TikaExtractor extends PasswordBasedExtractor {
     }
 
     /**
-     * Sets the output encoding.
+     * Sets the output encoding used for materializing extracted content.
+     *
+     * <p>Note: this setting does not affect how bytes captured from muted
+     * {@link System#out}/{@link System#err} are decoded for replay through the
+     * logger. Those bytes are written by Tika/PDFBox/POI through
+     * {@link PrintStream}s the JVM wraps with {@link Charset#defaultCharset()},
+     * so the capture/replay path always uses the JVM default charset to avoid
+     * lossy substitution of non-ASCII diagnostic text. See
+     * {@link #replayCapturedBytes(BoundedByteArrayOutputStream, boolean)}.
+     *
      * @param outputEncoding The output encoding.
      */
     public void setOutputEncoding(final String outputEncoding) {
@@ -809,6 +1019,18 @@ public class TikaExtractor extends PasswordBasedExtractor {
      */
     public void setTikaConfig(final TikaConfig tikaConfig) {
         this.tikaConfig = tikaConfig;
+    }
+
+    /**
+     * Sets whether to mute {@link System#out} and {@link System#err} during extraction.
+     * Some Tika-bundled parsers print to the JVM streams; muting suppresses that noise.
+     * Defaults to {@code true}. Disable when debugging or when callers depend on
+     * application output remaining on the original streams.
+     *
+     * @param muteSystemStreams {@code true} to mute, {@code false} to leave streams intact
+     */
+    public void setMuteSystemStreams(final boolean muteSystemStreams) {
+        this.muteSystemStreams = muteSystemStreams;
     }
 
     /**

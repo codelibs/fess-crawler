@@ -437,14 +437,19 @@ public class ApiExtractorTest extends PlainTestCase {
     public void test_retryAfterHttpDate_parsedCorrectly() throws Exception {
         final SimpleHttpServer simple = new SimpleHttpServer();
         final AtomicInteger calls = new AtomicInteger();
-        // Pre-compute an HTTP-date 2 seconds into the future for the first response.
+        // Pre-compute an HTTP-date ~3 seconds into the future for the first response.
+        // HTTP-date has 1-second resolution (RFC 7231), so a naive `now + N seconds` value
+        // can truncate to ~(N-1) seconds in the worst case. Round UP to the next whole
+        // second to keep the effective wait close to the intended delta.
         final SimpleDateFormat httpDateFmt = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
         httpDateFmt.setTimeZone(TimeZone.getTimeZone("GMT"));
         simple.setHandler(exchange -> {
             drain(exchange.getRequestBody());
             final int n = calls.incrementAndGet();
             if (n == 1) {
-                final String httpDate = httpDateFmt.format(new Date(System.currentTimeMillis() + 2_000L));
+                final long futureMs = System.currentTimeMillis() + 3_000L;
+                final long futureCeilMs = (futureMs + 999L) / 1000L * 1000L;
+                final String httpDate = httpDateFmt.format(new Date(futureCeilMs));
                 exchange.getResponseHeaders().add("Retry-After", httpDate);
                 exchange.sendResponseHeaders(429, -1);
                 exchange.close();
@@ -471,8 +476,8 @@ public class ApiExtractorTest extends PlainTestCase {
                 assertNotNull(data);
                 assertEquals("ok", data.getContent());
                 assertEquals(2, calls.get());
-                // Must wait at least ~1.5s (allow some slack), well above the default ~10ms backoff.
-                org.junit.jupiter.api.Assertions.assertTrue(elapsed >= 1_500L,
+                // Must wait at least ~2.5s (allow some slack), well above the default ~10ms backoff.
+                org.junit.jupiter.api.Assertions.assertTrue(elapsed >= 2_500L,
                         "retry must respect HTTP-date Retry-After (elapsed=" + elapsed + "ms)");
                 // And not block longer than is reasonable.
                 org.junit.jupiter.api.Assertions.assertTrue(elapsed < 10_000L, "retry must not stall (elapsed=" + elapsed + "ms)");

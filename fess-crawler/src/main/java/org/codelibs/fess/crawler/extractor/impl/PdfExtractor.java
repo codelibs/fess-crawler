@@ -61,8 +61,11 @@ import org.codelibs.fess.crawler.helper.MimeTypeHelper;
  * <p>Text extraction is run on a background worker via an {@link ExecutorService} with a
  * configurable timeout. When a timeout occurs, the worker is cancelled (interrupted) and
  * a short grace period is honoured before the underlying {@link PDDocument} is closed,
- * which avoids the {@code COSStream is closed} race that can otherwise surface as a
- * secondary failure when PDFBox does not honour the interrupt promptly.
+ * which reduces (does not eliminate) the {@code COSStream is closed} race that can
+ * otherwise surface as a secondary failure when PDFBox does not honour the interrupt
+ * promptly. PDFBox does not consistently honour {@link Thread#interrupt()} for native
+ * I/O, so in worst-case scenarios the worker may still be inside a PDFBox call when the
+ * grace period elapses and the document is closed.
  *
  * <p>Features:
  * <ul>
@@ -96,6 +99,18 @@ public class PdfExtractor extends PasswordBasedExtractor {
 
     /** Timeout for PDF extraction in milliseconds (default: 30 seconds). */
     protected long timeout = 30000L; // 30sec
+
+    /**
+     * Retained for source compatibility with subclasses that referenced this field
+     * directly. The current {@link ExecutorService}-based implementation always uses
+     * daemon worker threads (see {@link #DAEMON_THREAD_FACTORY}) and this field is no
+     * longer consulted by {@link #getText(InputStream, Map)}.
+     *
+     * @deprecated No longer used; daemon worker threads are always used regardless of
+     *             this value. Kept only so existing subclasses still compile.
+     */
+    @Deprecated
+    protected boolean isDaemonThread = true;
 
     /**
      * Grace period (in milliseconds) to wait after cancellation for the worker thread to
@@ -156,8 +171,10 @@ public class PdfExtractor extends PasswordBasedExtractor {
                 }
             } finally {
                 // Stop any laggard task and wait briefly so the worker stops touching the
-                // PDDocument before try-with-resources closes it. This avoids the
-                // "COSStream is closed" secondary failure on cancellation.
+                // PDDocument before try-with-resources closes it. This reduces (does not
+                // eliminate) the "COSStream is closed" secondary failure on cancellation:
+                // PDFBox does not consistently honour Thread.interrupt for native I/O, so
+                // the race remains in worst-case scenarios.
                 executor.shutdownNow();
                 try {
                     if (!executor.awaitTermination(cancelGracePeriodMs, TimeUnit.MILLISECONDS) && logger.isDebugEnabled()) {
@@ -379,8 +396,12 @@ public class PdfExtractor extends PasswordBasedExtractor {
      * Sets the grace period (in milliseconds) used after cancellation, before the
      * underlying {@link PDDocument} is closed. The default is 2000 ms.
      * @param cancelGracePeriodMs the grace period in milliseconds; must be non-negative
+     * @throws IllegalArgumentException if {@code cancelGracePeriodMs} is negative
      */
     public void setCancelGracePeriodMs(final long cancelGracePeriodMs) {
+        if (cancelGracePeriodMs < 0L) {
+            throw new IllegalArgumentException("cancelGracePeriodMs must be non-negative: " + cancelGracePeriodMs);
+        }
         this.cancelGracePeriodMs = cancelGracePeriodMs;
     }
 

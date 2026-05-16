@@ -22,7 +22,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.StandardCharsets;
+import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -158,6 +160,18 @@ public class CommandExtractor extends AbstractExtractor {
             filePrefix = "none";
             extention = "";
         }
+        // Sanitize prefix and extension to prevent argument-injection via crafted resourceName
+        // when downstream commands re-expand args through a shell wrapper.
+        filePrefix = filePrefix.replaceAll("[^A-Za-z0-9._-]", "_");
+        if (filePrefix.startsWith("-")) {
+            filePrefix = "_" + filePrefix;
+        }
+        if (!extention.isEmpty()) {
+            extention = extention.replaceAll("[^A-Za-z0-9]", "");
+            if (extention.length() > 16) {
+                extention = extention.substring(0, 16);
+            }
+        }
         File inputFile = null;
         File outputFile = null;
         try {
@@ -180,6 +194,8 @@ public class CommandExtractor extends AbstractExtractor {
 
             final String stderrText = executeCommand(inputFile, outputFile);
 
+            // For standardOutput=false this is the only guard against the external command writing
+            // an unbounded $OUTPUT_FILE — bounded readers cover stdout/stderr only.
             if (outputFile.length() > maxOutputSize) {
                 logger.warn("output file size exceeded limit: size={} limit={} command={}", outputFile.length(), maxOutputSize, command);
                 throw new ExtractException("output file size exceeded limit: limit=" + maxOutputSize);
@@ -200,7 +216,7 @@ public class CommandExtractor extends AbstractExtractor {
 
             return extractData;
         } catch (final IOException e) {
-            throw new ExtractException("Could not extract a content.", e);
+            throw new ExtractException("Could not extract content: resourceName=" + resourceName + " command=" + command, e);
         } finally {
             FileUtil.deleteInBackground(inputFile);
             FileUtil.deleteInBackground(outputFile);
@@ -234,8 +250,8 @@ public class CommandExtractor extends AbstractExtractor {
     }
 
     String getFileName(final String resourceName) {
-        final String name = resourceName.replaceAll("/+$", "");
-        final int pos = name.lastIndexOf('/');
+        final String name = resourceName.replaceAll("[/\\\\]+$", "");
+        final int pos = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\'));
         if (pos >= 0) {
             return name.substring(pos + 1);
         }
@@ -254,7 +270,7 @@ public class CommandExtractor extends AbstractExtractor {
 
         final List<String> cmdList = parseCommand(command, params);
         if (logger.isInfoEnabled()) {
-            logger.info("Command: {}", cmdList);
+            logger.info("executing command: command={}", cmdList);
         }
 
         final ProcessBuilder pb = new ProcessBuilder(cmdList);
@@ -272,10 +288,12 @@ public class CommandExtractor extends AbstractExtractor {
         Charset outCharset;
         try {
             outCharset = Charset.forName(commandOutputEncoding);
-        } catch (final Exception e) {
+        } catch (final IllegalCharsetNameException | UnsupportedCharsetException e) {
+            logger.warn("invalid commandOutputEncoding, falling back to UTF-8: encoding={} command={}", commandOutputEncoding, command, e);
             outCharset = StandardCharsets.UTF_8;
         }
 
+        final AtomicBoolean shuttingDown = new AtomicBoolean(false);
         try {
             currentProcess = pb.start();
 
@@ -288,14 +306,14 @@ public class CommandExtractor extends AbstractExtractor {
             final Future<String> stdoutFuture;
             if (standardOutput) {
                 // Drain stdout into outputFile with a byte-count bound to honour maxOutputSize.
-                stdoutFuture =
-                        streamPool.submit(new BoundedFileWriter(processRef.getInputStream(), outputFile, limit, processRef, "stdout"));
+                stdoutFuture = streamPool.submit(
+                        new BoundedFileWriter(processRef.getInputStream(), outputFile, limit, "stdout", overflowFlag, shuttingDown));
             } else {
                 stdoutFuture = streamPool
-                        .submit(new BoundedStreamReader(processRef.getInputStream(), charset, limit, processRef, "stdout", overflowFlag));
+                        .submit(new BoundedStreamReader(processRef.getInputStream(), charset, limit, "stdout", overflowFlag, shuttingDown));
             }
             final Future<String> stderrFuture = streamPool
-                    .submit(new BoundedStreamReader(processRef.getErrorStream(), charset, limit, processRef, "stderr", overflowFlag));
+                    .submit(new BoundedStreamReader(processRef.getErrorStream(), charset, limit, "stderr", overflowFlag, shuttingDown));
 
             // Poll for process exit so that an overflow detected by a reader thread can
             // break out immediately rather than blocking for the full executionTimeout.
@@ -315,26 +333,33 @@ public class CommandExtractor extends AbstractExtractor {
             if (!exited) {
                 if (overflowFlag.get()) {
                     // Overflow path: kill the process tree, then surface the reader's exception.
+                    shuttingDown.set(true);
                     destroyProcessTree(currentProcess);
                     // Collect exceptions from both futures with a short timeout.
-                    for (final Future<String> f : new Future[] { stdoutFuture, stderrFuture }) {
+                    for (final Future<String> f : List.of(stdoutFuture, stderrFuture)) {
                         try {
                             f.get(2, TimeUnit.SECONDS);
                         } catch (final ExecutionException ee) {
                             final Throwable cause = ee.getCause();
                             if (cause instanceof OutputSizeExceededException) {
                                 logger.warn("command output exceeded limit: limit={} command={}", maxOutputSize, cmdList);
-                                throw new ExtractException("command output exceeded limit: limit=" + maxOutputSize);
+                                throw new ExtractException("command output exceeded limit: limit=" + maxOutputSize, cause);
                             }
-                        } catch (final TimeoutException | InterruptedException ignore) {
-                            // ignore — we already set the overflow flag
+                            logger.warn("unexpected error draining stream during overflow handling: command={}", cmdList, cause);
+                            throw new CrawlerSystemException("Failed to drain command output during overflow.", cause);
+                        } catch (final TimeoutException te) {
+                            // overflow already detected; surface the ExtractException below
+                        } catch (final InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                            break;
                         }
                     }
-                    // Should not reach here, but guard just in case.
+                    // guard: overflow flag set but no overflow exception observed
                     throw new ExtractException("command output exceeded limit: limit=" + maxOutputSize);
                 } else {
                     // Timeout path.
                     logger.warn("command timed out: timeout={}ms command={}", executionTimeout, cmdList);
+                    shuttingDown.set(true);
                     destroyProcessTree(currentProcess);
                     throw new ExecutionTimeoutException("The command execution is timeout: " + cmdList);
                 }
@@ -345,18 +370,21 @@ public class CommandExtractor extends AbstractExtractor {
             String stdoutText = "";
             String stderrText = "";
             try {
-                if (stdoutFuture != null) {
-                    stdoutText = stdoutFuture.get(5, TimeUnit.SECONDS);
-                }
+                stdoutText = stdoutFuture.get(5, TimeUnit.SECONDS);
                 stderrText = stderrFuture.get(5, TimeUnit.SECONDS);
             } catch (final TimeoutException te) {
                 logger.warn("timed out collecting drained output: command={}", cmdList);
+                stdoutFuture.cancel(true);
+                stderrFuture.cancel(true);
+                destroyProcessTree(currentProcess);
+                throw new ExtractException("Failed to drain command output within 5s: command=" + cmdList, te);
             } catch (final ExecutionException ee) {
                 final Throwable cause = ee.getCause();
                 if (cause instanceof OutputSizeExceededException) {
                     logger.warn("command output exceeded limit: limit={} command={}", maxOutputSize, cmdList);
+                    shuttingDown.set(true);
                     destroyProcessTree(currentProcess);
-                    throw new ExtractException("command output exceeded limit: limit=" + maxOutputSize);
+                    throw new ExtractException("command output exceeded limit: limit=" + maxOutputSize, cause);
                 }
                 if (cause instanceof IOException) {
                     throw new CrawlerSystemException("Failed to drain command output.", cause);
@@ -365,15 +393,18 @@ public class CommandExtractor extends AbstractExtractor {
             }
 
             final int exitValue = currentProcess.exitValue();
+            if (exitValue != 0) {
+                logger.warn("command exited non-zero: exitCode={} command={}", exitValue, cmdList);
+            }
 
             if (logger.isInfoEnabled()) {
                 if (standardOutput) {
-                    logger.info("Exit Code: {}", exitValue);
+                    logger.info("command exited: exitCode={}", exitValue);
                 } else {
-                    logger.info("Exit Code: {} - Process Output:\n{}", exitValue, truncateForLog(stdoutText));
+                    logger.info("command exited: exitCode={} stdout={}", exitValue, truncateForLog(stdoutText));
                 }
                 if (StringUtil.isNotEmpty(stderrText)) {
-                    logger.info("Process Stderr:\n{}", truncateForLog(stderrText));
+                    logger.info("command stderr: stderr={}", truncateForLog(stderrText));
                 }
             }
             return stderrText;
@@ -382,17 +413,27 @@ public class CommandExtractor extends AbstractExtractor {
         } catch (final InterruptedException e) {
             Thread.currentThread().interrupt();
             if (currentProcess != null) {
+                shuttingDown.set(true);
                 destroyProcessTree(currentProcess);
             }
             throw new InterruptedRuntimeException(e);
         } catch (final Exception e) {
-            throw new CrawlerSystemException("Process terminated.", e);
+            logger.warn("unexpected error executing command: command={}", cmdList, e);
+            throw new CrawlerSystemException("Failed to execute command: " + cmdList, e);
         } finally {
             if (currentProcess != null && currentProcess.isAlive()) {
+                shuttingDown.set(true);
                 destroyProcessTree(currentProcess);
             }
             if (streamPool != null) {
                 streamPool.shutdownNow();
+                try {
+                    if (!streamPool.awaitTermination(1, TimeUnit.SECONDS)) {
+                        logger.warn("stream pool did not terminate within 1s: command={}", cmdList);
+                    }
+                } catch (final InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                }
             }
         }
     }
@@ -422,19 +463,25 @@ public class CommandExtractor extends AbstractExtractor {
             try {
                 process.destroy();
             } catch (final Exception ex) {
-                // ignore
+                if (logger.isDebugEnabled()) {
+                    logger.debug("destroy step failed: pid={}", process == null ? -1 : process.pid(), ex);
+                }
             }
             try {
                 process.destroyForcibly();
             } catch (final Exception ex) {
-                // ignore
+                if (logger.isDebugEnabled()) {
+                    logger.debug("destroy step failed: pid={}", process == null ? -1 : process.pid(), ex);
+                }
             }
             return;
         }
         try {
             process.destroy();
-        } catch (final Exception e) {
-            // ignore
+        } catch (final Exception ex) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("destroy step failed: pid={}", process == null ? -1 : process.pid(), ex);
+            }
         }
         try {
             process.waitFor(destroyGracePeriodMillis, TimeUnit.MILLISECONDS);
@@ -445,16 +492,50 @@ public class CommandExtractor extends AbstractExtractor {
         // exited cleanly during the grace period.
         for (final ProcessHandle h : descendantSnapshot) {
             try {
-                h.destroyForcibly();
-            } catch (final Exception e) {
-                // ignore
+                if (h.isAlive()) {
+                    h.destroyForcibly();
+                }
+            } catch (final Exception ex) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("destroy step failed: pid={}", h.pid(), ex);
+                }
             }
         }
         try {
             process.destroyForcibly();
-        } catch (final Exception e) {
+        } catch (final Exception ex) {
             if (logger.isDebugEnabled()) {
-                logger.debug("Failed to forcibly destroy process.", e);
+                logger.debug("destroy step failed: pid={}", process == null ? -1 : process.pid(), ex);
+            }
+        }
+        // Bounded re-scan loop to catch fork-after-snapshot.
+        for (int attempt = 0; attempt < 3; attempt++) {
+            final List<ProcessHandle> live;
+            try {
+                live = process.descendants().filter(ProcessHandle::isAlive).collect(Collectors.toList());
+            } catch (final Exception e) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("rescan failed: pid={}", process.pid(), e);
+                }
+                break;
+            }
+            if (live.isEmpty()) {
+                break;
+            }
+            for (final ProcessHandle h : live) {
+                try {
+                    h.destroyForcibly();
+                } catch (final Exception e) {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("destroy descendant failed: pid={}", h.pid(), e);
+                    }
+                }
+            }
+            try {
+                Thread.sleep(50);
+            } catch (final InterruptedException ie) {
+                Thread.currentThread().interrupt();
+                break;
             }
         }
     }
@@ -563,9 +644,9 @@ public class CommandExtractor extends AbstractExtractor {
         private final InputStream stream;
         private final Charset charset;
         private final long limit;
-        private final Process process;
         private final String streamName;
         private final AtomicBoolean overflowFlag;
+        private final AtomicBoolean shuttingDown;
 
         /**
          * Constructs a new BoundedStreamReader.
@@ -573,20 +654,22 @@ public class CommandExtractor extends AbstractExtractor {
          * @param stream the input stream to drain
          * @param charset the charset used to decode the bytes
          * @param limit the maximum number of bytes accepted before the process is killed
-         * @param process the process whose stream is being drained (used to destroy on overflow)
          * @param streamName a label used in error messages and logs
          * @param overflowFlag shared flag that is set to {@code true} just before
          *                     {@link OutputSizeExceededException} is thrown, allowing the main
          *                     thread's polling loop to break early and kill the process tree
+         * @param shuttingDown shared flag indicating the main thread is in the process of killing
+         *                     the subprocess; IOExceptions observed while this flag is set are
+         *                     logged at debug level rather than surfaced as ExecutionExceptions
          */
-        public BoundedStreamReader(final InputStream stream, final Charset charset, final long limit, final Process process,
-                final String streamName, final AtomicBoolean overflowFlag) {
+        public BoundedStreamReader(final InputStream stream, final Charset charset, final long limit, final String streamName,
+                final AtomicBoolean overflowFlag, final AtomicBoolean shuttingDown) {
             this.stream = stream;
             this.charset = charset;
             this.limit = limit;
-            this.process = process;
             this.streamName = streamName;
             this.overflowFlag = overflowFlag;
+            this.shuttingDown = shuttingDown;
         }
 
         @Override
@@ -611,9 +694,13 @@ public class CommandExtractor extends AbstractExtractor {
             } catch (final OutputSizeExceededException e) {
                 throw e;
             } catch (final IOException ioe) {
-                // The pipe may be closed when the process is killed; treat as end-of-stream.
-                if (logger.isDebugEnabled()) {
-                    logger.debug("stream read interrupted: stream={}", streamName, ioe);
+                if (shuttingDown.get()) {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("stream closed during shutdown: stream={}", streamName, ioe);
+                    }
+                } else {
+                    logger.warn("unexpected I/O error on stream: stream={} drainedBytes={}", streamName, total, ioe);
+                    throw ioe;
                 }
             }
             return new String(baos.toByteArray(), charset);
@@ -647,8 +734,9 @@ public class CommandExtractor extends AbstractExtractor {
         private final InputStream stream;
         private final File outputFile;
         private final long limit;
-        private final Process process;
         private final String streamName;
+        private final AtomicBoolean overflowFlag;
+        private final AtomicBoolean shuttingDown;
 
         /**
          * Constructs a new BoundedFileWriter.
@@ -656,16 +744,22 @@ public class CommandExtractor extends AbstractExtractor {
          * @param stream the input stream to drain
          * @param outputFile the file to write output to
          * @param limit the maximum number of bytes accepted before the process is killed
-         * @param process the process whose stream is being drained (kept for API symmetry with BoundedStreamReader)
          * @param streamName a label used in error messages and logs
+         * @param overflowFlag shared flag set to {@code true} just before
+         *                     {@link OutputSizeExceededException} is thrown so the main thread's
+         *                     polling loop breaks out early instead of blocking until executionTimeout
+         * @param shuttingDown shared flag indicating the main thread is in the process of killing
+         *                     the subprocess; IOExceptions observed while this flag is set are
+         *                     logged at debug level rather than surfaced as ExecutionExceptions
          */
-        public BoundedFileWriter(final InputStream stream, final File outputFile, final long limit, final Process process,
-                final String streamName) {
+        public BoundedFileWriter(final InputStream stream, final File outputFile, final long limit, final String streamName,
+                final AtomicBoolean overflowFlag, final AtomicBoolean shuttingDown) {
             this.stream = stream;
             this.outputFile = outputFile;
             this.limit = limit;
-            this.process = process;
             this.streamName = streamName;
+            this.overflowFlag = overflowFlag;
+            this.shuttingDown = shuttingDown;
         }
 
         @Override
@@ -677,6 +771,7 @@ public class CommandExtractor extends AbstractExtractor {
                 while ((n = is.read(buf)) != -1) {
                     total += n;
                     if (total > limit) {
+                        overflowFlag.set(true);
                         throw new OutputSizeExceededException(
                                 "command output exceeded limit on " + streamName + ": limit=" + limit + " bytes");
                     }
@@ -685,8 +780,13 @@ public class CommandExtractor extends AbstractExtractor {
             } catch (final OutputSizeExceededException e) {
                 throw e;
             } catch (final IOException ioe) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("stream read interrupted: stream={}", streamName, ioe);
+                if (shuttingDown.get()) {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("stream closed during shutdown: stream={}", streamName, ioe);
+                    }
+                } else {
+                    logger.warn("unexpected I/O error on stream: stream={} drainedBytes={}", streamName, total, ioe);
+                    throw ioe;
                 }
             }
             return "";
@@ -715,30 +815,47 @@ public class CommandExtractor extends AbstractExtractor {
          * @param process the process to monitor (ignored; retained for source compat)
          * @param timeout the timeout (ignored; retained for source compat)
          */
+        @Deprecated
         public MonitorThread(final Process process, final long timeout) {
             // NOP - retained only for source compatibility.
         }
 
+        /**
+         * No-op stub. Subclasses cannot override this — it is intentionally final to make
+         * legacy override attempts compile-fail (rather than silently no-op).
+         */
+        @Deprecated
         @Override
-        public void run() {
+        public final void run() {
             // NOP
         }
 
         /**
          * Sets the finished flag.
          *
+         * <p>Subclasses cannot override this — it is intentionally final to make legacy
+         * override attempts compile-fail (rather than silently no-op).
+         *
          * @param finished the finished flag (ignored)
          */
-        public void setFinished(final boolean finished) {
+        @Deprecated
+        public final void setFinished(final boolean finished) {
             // NOP - retained only for source compatibility.
         }
 
         /**
          * Returns whether the process was terminated.
          *
+         * <p>Subclasses cannot override this — it is intentionally final to make legacy
+         * override attempts compile-fail (rather than silently no-op).
+         *
+         * <p>Note: the typo is preserved intentionally for binary compatibility with the
+         * legacy API.
+         *
          * @return always {@code false}; this stub never terminates anything.
          */
-        public boolean isTeminated() {
+        @Deprecated
+        public final boolean isTeminated() {
             return false;
         }
     }
@@ -764,21 +881,31 @@ public class CommandExtractor extends AbstractExtractor {
          * @param charset the charset (ignored; retained for source compat)
          * @param maxOutputLineBuffer the line buffer size (ignored; retained for source compat)
          */
+        @Deprecated
         public InputStreamThread(final InputStream is, final String charset, final int maxOutputLineBuffer) {
             // NOP - retained only for source compatibility.
         }
 
+        /**
+         * No-op stub. Subclasses cannot override this — it is intentionally final to make
+         * legacy override attempts compile-fail (rather than silently no-op).
+         */
+        @Deprecated
         @Override
-        public void run() {
+        public final void run() {
             // NOP
         }
 
         /**
          * Returns the buffered output as a String.
          *
+         * <p>Subclasses cannot override this — it is intentionally final to make legacy
+         * override attempts compile-fail (rather than silently no-op).
+         *
          * @return always an empty string; this stub never reads anything.
          */
-        public String getOutput() {
+        @Deprecated
+        public final String getOutput() {
             return "";
         }
     }
@@ -875,9 +1002,15 @@ public class CommandExtractor extends AbstractExtractor {
      * size as explicitly set, preventing a subsequent {@link #setMaxOutputLine(int)}
      * call from overriding it.
      *
+     * <p>Note: the entire output may be loaded into memory during extraction
+     * (transient 2–4× heap usage). Values above 512 MiB log a warning.
+     *
      * @param maxOutputSize the limit in bytes
      */
     public void setMaxOutputSize(final long maxOutputSize) {
+        if (maxOutputSize > 512L * 1024L * 1024L) {
+            logger.warn("maxOutputSize is large; extraction may transiently allocate 2-4x this in heap: maxOutputSize={}", maxOutputSize);
+        }
         this.maxOutputSize = maxOutputSize;
         this.maxOutputSizeExplicit = true;
     }

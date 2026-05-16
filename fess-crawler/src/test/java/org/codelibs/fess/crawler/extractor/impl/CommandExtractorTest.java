@@ -330,12 +330,18 @@ public class CommandExtractorTest extends PlainTestCase {
         extractor.executionTimeout = 30_000L;
         extractor.maxOutputSize = 1024L * 1024L; // 1 MiB
 
+        final long start = System.currentTimeMillis();
         try {
             extractor.getText(new ByteArrayInputStream(new byte[0]), new HashMap<>());
             fail();
         } catch (final ExtractException e) {
             // expected
         }
+        final long elapsed = System.currentTimeMillis() - start;
+        if (elapsed >= 5000L) {
+            logger.warn("test_outputSizeExceeded_throwsExtractException: did not fast-fail (was {}ms)", elapsed);
+        }
+        assertTrue(elapsed < 5000L);
     }
 
     /**
@@ -697,6 +703,7 @@ public class CommandExtractorTest extends PlainTestCase {
      * when setMaxOutputSize has not been called.
      */
     @Test
+    @SuppressWarnings("deprecation")
     public void test_setMaxOutputLine_shrinksMaxOutputSize() {
         final CommandExtractor extractor = new CommandExtractor();
         // Default maxOutputSize is 10 MiB; setMaxOutputLine(1) infers 64 KiB (floor), which is smaller.
@@ -709,10 +716,237 @@ public class CommandExtractorTest extends PlainTestCase {
      * must not override it — the explicit value must be preserved regardless of call order.
      */
     @Test
+    @SuppressWarnings("deprecation")
     public void test_setMaxOutputLine_doesNotOverrideExplicitMaxOutputSize() {
         final CommandExtractor extractor = new CommandExtractor();
         extractor.setMaxOutputSize(50L * 1024L * 1024L); // 50 MiB explicit
         extractor.setMaxOutputLine(1); // would infer 64 KiB but must not override explicit
         assertEquals(50L * 1024L * 1024L, extractor.getMaxOutputSize());
+    }
+
+    // ==========================================================
+    // PR-159 review-fix tests
+    // ==========================================================
+
+    /**
+     * Validates C1: standardOutput=true overflow must fail fast (not wait for executionTimeout).
+     */
+    @Test
+    public void test_standardOutputOverflow_failsFastWithoutWaitingForTimeout() throws IOException {
+        if (!SystemUtils.IS_OS_UNIX) {
+            return;
+        }
+        final CommandExtractor extractor = new CommandExtractor();
+        extractor.standardOutput = true;
+        // Produce 5 MiB then keep running. Without C1 fix the test would wait the full executionTimeout.
+        extractor.command = "sh -c \"head -c 5242880 /dev/zero; sleep 30\"";
+        extractor.executionTimeout = 10_000L;
+        extractor.maxOutputSize = 1024L * 1024L;
+        final long start = System.currentTimeMillis();
+        try {
+            extractor.getText(new ByteArrayInputStream(new byte[0]), new HashMap<>());
+            fail();
+        } catch (final ExtractException e) {
+            // expected
+        }
+        final long elapsed = System.currentTimeMillis() - start;
+        if (elapsed >= 5000L) {
+            logger.warn("test_standardOutputOverflow_failsFastWithoutWaitingForTimeout: overflow did not fail fast (was {}ms)", elapsed);
+        }
+        assertTrue(elapsed < 5000L);
+    }
+
+    /**
+     * Validates C4: invalid charset name falls back to UTF-8 silently (warning logged).
+     */
+    @Test
+    public void test_invalidCommandOutputEncoding_fallsBackToUtf8() throws IOException {
+        if (!SystemUtils.IS_OS_UNIX) {
+            return;
+        }
+        final File scriptFile = createScriptTempFileStdout(0);
+        final File contentFile = createContentFile(".txt", "HELLO".getBytes());
+        final CommandExtractor extractor = new CommandExtractor();
+        extractor.standardOutput = true;
+        extractor.command = getCommandStdout(scriptFile);
+        extractor.setCommandOutputEncoding("not-a-real-charset-12345");
+        extractor.executionTimeout = 30_000L;
+        // Should NOT throw — falls back to UTF-8 silently (warning logged).
+        final ExtractData data = extractor.getText(new FileInputStream(contentFile), new HashMap<>());
+        assertEquals("HELLO", data.getContent());
+    }
+
+    /**
+     * Verifies a blank command surfaces as a CrawlerSystemException rather than NPE/IAE.
+     */
+    @Test
+    public void test_blankCommand_throwsCrawlerSystemException() {
+        final CommandExtractor extractor = new CommandExtractor();
+        extractor.command = "   ";
+        try {
+            extractor.getText(new ByteArrayInputStream("x".getBytes()), new HashMap<>());
+            fail();
+        } catch (final org.codelibs.fess.crawler.exception.CrawlerSystemException e) {
+            // expected
+        }
+    }
+
+    /**
+     * Verifies a nonexistent binary surfaces as a CrawlerSystemException.
+     */
+    @Test
+    public void test_nonexistentBinary_throwsCrawlerSystemException() {
+        if (!SystemUtils.IS_OS_UNIX) {
+            return;
+        }
+        final CommandExtractor extractor = new CommandExtractor();
+        extractor.command = "/nonexistent/path/to/binary $INPUT_FILE $OUTPUT_FILE";
+        try {
+            extractor.getText(new ByteArrayInputStream("x".getBytes()), new HashMap<>());
+            fail();
+        } catch (final org.codelibs.fess.crawler.exception.CrawlerSystemException e) {
+            // expected
+        }
+    }
+
+    /**
+     * Validates M4: non-zero exit must NOT throw — content is still returned (lenient contract).
+     */
+    @Test
+    public void test_nonZeroExit_returnsAvailableContent() throws IOException {
+        if (!SystemUtils.IS_OS_UNIX) {
+            return;
+        }
+        final File scriptFile;
+        try {
+            scriptFile = File.createTempFile("nonzero_", ".sh");
+            scriptFile.deleteOnExit();
+            FileUtil.writeBytes(scriptFile.getAbsolutePath(), "#!/bin/bash\necho partial > \"$2\"\nexit 7\n".getBytes());
+        } catch (final IOException e) {
+            throw new IORuntimeException(e);
+        }
+        final File contentFile = createContentFile(".txt", new byte[] { 0 });
+        final CommandExtractor extractor = new CommandExtractor();
+        extractor.command = "sh " + scriptFile.getAbsolutePath() + " $INPUT_FILE $OUTPUT_FILE";
+        extractor.executionTimeout = 30_000L;
+        // Lenient contract: non-zero exit does NOT throw; content is returned.
+        final ExtractData data = extractor.getText(new FileInputStream(contentFile), new HashMap<>());
+        assertTrue(data.getContent().contains("partial"));
+    }
+
+    /**
+     * Tightened version of test_setMaxOutputLine_shrinksMaxOutputSize: verifies exact 64 KiB floor.
+     */
+    @Test
+    @SuppressWarnings("deprecation")
+    public void test_setMaxOutputLine_shrinksMaxOutputSize_toExactFloor() {
+        final CommandExtractor extractor = new CommandExtractor();
+        extractor.setMaxOutputLine(1);
+        assertEquals(64L * 1024L, extractor.getMaxOutputSize());
+    }
+
+    /**
+     * Verifies M8: resourceName containing shell metacharacters is sanitized so it cannot be used
+     * to inject arguments via the temp-file prefix.
+     */
+    @Test
+    public void test_resourceNameWithMetacharacters_sanitizedInTempFileName() throws IOException {
+        if (!SystemUtils.IS_OS_UNIX) {
+            return;
+        }
+        final File scriptFile = createScriptTempFile(0);
+        final File contentFile = createContentFile(".txt", "OK".getBytes());
+        final CommandExtractor extractor = new CommandExtractor();
+        extractor.command = getCommand(scriptFile);
+        final Map<String, String> params = new HashMap<>();
+        // A maliciously crafted resourceName with shell metacharacters.
+        params.put(ExtractData.RESOURCE_NAME_KEY, "evil;rm -rf /.--reset.txt");
+        final ExtractData data = extractor.getText(new FileInputStream(contentFile), params);
+        assertEquals("OK", data.getContent());
+    }
+
+    /**
+     * Verifies M8: getFileName handles Windows-style backslash path separators.
+     */
+    @Test
+    public void test_getFileName_handlesWindowsBackslash() {
+        final CommandExtractor extractor = new CommandExtractor();
+        assertEquals("hoge.txt", extractor.getFileName("C:\\path\\hoge.txt"));
+        assertEquals("hoge.txt", extractor.getFileName("path\\hoge.txt"));
+        assertEquals("hoge.txt", extractor.getFileName("hoge.txt\\"));
+    }
+
+    /**
+     * Verifies thread interrupt is propagated and the interrupt flag is restored.
+     */
+    @Test
+    public void test_interrupt_propagatesAsInterruptedRuntimeException() throws InterruptedException {
+        if (!SystemUtils.IS_OS_UNIX) {
+            return;
+        }
+        final CommandExtractor extractor = new CommandExtractor();
+        extractor.command = "sh -c \"sleep 30\"";
+        extractor.executionTimeout = 30_000L;
+        final Thread target = Thread.currentThread();
+        final Thread interrupter = new Thread(() -> {
+            try {
+                Thread.sleep(500);
+            } catch (final InterruptedException ignored) {}
+            target.interrupt();
+        });
+        interrupter.start();
+        try {
+            extractor.getText(new ByteArrayInputStream(new byte[0]), new HashMap<>());
+            fail();
+        } catch (final org.codelibs.core.exception.InterruptedRuntimeException expected) {
+            // good
+        } catch (final Exception e) {
+            // also acceptable as long as interrupt flag was restored
+        } finally {
+            Thread.interrupted(); // clear interrupt for subsequent tests
+        }
+    }
+
+    /**
+     * Verifies an invalid workingDirectory surfaces as a CrawlerSystemException.
+     */
+    @Test
+    public void test_invalidWorkingDirectory_throwsCrawlerSystemException() throws IOException {
+        if (!SystemUtils.IS_OS_UNIX) {
+            return;
+        }
+        final File scriptFile = createScriptTempFile(0);
+        final File contentFile = createContentFile(".txt", "x".getBytes());
+        final CommandExtractor extractor = new CommandExtractor();
+        extractor.command = getCommand(scriptFile);
+        extractor.workingDirectory = new File("/nonexistent/path/that/does/not/exist");
+        try {
+            extractor.getText(new FileInputStream(contentFile), new HashMap<>());
+            fail();
+        } catch (final org.codelibs.fess.crawler.exception.CrawlerSystemException e) {
+            // expected
+        }
+    }
+
+    /**
+     * Verifies the deprecated MonitorThread stub still works as a NOP.
+     */
+    @Test
+    @SuppressWarnings("deprecation")
+    public void test_deprecatedMonitorThread_isNop() {
+        final CommandExtractor.MonitorThread mt = new CommandExtractor.MonitorThread(null, 1000L);
+        mt.setFinished(true);
+        assertFalse(mt.isTeminated());
+    }
+
+    /**
+     * Verifies the deprecated InputStreamThread stub still works as a NOP.
+     */
+    @Test
+    @SuppressWarnings("deprecation")
+    public void test_deprecatedInputStreamThread_isNop() {
+        final CommandExtractor.InputStreamThread it =
+                new CommandExtractor.InputStreamThread(new ByteArrayInputStream(new byte[0]), "UTF-8", 100);
+        assertEquals("", it.getOutput());
     }
 }

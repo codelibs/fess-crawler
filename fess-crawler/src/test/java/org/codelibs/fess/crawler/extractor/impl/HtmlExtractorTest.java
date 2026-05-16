@@ -20,10 +20,16 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.xml.xpath.XPathExpression;
 
@@ -329,6 +335,11 @@ public class HtmlExtractorTest extends PlainTestCase {
 
     @Test
     public void test_metaTagOverride_via_setDefaultFieldRules() {
+        // Replacing the entire defaults map with a custom map: only the custom
+        // rule applies; og:title and title rules are gone.
+        // Fallback rules are independent and still apply, but since og:title rule
+        // is not in the custom map, og:title key is never populated, so the
+        // fallback for title (og:title -> title) also does not fire.
         final HtmlExtractor extractor = newExtractor();
         final Map<String, String> custom = new LinkedHashMap<>();
         // Only one custom rule, replacing the entire defaults map.
@@ -507,8 +518,7 @@ public class HtmlExtractorTest extends PlainTestCase {
         // <title> but does carry og:title, the metadataXpathMap loop unconditionally
         // calls putValues("title", []), leaving the key non-null but blank.
         // The default-rule backfill must still fire so the og:title fallback
-        // takes effect — otherwise the PR's "extract default HTML metadata"
-        // intent is silently disabled in real deployments.
+        // takes effect.
         final HtmlExtractor extractor = newExtractor();
         extractor.addMetadata("title", "//TITLE");
 
@@ -622,5 +632,472 @@ public class HtmlExtractorTest extends PlainTestCase {
         assertNotNull(data);
         assertEquals("T", data.getValues("custom")[0]);
         Assertions.assertFalse(tlCache.get().isEmpty(), "cache must be repopulated after subsequent extraction");
+    }
+
+    // ------------------------------------------------------------------
+    // New tests: fallback rules, Twitter Card, null-setter, limits, concurrency
+    // ------------------------------------------------------------------
+
+    @Test
+    public void test_titleBackfillsFromOgTitle_viaDefaultFallback() {
+        // Page has og:title but no <title>. Default primary rules populate og:title
+        // key; the fallback rule then copies og:title -> title.
+        // No addMetadata("title", ...) here — pure defaults path.
+        final HtmlExtractor extractor = newExtractor();
+        final String html = "<html><head>" //
+                + "<meta property=\"og:title\" content=\"FB Title\">" //
+                + "</head><body>body</body></html>";
+        final ExtractData data = extractor.getText(toStream(html), null);
+
+        final String[] title = data.getValues("title");
+        Assertions.assertNotNull(title, "title must be backfilled from og:title via fallback rule");
+        Assertions.assertTrue(title.length > 0, "title array must be non-empty");
+        assertEquals("FB Title", title[0]);
+        // og:title key itself is also present.
+        assertEquals("FB Title", data.getValues("og:title")[0]);
+    }
+
+    @Test
+    public void test_descriptionBackfillsFromOgDescription() {
+        // No meta name=description, but og:description present.
+        // Fallback rule: description <- og:description.
+        final HtmlExtractor extractor = newExtractor();
+        final String html = "<html><head>" //
+                + "<meta property=\"og:description\" content=\"OG Desc Fallback\">" //
+                + "</head><body>body</body></html>";
+        final ExtractData data = extractor.getText(toStream(html), null);
+
+        final String[] desc = data.getValues("description");
+        Assertions.assertNotNull(desc, "description must be backfilled from og:description");
+        assertEquals("OG Desc Fallback", desc[0]);
+    }
+
+    @Test
+    public void test_titleUsesPrimaryNotOgTitle_whenBothPresent() {
+        // Both <title> and og:title present: primary rule wins for title,
+        // og:title key stays with its own value.
+        final HtmlExtractor extractor = newExtractor();
+        final String html = "<html><head>" //
+                + "<title>Primary Title</title>" //
+                + "<meta property=\"og:title\" content=\"OG Title Here\">" //
+                + "</head><body>body</body></html>";
+        final ExtractData data = extractor.getText(toStream(html), null);
+
+        final String[] title = data.getValues("title");
+        assertNotNull(title);
+        Assertions.assertEquals("Primary Title", title[0], "primary <title> must win over og:title fallback");
+
+        // og:title key still holds its own value.
+        final String[] ogTitle = data.getValues("og:title");
+        assertNotNull(ogTitle);
+        assertEquals("OG Title Here", ogTitle[0]);
+    }
+
+    @Test
+    public void test_extractsTwitterCardFull() {
+        // All four new Twitter Card fields should be extracted by default rules.
+        final HtmlExtractor extractor = newExtractor();
+        final String html = "<html><head>" //
+                + "<meta name=\"twitter:title\" content=\"TW Title\">" //
+                + "<meta name=\"twitter:description\" content=\"TW Desc\">" //
+                + "<meta name=\"twitter:image\" content=\"https://example.com/tw.png\">" //
+                + "<meta name=\"twitter:site\" content=\"@example\">" //
+                + "</head><body>body</body></html>";
+        final ExtractData data = extractor.getText(toStream(html), null);
+
+        assertEquals("TW Title", data.getValues("twitter:title")[0]);
+        assertEquals("TW Desc", data.getValues("twitter:description")[0]);
+        assertEquals("https://example.com/tw.png", data.getValues("twitter:image")[0]);
+        assertEquals("@example", data.getValues("twitter:site")[0]);
+    }
+
+    @Test
+    public void test_setDefaultFieldRulesWithNull_restoresBuiltins() {
+        // setDefaultFieldRules(null) must immediately restore the built-in defaults
+        // without requiring another init() call.
+        final HtmlExtractor extractor = newExtractor();
+        final Map<String, String> custom = new LinkedHashMap<>();
+        custom.put("only-this", "//TITLE");
+        extractor.setDefaultFieldRules(custom);
+
+        // Verify custom is in effect.
+        final String htmlBefore = "<html><head><title>X</title><meta property=\"og:title\" content=\"OG\"></head><body>b</body></html>";
+        final ExtractData dataBefore = extractor.getText(toStream(htmlBefore), null);
+        assertNotNull(dataBefore.getValues("only-this"));
+        Assertions.assertNull(dataBefore.getValues("og:title"), "og:title should not exist with custom rules");
+
+        // Restore defaults.
+        extractor.setDefaultFieldRules(null);
+
+        // Now built-ins should be active again.
+        final String html = "<html><head><title>Y</title><meta property=\"og:title\" content=\"OG2\"></head><body>b</body></html>";
+        final ExtractData data = extractor.getText(toStream(html), null);
+        assertEquals("Y", data.getValues("title")[0]);
+        assertEquals("OG2", data.getValues("og:title")[0]);
+    }
+
+    @Test
+    public void test_setDefaultFieldFallbackRules_canBeCustomized() {
+        // Replace fallback rules with a custom map and verify only the custom
+        // fallback fires.
+        final HtmlExtractor extractor = newExtractor();
+        final Map<String, String> fallback = new LinkedHashMap<>();
+        fallback.put("keywords", "author"); // nonsensical but tests the mechanism
+        extractor.setDefaultFieldFallbackRules(fallback);
+
+        // Page with author but no keywords.
+        final String html = "<html><head>" //
+                + "<meta name=\"author\" content=\"Alice\">" //
+                + "</head><body>body</body></html>";
+        final ExtractData data = extractor.getText(toStream(html), null);
+
+        // Custom fallback: keywords gets value from author.
+        final String[] kw = data.getValues("keywords");
+        Assertions.assertNotNull(kw, "keywords must be backfilled from author by custom fallback");
+        assertEquals("Alice", kw[0]);
+
+        // Default title fallback (og:title -> title) must NOT fire because
+        // we replaced the fallback map entirely.
+        // (No og:title on this page anyway, so title is simply absent.)
+        Assertions.assertNull(data.getValues("title"), "title should not be set when no <title> and no og:title");
+    }
+
+    @Test
+    public void test_jsonLd_blockCountLimit() {
+        // JSONLD_MAX_BLOCK_COUNT (64) blocks: 65 blocks → only 64 captured.
+        final HtmlExtractor extractor = newExtractor();
+        final StringBuilder sb = new StringBuilder("<html><head><title>T</title>");
+        for (int i = 0; i < 65; i++) {
+            sb.append("<script type=\"application/ld+json\">{\"@type\":\"X\"}</script>");
+        }
+        sb.append("</head><body>b</body></html>");
+        final ExtractData data = extractor.getText(toStream(sb.toString()), null);
+        final String[] raw = data.getValues(HtmlExtractor.JSONLD_RAW_KEY);
+        assertNotNull(raw);
+        Assertions.assertEquals(HtmlExtractor.JSONLD_MAX_BLOCK_COUNT, raw.length, "raw blocks must be truncated at JSONLD_MAX_BLOCK_COUNT");
+    }
+
+    @Test
+    public void test_jsonLd_totalRawSizeLimit() {
+        // Two blocks each just over 600KB → together they exceed 1MB limit.
+        // Only the first block should be captured.
+        final HtmlExtractor extractor = newExtractor();
+        // 600KB of 'a' characters inside the @type value — well-formed JSON.
+        final String bigValue = "a".repeat(600 * 1024);
+        final String bigBlock = "{\"@type\":\"" + bigValue + "\"}";
+        final StringBuilder sb = new StringBuilder("<html><head><title>T</title>");
+        sb.append("<script type=\"application/ld+json\">").append(bigBlock).append("</script>");
+        sb.append("<script type=\"application/ld+json\">").append(bigBlock).append("</script>");
+        sb.append("</head><body>b</body></html>");
+        final ExtractData data = extractor.getText(toStream(sb.toString()), null);
+        final String[] raw = data.getValues(HtmlExtractor.JSONLD_RAW_KEY);
+        assertNotNull(raw);
+        Assertions.assertTrue(raw.length < 2, "second block must be truncated due to total size limit; got " + raw.length + " blocks");
+    }
+
+    @Test
+    public void test_jsonLd_typesPerBlockLimit() {
+        // One block with a @graph containing more than JSONLD_MAX_TYPES_PER_BLOCK
+        // typed entities. Collected types must be <= 256.
+        final HtmlExtractor extractor = newExtractor();
+        final StringBuilder graphItems = new StringBuilder();
+        for (int i = 0; i < 300; i++) {
+            if (graphItems.length() > 0) {
+                graphItems.append(",");
+            }
+            graphItems.append("{\"@type\":\"Thing").append(i).append("\"}");
+        }
+        final String json = "{\"@graph\":[" + graphItems + "]}";
+        final String html = "<html><head><title>T</title>" + "<script type=\"application/ld+json\">" + json + "</script>"
+                + "</head><body>b</body></html>";
+        final ExtractData data = extractor.getText(toStream(html), null);
+        final String[] types = data.getValues(HtmlExtractor.JSONLD_TYPE_KEY);
+        assertNotNull(types);
+        Assertions.assertTrue(types.length <= HtmlExtractor.JSONLD_MAX_TYPES_PER_BLOCK,
+                "types must be bounded at JSONLD_MAX_TYPES_PER_BLOCK; got " + types.length);
+    }
+
+    @Test
+    public void test_concurrentExtraction_threadSafe() throws Exception {
+        // 4 threads × 30 iterations each: all results must be equal to the
+        // single-thread result, and no exception must escape.
+        final HtmlExtractor extractor = newExtractor();
+        final String html = "<html><head>" //
+                + "<title>Concurrent</title>" //
+                + "<meta property=\"og:title\" content=\"OG\">" //
+                + "<script type=\"application/ld+json\">{\"@type\":\"Article\"}</script>" //
+                + "</head><body>body text</body></html>";
+
+        final ExtractData reference = extractor.getText(toStream(html), null);
+        final String refTitle = reference.getValues("title")[0];
+        final String refType = reference.getValues(HtmlExtractor.JSONLD_TYPE_KEY)[0];
+
+        final int threads = 4;
+        final int iterations = 30;
+        final ExecutorService pool = Executors.newFixedThreadPool(threads);
+        @SuppressWarnings("unchecked")
+        final CompletableFuture<Void>[] futures = new CompletableFuture[threads];
+        for (int t = 0; t < threads; t++) {
+            futures[t] = CompletableFuture.runAsync(() -> {
+                for (int i = 0; i < iterations; i++) {
+                    final ExtractData d = extractor.getText(toStream(html), null);
+                    final String[] titleArr = d.getValues("title");
+                    Assertions.assertNotNull(titleArr, "title must not be null");
+                    Assertions.assertEquals(refTitle, titleArr[0], "title must match reference");
+                    final String[] typeArr = d.getValues(HtmlExtractor.JSONLD_TYPE_KEY);
+                    Assertions.assertNotNull(typeArr, "jsonld.type must not be null");
+                    Assertions.assertEquals(refType, typeArr[0], "jsonld.type must match reference");
+                }
+            }, pool);
+        }
+        CompletableFuture.allOf(futures).join();
+        pool.shutdown();
+    }
+
+    @Test
+    public void test_concurrentExtraction_perThreadCacheIsolation() throws Exception {
+        // Two threads each warm their cache, then we verify via reflection that
+        // the ThreadLocal holds a different Map instance per thread.
+        final HtmlExtractor extractor = newExtractor();
+        extractor.setExtractDefaultMetadata(false);
+        extractor.setExtractJsonLd(false);
+        extractor.addMetadata("custom", "//TITLE");
+        final String html = "<html><head><title>T</title></head><body>b</body></html>";
+
+        final Field cacheField = HtmlExtractor.class.getDeclaredField("threadLocalXPathCache");
+        cacheField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        final ThreadLocal<Map<String, XPathExpression>> tlCache = (ThreadLocal<Map<String, XPathExpression>>) cacheField.get(extractor);
+
+        final CountDownLatch warmLatch = new CountDownLatch(2);
+        final CountDownLatch checkLatch = new CountDownLatch(1);
+        final AtomicReference<Map<String, XPathExpression>> cacheA = new AtomicReference<>();
+        final AtomicReference<Map<String, XPathExpression>> cacheB = new AtomicReference<>();
+        final AtomicReference<Throwable> err = new AtomicReference<>();
+
+        final Thread threadA = new Thread(() -> {
+            try {
+                extractor.getText(toStream(html), null);
+                cacheA.set(tlCache.get());
+                warmLatch.countDown();
+                checkLatch.await();
+            } catch (Exception e) {
+                err.set(e);
+            }
+        });
+        final Thread threadB = new Thread(() -> {
+            try {
+                extractor.getText(toStream(html), null);
+                cacheB.set(tlCache.get());
+                warmLatch.countDown();
+                checkLatch.await();
+            } catch (Exception e) {
+                err.set(e);
+            }
+        });
+        threadA.start();
+        threadB.start();
+        warmLatch.await();
+        checkLatch.countDown();
+        threadA.join();
+        threadB.join();
+
+        Assertions.assertNull(err.get(), "thread error: " + err.get());
+        Assertions.assertNotNull(cacheA.get(), "thread A cache must not be null");
+        Assertions.assertNotNull(cacheB.get(), "thread B cache must not be null");
+        Assertions.assertNotSame(cacheA.get(), cacheB.get(), "each thread must have its own cache Map instance");
+    }
+
+    @Test
+    public void test_clearXPathCache_doesNotAffectOtherThread() throws Exception {
+        // Thread A warms cache; thread B warms and then clears cache.
+        // Thread A's cache must remain populated.
+        final HtmlExtractor extractor = newExtractor();
+        extractor.setExtractDefaultMetadata(false);
+        extractor.setExtractJsonLd(false);
+        extractor.addMetadata("custom", "//TITLE");
+        final String html = "<html><head><title>T</title></head><body>b</body></html>";
+
+        final Field cacheField = HtmlExtractor.class.getDeclaredField("threadLocalXPathCache");
+        cacheField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        final ThreadLocal<Map<String, XPathExpression>> tlCache = (ThreadLocal<Map<String, XPathExpression>>) cacheField.get(extractor);
+
+        final CountDownLatch aWarmed = new CountDownLatch(1);
+        final CountDownLatch bCleared = new CountDownLatch(1);
+        final CountDownLatch done = new CountDownLatch(1);
+        final AtomicReference<Map<String, XPathExpression>> cacheA = new AtomicReference<>();
+        final AtomicReference<Throwable> err = new AtomicReference<>();
+
+        final Thread threadA = new Thread(() -> {
+            try {
+                extractor.getText(toStream(html), null);
+                cacheA.set(tlCache.get());
+                aWarmed.countDown();
+                bCleared.await();
+                // After B cleared its own cache, A's cache should still be populated.
+                done.countDown();
+            } catch (Exception e) {
+                err.set(e);
+                done.countDown();
+            }
+        });
+        final Thread threadB = new Thread(() -> {
+            try {
+                extractor.getText(toStream(html), null);
+                aWarmed.await();
+                extractor.clearXPathCache();
+                bCleared.countDown();
+            } catch (Exception e) {
+                err.set(e);
+                bCleared.countDown();
+            }
+        });
+        threadA.start();
+        threadB.start();
+        done.await();
+        threadA.join();
+        threadB.join();
+
+        Assertions.assertNull(err.get(), "thread error: " + err.get());
+        Assertions.assertNotNull(cacheA.get(), "thread A cache reference must not be null");
+        Assertions.assertFalse(cacheA.get().isEmpty(), "thread A cache must still be populated after B cleared its own");
+    }
+
+    @Test
+    public void test_destroy_doesNotClearOtherThreadsCache() throws Exception {
+        // Documents the known limitation: destroy() only clears the calling thread's
+        // ThreadLocals, not other threads'.
+        final HtmlExtractor extractor = newExtractor();
+        extractor.setExtractDefaultMetadata(false);
+        extractor.setExtractJsonLd(false);
+        extractor.addMetadata("custom", "//TITLE");
+        final String html = "<html><head><title>T</title></head><body>b</body></html>";
+
+        final Field cacheField = HtmlExtractor.class.getDeclaredField("threadLocalXPathCache");
+        cacheField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        final ThreadLocal<Map<String, XPathExpression>> tlCache = (ThreadLocal<Map<String, XPathExpression>>) cacheField.get(extractor);
+
+        final CountDownLatch warmed = new CountDownLatch(1);
+        final CountDownLatch destroyed = new CountDownLatch(1);
+        final CountDownLatch done = new CountDownLatch(1);
+        final AtomicReference<Map<String, XPathExpression>> workerCache = new AtomicReference<>();
+        final AtomicReference<Boolean> stillPopulated = new AtomicReference<>();
+        final AtomicReference<Throwable> err = new AtomicReference<>();
+
+        final Thread worker = new Thread(() -> {
+            try {
+                extractor.getText(toStream(html), null);
+                workerCache.set(tlCache.get());
+                warmed.countDown();
+                destroyed.await();
+                // After main thread called destroy(), worker's own cache is unchanged.
+                stillPopulated.set(!tlCache.get().isEmpty());
+                done.countDown();
+            } catch (Exception e) {
+                err.set(e);
+                done.countDown();
+            }
+        });
+        worker.start();
+        warmed.await();
+        extractor.destroy(); // destroys main thread's cache, not worker's
+        destroyed.countDown();
+        done.await();
+        worker.join();
+
+        Assertions.assertNull(err.get(), "thread error: " + err.get());
+        Assertions.assertTrue(stillPopulated.get(), "worker thread cache must remain populated after main-thread destroy()");
+    }
+
+    @Test
+    public void test_jsonLd_topLevelArray() {
+        // Top-level JSON-LD array: [{@type:A},{@type:B}].
+        // Both types must be collected.
+        final HtmlExtractor extractor = newExtractor();
+        final String json = "[{\"@type\":\"A\"},{\"@type\":\"B\"}]";
+        final String html = "<html><head><title>T</title>" + "<script type=\"application/ld+json\">" + json + "</script>"
+                + "</head><body>b</body></html>";
+        final ExtractData data = extractor.getText(toStream(html), null);
+        final String[] types = data.getValues(HtmlExtractor.JSONLD_TYPE_KEY);
+        assertNotNull(types);
+        final List<String> typeList = Arrays.asList(types);
+        Assertions.assertTrue(typeList.contains("A"), "expected A in " + typeList);
+        Assertions.assertTrue(typeList.contains("B"), "expected B in " + typeList);
+    }
+
+    @Test
+    public void test_jsonLd_emptyScriptBlock() {
+        // Empty JSON-LD script block: no keys should be populated.
+        final HtmlExtractor extractor = newExtractor();
+        final String html =
+                "<html><head><title>T</title>" + "<script type=\"application/ld+json\">   </script>" + "</head><body>b</body></html>";
+        final ExtractData data = extractor.getText(toStream(html), null);
+        Assertions.assertNull(data.getValues(HtmlExtractor.JSONLD_RAW_KEY), "empty block must not populate jsonld.raw");
+        Assertions.assertNull(data.getValues(HtmlExtractor.JSONLD_TYPE_KEY), "empty block must not populate jsonld.type");
+    }
+
+    @Test
+    public void test_jsonLd_numericType_ignored() {
+        // {@type: 5} — numeric @type is not textual; must not be collected.
+        final HtmlExtractor extractor = newExtractor();
+        final String json = "{\"@type\":5}";
+        final String html = "<html><head><title>T</title>" + "<script type=\"application/ld+json\">" + json + "</script>"
+                + "</head><body>b</body></html>";
+        final ExtractData data = extractor.getText(toStream(html), null);
+        // Raw is captured (it is valid JSON), but type must be absent.
+        final String[] raw = data.getValues(HtmlExtractor.JSONLD_RAW_KEY);
+        Assertions.assertNotNull(raw, "raw must be captured for valid JSON");
+        Assertions.assertNull(data.getValues(HtmlExtractor.JSONLD_TYPE_KEY), "numeric @type must not be collected");
+    }
+
+    @Test
+    public void test_jsonLd_japaneseType() {
+        // UTF-8 encoded Japanese @type value must round-trip correctly.
+        final HtmlExtractor extractor = newExtractor();
+        final String json = "{\"@type\":\"記事\"}"; // "記事"
+        final String html = "<html><head><title>T</title>" + "<script type=\"application/ld+json\">" + json + "</script>"
+                + "</head><body>b</body></html>";
+        final ExtractData data = extractor.getText(toStream(html), null);
+        final String[] types = data.getValues(HtmlExtractor.JSONLD_TYPE_KEY);
+        assertNotNull(types);
+        assertEquals(1, types.length);
+        Assertions.assertEquals("記事", types[0], "Japanese @type must round-trip correctly");
+    }
+
+    @Test
+    public void test_multipleOgImage() {
+        // Multiple og:image tags → all URLs captured in array.
+        final HtmlExtractor extractor = newExtractor();
+        final String html = "<html><head>" //
+                + "<meta property=\"og:image\" content=\"https://example.com/a.png\">" //
+                + "<meta property=\"og:image\" content=\"https://example.com/b.png\">" //
+                + "</head><body>b</body></html>";
+        final ExtractData data = extractor.getText(toStream(html), null);
+        final String[] images = data.getValues("og:image");
+        assertNotNull(images);
+        Assertions.assertTrue(images.length >= 2, "all og:image URLs must be captured; got " + images.length);
+        final List<String> imgList = Arrays.asList(images);
+        Assertions.assertTrue(imgList.contains("https://example.com/a.png"), "missing a.png in " + imgList);
+        Assertions.assertTrue(imgList.contains("https://example.com/b.png"), "missing b.png in " + imgList);
+    }
+
+    @Test
+    public void test_jsonLd_corruptJsonContainingNewline_doesNotAbortExtraction() {
+        // Malformed JSON with embedded newlines must not abort extraction;
+        // the subsequent valid block is still processed.
+        final HtmlExtractor extractor = newExtractor();
+        final String corrupt = "{\"\n[FAKE]\":\"x"; // deliberately broken
+        final String html = "<html><head><title>T</title>" + "<script type=\"application/ld+json\">" + corrupt + "</script>"
+                + "<script type=\"application/ld+json\">{\"@type\":\"Article\"}</script>" + "</head><body>body content</body></html>";
+        final ExtractData data = extractor.getText(toStream(html), null);
+        // Body still extracted.
+        assertTrue(data.getContent().contains("body content"));
+        // The valid block was still processed.
+        final String[] types = data.getValues(HtmlExtractor.JSONLD_TYPE_KEY);
+        Assertions.assertNotNull(types, "valid JSON-LD block must still produce types");
+        final List<String> typeList = Arrays.asList(types);
+        Assertions.assertTrue(typeList.contains("Article"), "Article type must be present: " + typeList);
     }
 }

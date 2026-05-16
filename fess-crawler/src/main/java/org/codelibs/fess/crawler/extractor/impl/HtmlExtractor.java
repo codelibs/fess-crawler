@@ -43,6 +43,7 @@ import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.util.XPathAPI;
 import org.codelibs.nekohtml.parsers.DOMParser;
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -67,6 +68,13 @@ import jakarta.annotation.PreDestroy;
  *
  * <p>Compiled {@link XPathExpression} instances are cached per thread to avoid
  * re-parsing every XPath on each extraction.</p>
+ *
+ * <p>Default field rules ({@link #defaultFieldRules}) are applied after custom
+ * {@link #metadataXpathMap} rules. Keys already populated with a non-blank value
+ * by a custom rule take precedence; keys with no value fall through to the default
+ * rule. After all primary default rules are applied, fallback rules
+ * ({@link #defaultFieldFallbackRules}) copy a value from another already-populated
+ * key when the target key is still missing a non-blank value.</p>
  */
 public class HtmlExtractor extends AbstractXmlExtractor {
     /** Logger for this class. */
@@ -115,6 +123,27 @@ public class HtmlExtractor extends AbstractXmlExtractor {
     /** Maximum number length (in characters) the JSON-LD parser will accept. */
     protected static final int JSONLD_MAX_NUMBER_LENGTH = 1000;
 
+    /**
+     * Maximum number of JSON-LD script blocks to process per document.
+     * Blocks beyond this limit are silently truncated after a WARN log entry
+     * to avoid unbounded memory growth on adversarial pages.
+     */
+    protected static final int JSONLD_MAX_BLOCK_COUNT = 64;
+
+    /**
+     * Maximum total raw JSON bytes (in characters) accepted across all JSON-LD
+     * script blocks in a single document. Processing stops with a WARN when
+     * adding the next block would exceed this limit.
+     */
+    protected static final int JSONLD_MAX_RAW_TOTAL_BYTES = 1 * 1024 * 1024; // 1 MiB
+
+    /**
+     * Maximum number of {@code @type} values collected from a single JSON-LD
+     * block. Recursion into {@code @graph} and nested entities stops once this
+     * limit is reached to prevent unbounded list growth.
+     */
+    protected static final int JSONLD_MAX_TYPES_PER_BLOCK = 256;
+
     /** Pattern for extracting charset from meta tags. */
     protected Pattern metaCharsetPattern = Pattern.compile("<meta.*content\\s*=\\s*['\"].*;\\s*charset=([\\w\\d\\-_]*)['\"]\\s*/?>",
             Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
@@ -134,18 +163,30 @@ public class HtmlExtractor extends AbstractXmlExtractor {
     protected String contentXpath = "//BODY";
 
     /** Map of metadata field names to their corresponding XPath expressions. */
-    protected Map<String, String> metadataXpathMap = new HashMap<>();
+    protected Map<String, String> metadataXpathMap = new LinkedHashMap<>();
 
-    /** Default metadata field rules (key -&gt; XPath expression). */
+    /** Default metadata field rules (key to XPath expression). */
     protected Map<String, String> defaultFieldRules;
+
+    /**
+     * Fallback rules applied after primary default-field rules. Each entry maps
+     * a target key to a source key: when the target key has no non-blank value
+     * after primary rules are applied, the value from the source key (if
+     * non-blank) is copied into the target. Typical use: fall back from
+     * {@code og:title} to populate {@code title} when no {@code <title>} element
+     * is present.
+     *
+     * <p>Fallback rules are independent of {@link #defaultFieldRules}. Replacing
+     * {@link #defaultFieldRules} via {@link #setDefaultFieldRules(Map)} does
+     * <em>not</em> reset this map; use {@link #setDefaultFieldFallbackRules(Map)}
+     * to customise or disable the fallback behaviour.</p>
+     */
+    protected Map<String, String> defaultFieldFallbackRules;
 
     /**
      * Whether to extract default HTML metadata (title, description, OpenGraph,
      * etc.). Defaults to {@code true}; new deployments get the default
-     * metadata set out of the box. Operators upgrading existing deployments
-     * who have configured custom metadata rules are warned at
-     * {@link #init()} when a custom rule key collides with a built-in
-     * default-rule key (see {@link #defaultFieldRules}).
+     * metadata set out of the box.
      */
     protected boolean extractDefaultMetadata = true;
 
@@ -159,7 +200,7 @@ public class HtmlExtractor extends AbstractXmlExtractor {
      * Per-thread cache of compiled XPath expressions.
      *
      * <p>Note: ThreadLocals can pin the classloader of the values they hold to
-     * the threads that touched them — a known issue when this extractor is
+     * the threads that touched them a known issue when this extractor is
      * deployed inside a servlet container (Tomcat, etc.) and the application
      * is undeployed. See {@link #destroy()} for the calling-thread cleanup
      * hook and {@link #clearXPathCache()} for the per-thread cleanup hook
@@ -186,52 +227,62 @@ public class HtmlExtractor extends AbstractXmlExtractor {
     }
 
     /**
-     * Initialises default metadata field rules if none have been provided and
-     * warns operators if any user-configured custom metadata rule key
-     * collides with a built-in default-rule key while
-     * {@link #extractDefaultMetadata} is enabled.
+     * Initialises default metadata field rules and fallback rules if none have
+     * been provided externally.
      */
     @PostConstruct
     public void init() {
         if (defaultFieldRules == null) {
-            final Map<String, String> rules = new LinkedHashMap<>();
-            rules.put("title", "//TITLE/text() | //META[@property='og:title']/@content");
-            rules.put("description", "//META[@name='description']/@content | //META[@property='og:description']/@content");
-            rules.put("og:title", "//META[@property='og:title']/@content");
-            rules.put("og:description", "//META[@property='og:description']/@content");
-            rules.put("og:image", "//META[@property='og:image']/@content");
-            rules.put("og:type", "//META[@property='og:type']/@content");
-            rules.put("og:url", "//META[@property='og:url']/@content");
-            rules.put("twitter:card", "//META[@name='twitter:card']/@content");
-            rules.put("canonical", "//LINK[@rel='canonical']/@href");
-            rules.put("keywords", "//META[@name='keywords']/@content");
-            rules.put("author", "//META[@name='author']/@content");
-            defaultFieldRules = rules;
+            defaultFieldRules = createDefaultFieldRules();
         }
-        warnOnMetadataKeyCollisions();
+        if (defaultFieldFallbackRules == null) {
+            defaultFieldFallbackRules = createDefaultFieldFallbackRules();
+        }
     }
 
     /**
-     * Logs a single WARN entry if {@link #extractDefaultMetadata} is enabled
-     * and the operator-configured {@code metadataXpathMap} declares any key
-     * that is also defined by {@link #defaultFieldRules}. Per-key custom rules
-     * still take precedence (see {@link #applyDefaultFieldRules}); the warning
-     * exists only to surface potentially surprising overlap to operators.
+     * Builds the built-in set of default field rules (key to XPath).
+     *
+     * <p>Subclasses may override this method to add, remove, or replace rules
+     * without requiring a DI configuration change.</p>
+     *
+     * @return a mutable {@link LinkedHashMap} of default field rules
      */
-    protected void warnOnMetadataKeyCollisions() {
-        if (!extractDefaultMetadata || defaultFieldRules == null || defaultFieldRules.isEmpty() || metadataXpathMap == null
-                || metadataXpathMap.isEmpty()) {
-            return;
-        }
-        final List<String> collisions =
-                metadataXpathMap.keySet().stream().filter(defaultFieldRules::containsKey).sorted().collect(Collectors.toList());
-        if (!collisions.isEmpty()) {
-            logger.warn(
-                    "HtmlExtractor: custom metadata rule key(s) {} collide with default-rule keys; "
-                            + "custom rules take precedence, but enabling extractDefaultMetadata may produce duplicates "
-                            + "or unexpected fallback behavior. Disable default metadata or rename custom keys to silence this warning.",
-                    collisions);
-        }
+    protected Map<String, String> createDefaultFieldRules() {
+        final Map<String, String> rules = new LinkedHashMap<>();
+        rules.put("title", "//TITLE/text()");
+        rules.put("description", "//META[@name='description']/@content");
+        rules.put("og:title", "//META[@property='og:title']/@content");
+        rules.put("og:description", "//META[@property='og:description']/@content");
+        rules.put("og:image", "//META[@property='og:image']/@content");
+        rules.put("og:type", "//META[@property='og:type']/@content");
+        rules.put("og:url", "//META[@property='og:url']/@content");
+        rules.put("twitter:card", "//META[@name='twitter:card']/@content");
+        rules.put("twitter:title", "//META[@name='twitter:title']/@content");
+        rules.put("twitter:description", "//META[@name='twitter:description']/@content");
+        rules.put("twitter:image", "//META[@name='twitter:image']/@content");
+        rules.put("twitter:site", "//META[@name='twitter:site']/@content");
+        rules.put("canonical", "//LINK[@rel='canonical']/@href");
+        rules.put("keywords", "//META[@name='keywords']/@content");
+        rules.put("author", "//META[@name='author']/@content");
+        return rules;
+    }
+
+    /**
+     * Builds the built-in set of fallback field rules (target key to source key).
+     *
+     * <p>When a target key has no non-blank value after primary default rules are
+     * applied, the value from the mapped source key is copied in provided the
+     * source key was populated. The canonical use-case is supplying
+     * {@code og:title} as the title when no {@code <title>} element exists.</p>
+     *
+     * @return a mutable {@link LinkedHashMap} of fallback rules
+     */
+    protected Map<String, String> createDefaultFieldFallbackRules() {
+        final Map<String, String> rules = new LinkedHashMap<>();
+        rules.put("title", "og:title");
+        rules.put("description", "og:description");
+        return rules;
     }
 
     /**
@@ -300,11 +351,13 @@ public class HtmlExtractor extends AbstractXmlExtractor {
      * with extracted values. Keys already populated with a non-blank value
      * (set via {@link #addMetadata(String, String)}) are preserved; keys whose
      * custom XPath returned no values or only blank strings fall back to the
-     * default rule. This matters because {@code metadataXpathMap} entries
-     * unconditionally call {@code putValues}, so even an empty XPath result
-     * leaves the key non-null in {@link ExtractData}; without the
-     * non-blank check, default backfills (notably {@code og:title} when
-     * {@code <title>} is missing) would be silently suppressed.
+     * default rule.
+     *
+     * <p>After primary rules are applied, {@link #defaultFieldFallbackRules}
+     * are evaluated: for each entry (targetKey to sourceKey), if the target key
+     * still has no non-blank value but the source key does, the source values are
+     * copied into the target. Custom rules always take precedence over both
+     * primary default rules and fallback rules.</p>
      *
      * @param document the parsed HTML DOM
      * @param extractData the extract data to populate
@@ -324,12 +377,28 @@ public class HtmlExtractor extends AbstractXmlExtractor {
                 extractData.putValues(key, nonBlank);
             }
         });
+
+        // After primary rules, apply fallbacks for keys still missing non-blank values.
+        if (defaultFieldFallbackRules != null) {
+            defaultFieldFallbackRules.forEach((key, fallbackKey) -> {
+                if (hasNonBlankValue(extractData.getValues(key))) {
+                    return;
+                }
+                final String[] fallbackValues = extractData.getValues(fallbackKey);
+                if (hasNonBlankValue(fallbackValues)) {
+                    final String[] nonBlank =
+                            Arrays.stream(fallbackValues).filter(StringUtil::isNotBlank).map(String::trim).toArray(String[]::new);
+                    if (nonBlank.length > 0) {
+                        extractData.putValues(key, nonBlank);
+                    }
+                }
+            });
+        }
     }
 
     /**
      * Returns {@code true} if {@code values} contains at least one non-blank
-     * entry. Used by {@link #applyDefaultFieldRules} to decide whether a key
-     * is meaningfully populated by a custom rule.
+     * entry.
      */
     private static boolean hasNonBlankValue(final String[] values) {
         if (values == null || values.length == 0) {
@@ -352,10 +421,12 @@ public class HtmlExtractor extends AbstractXmlExtractor {
      * <p>Existing values for {@link #JSONLD_RAW_KEY} or {@link #JSONLD_TYPE_KEY}
      * (typically populated by an operator-supplied
      * {@link #addMetadata(String, String)} rule that targets the same key) are
-     * preserved and not overwritten — matching the precedence rule used by
-     * {@link #applyDefaultFieldRules(Document, ExtractData)}. To re-enable
-     * automatic JSON-LD population in that case, drop the colliding custom
-     * rule or rename it.</p>
+     * preserved and not overwritten. To re-enable automatic JSON-LD population
+     * in that case, drop the colliding custom rule or rename it.</p>
+     *
+     * <p>Processing is bounded by {@link #JSONLD_MAX_BLOCK_COUNT},
+     * {@link #JSONLD_MAX_RAW_TOTAL_BYTES}, and {@link #JSONLD_MAX_TYPES_PER_BLOCK}
+     * to prevent unbounded memory growth on adversarial pages.</p>
      *
      * @param document the parsed HTML DOM
      * @param extractData the extract data to populate
@@ -369,28 +440,53 @@ public class HtmlExtractor extends AbstractXmlExtractor {
             }
             final List<String> rawList = new ArrayList<>();
             final List<String> typeList = new ArrayList<>();
+            long totalRawBytes = 0;
             for (int i = 0; i < nodes.getLength(); i++) {
-                final String raw = nodes.item(i).getTextContent();
-                if (StringUtil.isBlank(raw)) {
-                    continue;
+                if (rawList.size() >= JSONLD_MAX_BLOCK_COUNT) {
+                    logger.warn("JSON-LD block count exceeded {}, truncating.", JSONLD_MAX_BLOCK_COUNT);
+                    break;
                 }
-                final String trimmed = raw.trim();
-                rawList.add(trimmed);
-                collectJsonLdTypes(trimmed, typeList);
+                try {
+                    final String raw = nodes.item(i).getTextContent();
+                    if (StringUtil.isBlank(raw)) {
+                        continue;
+                    }
+                    final String trimmed = raw.trim();
+                    if (totalRawBytes + trimmed.length() > JSONLD_MAX_RAW_TOTAL_BYTES) {
+                        logger.warn("JSON-LD raw total size would exceed {} bytes, truncating.", JSONLD_MAX_RAW_TOTAL_BYTES);
+                        break;
+                    }
+                    totalRawBytes += trimmed.length();
+                    rawList.add(trimmed);
+                    collectJsonLdTypes(trimmed, typeList);
+                } catch (final RuntimeException ex) {
+                    // DOMException / NPE / etc. from a single node must not abort other blocks.
+                    logger.warn("Skipping JSON-LD block due to DOM error.", ex);
+                }
             }
-            if (!rawList.isEmpty() && extractData.getValues(JSONLD_RAW_KEY) == null) {
+            final boolean rawAlreadySet = extractData.getValues(JSONLD_RAW_KEY) != null;
+            final boolean typeAlreadySet = extractData.getValues(JSONLD_TYPE_KEY) != null;
+            if (!rawList.isEmpty() && !rawAlreadySet) {
                 extractData.putValues(JSONLD_RAW_KEY, rawList.toArray(new String[0]));
+            } else if (rawAlreadySet && logger.isDebugEnabled()) {
+                logger.debug("JSON-LD raw key already populated by custom rule; auto-fill skipped.");
             }
-            if (!typeList.isEmpty() && extractData.getValues(JSONLD_TYPE_KEY) == null) {
+            if (!typeList.isEmpty() && !typeAlreadySet) {
                 extractData.putValues(JSONLD_TYPE_KEY, typeList.toArray(new String[0]));
+            } else if (typeAlreadySet && logger.isDebugEnabled()) {
+                logger.debug("JSON-LD type key already populated by custom rule; auto-fill skipped.");
             }
         } catch (final XPathException e) {
             logger.warn("Failed to evaluate JSON-LD XPath.", e);
         } catch (final CrawlerSystemException e) {
-            // JSONLD_XPATH is a constant and should always compile, but keep
-            // the recovery symmetric with getStringsByXPath so a future change
-            // to the constant cannot abort the whole extraction.
+            // Defensive recovery: JSONLD_XPATH is a literal constant and should always
+            // compile, but a future edit to the constant must not abort the whole
+            // extraction. Keep the recovery symmetric with getStringsByXPath.
             logger.warn("Failed to compile JSON-LD XPath.", e.getCause() != null ? e.getCause() : e);
+        } catch (final RuntimeException e) {
+            // Defensive: any DOM-layer fault (DOMException, IllegalStateException, ...)
+            // must not abort the rest of the extraction (see method javadoc).
+            logger.warn("Failed to extract JSON-LD blocks.", e);
         }
     }
 
@@ -403,9 +499,6 @@ public class HtmlExtractor extends AbstractXmlExtractor {
      */
     protected void collectJsonLdTypes(final String json, final List<String> typeList) {
         final ObjectMapper mapper = getObjectMapper();
-        if (mapper == null) {
-            return;
-        }
         try {
             final JsonNode root = mapper.readTree(json);
             if (root == null) {
@@ -416,7 +509,9 @@ public class HtmlExtractor extends AbstractXmlExtractor {
             if (logger.isDebugEnabled()) {
                 logger.debug("Skipping malformed JSON-LD block.", e);
             } else {
-                logger.warn("Skipping malformed JSON-LD block: {}", e.getMessage());
+                final String msg = e.getMessage();
+                final String safe = msg == null ? "(none)" : msg.replaceAll("[\\r\\n\\t]", " ");
+                logger.warn("Skipping malformed JSON-LD block: {}", safe);
             }
         } catch (final RuntimeException e) {
             logger.warn("Failed to parse JSON-LD block.", e);
@@ -426,7 +521,7 @@ public class HtmlExtractor extends AbstractXmlExtractor {
     /**
      * Walks the JSON-LD tree and appends every {@code @type} value it finds.
      *
-     * <p>Real-world Schema.org markup commonly nests typed entities — for
+     * <p>Real-world Schema.org markup commonly nests typed entities, for
      * example WordPress/Yoast emit a top-level {@code @graph} array and other
      * pages embed typed entities under {@code mainEntity}, {@code author},
      * {@code publisher}, {@code itemListElement}, etc. The walk therefore
@@ -436,8 +531,8 @@ public class HtmlExtractor extends AbstractXmlExtractor {
      * per the JSON-LD specification.</p>
      *
      * <p>Recursion depth is implicitly bounded by the parser's
-     * {@link #JSONLD_MAX_NESTING_DEPTH}, so a hostile document cannot drive
-     * this walk into stack exhaustion.</p>
+     * {@link #JSONLD_MAX_NESTING_DEPTH}. Collection stops once
+     * {@link #JSONLD_MAX_TYPES_PER_BLOCK} entries have been added.</p>
      */
     private void collectTypeNodes(final JsonNode node, final List<String> typeList) {
         if (node == null) {
@@ -455,6 +550,9 @@ public class HtmlExtractor extends AbstractXmlExtractor {
             if (typeNode.isTextual()) {
                 final String value = typeNode.asText();
                 if (StringUtil.isNotBlank(value)) {
+                    if (typeList.size() >= JSONLD_MAX_TYPES_PER_BLOCK) {
+                        return;
+                    }
                     typeList.add(value);
                 }
             } else if (typeNode.isArray()) {
@@ -462,6 +560,9 @@ public class HtmlExtractor extends AbstractXmlExtractor {
                     if (t.isTextual()) {
                         final String value = t.asText();
                         if (StringUtil.isNotBlank(value)) {
+                            if (typeList.size() >= JSONLD_MAX_TYPES_PER_BLOCK) {
+                                return;
+                            }
                             typeList.add(value);
                         }
                     }
@@ -475,6 +576,9 @@ public class HtmlExtractor extends AbstractXmlExtractor {
         node.fields().forEachRemaining(field -> {
             final String fieldName = field.getKey();
             if ("@type".equals(fieldName) || "@context".equals(fieldName)) {
+                return;
+            }
+            if (typeList.size() >= JSONLD_MAX_TYPES_PER_BLOCK) {
                 return;
             }
             collectTypeNodes(field.getValue(), typeList);
@@ -545,28 +649,19 @@ public class HtmlExtractor extends AbstractXmlExtractor {
      * The compiled {@link XPathExpression} is cached per thread, so repeated
      * calls with the same expression skip recompilation.
      *
-     * <p>A malformed XPath expression — whether it fails to compile or fails
-     * to evaluate — is logged at {@code WARN} and an empty array is returned,
-     * matching the pre-cache behaviour. Callers like
-     * {@link #createExtractData(String)} therefore never abort the whole
-     * extraction because of a single misconfigured rule in
-     * {@link #contentXpath} or {@link #metadataXpathMap}.</p>
+     * <p>A malformed XPath expression is logged at {@code WARN} and an empty
+     * array is returned, so callers never abort the whole extraction because
+     * of a single misconfigured rule.</p>
      *
      * @param document the DOM document to extract strings from
      * @param path the XPath expression to evaluate
      * @return an array of strings extracted from the document
      */
     protected String[] getStringsByXPath(final Document document, final String path) {
-        // Use the cached compiled expression to evaluate as a node-set first;
-        // node-set is the common case for both content and metadata XPaths.
         final XPathExpression expr;
         try {
             expr = getXPathExpression(path);
         } catch (final CrawlerSystemException e) {
-            // Compile failure of a malformed XPath. Restore the pre-cache
-            // behaviour where XPathAPI.eval would have thrown XPathException
-            // here and we logged + returned empty rather than propagating the
-            // failure out of createExtractData.
             logger.warn("Failed to parse the content by {}", path, e.getCause() != null ? e.getCause() : e);
             return StringUtil.EMPTY_STRINGS;
         }
@@ -578,25 +673,28 @@ public class HtmlExtractor extends AbstractXmlExtractor {
             final List<String> strList = new ArrayList<>(nodes.getLength());
             for (int i = 0; i < nodes.getLength(); i++) {
                 final Node node = nodes.item(i);
-                if (node != null) {
+                if (node == null) {
+                    continue;
+                }
+                try {
                     final String text = node.getTextContent();
                     strList.add(text == null ? "" : text);
+                } catch (final DOMException ex) {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Failed to read text from node {} for XPath {}", i, path, ex);
+                    }
                 }
             }
             return strList.toArray(new String[0]);
         } catch (final XPathException e) {
-            // Some XPath expressions (boolean(), count(), string(), ...) cannot
-            // be evaluated as a node-set. Fall back to the original path that
-            // handles every result type via XPathAPI.eval, which preserves the
-            // public behaviour for non-node-set expressions.
             return evaluateNonNodeSet(document, path, e);
         }
     }
 
     /**
-     * Fallback path for XPath expressions whose result type is not a node-set
-     * (e.g., {@code boolean()}, {@code count()}, {@code string()}). Returns
-     * the result coerced to one or more strings.
+     * Fallback path for XPath expressions whose result type is not a node-set.
+     * The {@code previousFailure} is added as a suppressed exception to any
+     * second failure so callers have full context.
      *
      * @param document the DOM document to extract strings from
      * @param path the XPath expression to evaluate
@@ -604,6 +702,9 @@ public class HtmlExtractor extends AbstractXmlExtractor {
      * @return an array of strings extracted from the document
      */
     private String[] evaluateNonNodeSet(final Document document, final String path, final XPathException previousFailure) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("XPath '{}' evaluated as non-node-set (fallback path).", path);
+        }
         try {
             final XPathEvaluationResult<?> xObj = getXPathAPI().eval(document, path);
             switch (xObj.type()) {
@@ -635,7 +736,8 @@ public class HtmlExtractor extends AbstractXmlExtractor {
                 return new String[] { obj.toString() };
             }
         } catch (final XPathException e) {
-            logger.warn("Failed to parse the content by {}", path, previousFailure);
+            e.addSuppressed(previousFailure);
+            logger.warn("Failed to parse the content by {}", path, e);
             return StringUtil.EMPTY_STRINGS;
         }
     }
@@ -783,7 +885,7 @@ public class HtmlExtractor extends AbstractXmlExtractor {
     }
 
     /**
-     * Gets the configured default-field rules (key -&gt; XPath).
+     * Gets the configured default-field rules (key to XPath).
      *
      * @return the default-field rules
      */
@@ -794,13 +896,37 @@ public class HtmlExtractor extends AbstractXmlExtractor {
     /**
      * Replaces the default-field rules used for default metadata extraction.
      * A defensive copy is taken so subsequent mutations of the supplied map do
-     * not affect this extractor.
+     * not affect this extractor. Passing {@code null} immediately re-initialises
+     * the built-in defaults via {@link #createDefaultFieldRules()}.
      *
-     * @param defaultFieldRules the rules to use; if {@code null}, defaults are
-     *        re-initialised on the next call to {@link #init()}
+     * @param defaultFieldRules the rules to use; if {@code null}, the built-in
+     *        defaults are restored immediately
      */
     public void setDefaultFieldRules(final Map<String, String> defaultFieldRules) {
-        this.defaultFieldRules = defaultFieldRules == null ? null : new LinkedHashMap<>(defaultFieldRules);
+        this.defaultFieldRules = defaultFieldRules == null ? createDefaultFieldRules() : new LinkedHashMap<>(defaultFieldRules);
+    }
+
+    /**
+     * Gets the configured default-field fallback rules (target key to source key).
+     *
+     * @return the default-field fallback rules
+     */
+    public Map<String, String> getDefaultFieldFallbackRules() {
+        return defaultFieldFallbackRules;
+    }
+
+    /**
+     * Replaces the default-field fallback rules. A defensive copy is taken so
+     * subsequent mutations of the supplied map do not affect this extractor.
+     * Passing {@code null} immediately re-initialises the built-in fallback
+     * defaults via {@link #createDefaultFieldFallbackRules()}.
+     *
+     * @param defaultFieldFallbackRules the fallback rules to use; if {@code null},
+     *        the built-in fallback defaults are restored immediately
+     */
+    public void setDefaultFieldFallbackRules(final Map<String, String> defaultFieldFallbackRules) {
+        this.defaultFieldFallbackRules =
+                defaultFieldFallbackRules == null ? createDefaultFieldFallbackRules() : new LinkedHashMap<>(defaultFieldFallbackRules);
     }
 
     /**

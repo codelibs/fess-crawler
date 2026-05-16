@@ -15,12 +15,15 @@
  */
 package org.codelibs.fess.crawler.extractor.impl;
 
-import java.io.ByteArrayOutputStream;
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.StandardCharsets;
+import java.nio.charset.UnsupportedCharsetException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -62,6 +65,10 @@ import jakarta.mail.internet.MimeUtility;
  * <p>EML content is treated as untrusted. The extractor enforces the following
  * defensive bounds against malformed or malicious messages:</p>
  * <ul>
+ *   <li>{@link #maxMessageBytes} (default 100 MiB) is the first-line defense:
+ *       the raw input stream is capped before {@code MimeMessage} even begins
+ *       to parse, preventing memory exhaustion from pathologically large
+ *       messages.</li>
  *   <li>{@link #maxRecursionDepth} (default 10) caps how deeply nested
  *       {@code message/rfc822} or {@code multipart/*} parts may be.</li>
  *   <li>{@link #maxParts} (default 1000) caps the total number of MIME parts
@@ -71,6 +78,8 @@ import jakarta.mail.internet.MimeUtility;
  * </ul>
  * <p>RFC 2047 encoded-word headers (e.g. {@code Subject},
  * {@code From}, {@code To}) are decoded via {@link MimeUtility#decodeText}.</p>
+ * <p>The legacy {@code Subject} metadata key is RFC 2047-decoded for
+ * compatibility with older callers.</p>
  *
  * @author shinsuke
  *
@@ -94,6 +103,9 @@ public class EmlExtractor extends AbstractExtractor {
     /** Maximum total body bytes (UTF-8) appended to the extracted content. */
     protected long maxBodyBytes = 50L * 1024 * 1024;
 
+    /** Maximum allowed total stream bytes consumed while parsing the EML. */
+    protected long maxMessageBytes = 100L * 1024 * 1024;
+
     /**
      * Constructs a new EmlExtractor.
      */
@@ -112,9 +124,13 @@ public class EmlExtractor extends AbstractExtractor {
                 props.put(entry.getKey(), entry.getValue());
             }
         }
+        if (in == null) {
+            throw new ExtractException("Input stream is null.");
+        }
+        final LimitedInputStream limited = new LimitedInputStream(in, maxMessageBytes);
         try {
-            final Session mailSession = Session.getDefaultInstance(props, null);
-            final MimeMessage message = new MimeMessage(mailSession, in);
+            final Session mailSession = Session.getInstance(props, null);
+            final MimeMessage message = new MimeMessage(mailSession, limited);
             final BodyExtractionContext ctx = new BodyExtractionContext();
             extractBody(message, ctx, 0);
             final ExtractData data = new ExtractData(ctx.body.toString());
@@ -134,7 +150,8 @@ public class EmlExtractor extends AbstractExtractor {
             putValue(data, "Line-Count", message.getLineCount());
             putValue(data, "Message-ID", message.getMessageID());
             putValue(data, "Message-Number", message.getMessageNumber());
-            putValue(data, "Received-Date", getReceivedDate(message));
+            final Date receivedDate = getReceivedDate(message);
+            putValue(data, "Received-Date", receivedDate);
             putValue(data, "Reply-To", message.getReplyTo());
             putValue(data, "Sender", message.getSender());
             putValue(data, "Sent-Date", message.getSentDate());
@@ -153,7 +170,7 @@ public class EmlExtractor extends AbstractExtractor {
             putDecodedAddressValues(data, "bcc", message.getRecipients(Message.RecipientType.BCC));
             putDecodedAddressValues(data, "replyTo", message.getReplyTo());
             putDateValue(data, "sentDate", message.getSentDate());
-            putDateValue(data, "receivedDate", getReceivedDate(message));
+            putDateValue(data, "receivedDate", receivedDate);
             if (message.getMessageID() != null) {
                 data.putValue("messageId", message.getMessageID());
             }
@@ -163,8 +180,14 @@ public class EmlExtractor extends AbstractExtractor {
             }
             return data;
         } catch (final MessagingException e) {
+            if (limited.isExceeded()) {
+                throw new MaxLengthExceededException("EML message size exceeded: max=" + maxMessageBytes);
+            }
             throw new ExtractException(e);
         } catch (final IOException e) {
+            if (limited.isExceeded()) {
+                throw new MaxLengthExceededException("EML message size exceeded: max=" + maxMessageBytes);
+            }
             throw new ExtractException(e);
         }
     }
@@ -203,10 +226,8 @@ public class EmlExtractor extends AbstractExtractor {
             } else if (value != null) {
                 data.putValue(key, value.toString());
             }
-        } catch (final Exception e) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("Failed to put {}:{}", key, value, e);
-            }
+        } catch (final RuntimeException e) {
+            logger.warn("Failed to put header value. key={}", key, e);
         }
     }
 
@@ -264,8 +285,12 @@ public class EmlExtractor extends AbstractExtractor {
     /**
      * Decodes MIME-encoded text.
      *
+     * <p>On {@link UnsupportedEncodingException} (caused by an unrecognised RFC 2047
+     * charset), logs a warning and returns the <em>raw</em> value unchanged so
+     * callers still receive some usable output rather than an empty string.</p>
+     *
      * @param value the encoded text to decode
-     * @return the decoded text or empty string if decoding fails
+     * @return the decoded text, the raw value on encoding failure, or empty string for null input
      */
     protected String getDecodeText(final String value) {
         if (value == null) {
@@ -274,8 +299,8 @@ public class EmlExtractor extends AbstractExtractor {
         try {
             return MimeUtility.decodeText(value);
         } catch (final UnsupportedEncodingException e) {
-            logger.warn("Invalid encoding.", e);
-            return StringUtil.EMPTY;
+            logger.warn("Invalid RFC 2047 encoding, returning raw value. value={}", value, e);
+            return value;
         }
     }
 
@@ -308,11 +333,16 @@ public class EmlExtractor extends AbstractExtractor {
 
     /**
      * Sets the maximum allowed recursion depth for nested multipart /
-     * {@code message/rfc822} parts.
+     * {@code message/rfc822} parts. A value of {@code 0} means only the root
+     * part is processed (no recursion). Negative values are rejected.
      *
-     * @param maxRecursionDepth the maximum recursion depth
+     * @param maxRecursionDepth the maximum recursion depth; must be &gt;= 0
+     * @throws IllegalArgumentException if the value is negative
      */
     public void setMaxRecursionDepth(final int maxRecursionDepth) {
+        if (maxRecursionDepth < 0) {
+            throw new IllegalArgumentException("maxRecursionDepth must be positive: " + maxRecursionDepth);
+        }
         this.maxRecursionDepth = maxRecursionDepth;
     }
 
@@ -328,9 +358,13 @@ public class EmlExtractor extends AbstractExtractor {
     /**
      * Sets the maximum total number of MIME parts visited per message.
      *
-     * @param maxParts the maximum number of parts
+     * @param maxParts the maximum number of parts; must be &gt; 0
+     * @throws IllegalArgumentException if the value is &lt;= 0
      */
     public void setMaxParts(final int maxParts) {
+        if (maxParts <= 0) {
+            throw new IllegalArgumentException("maxParts must be positive: " + maxParts);
+        }
         this.maxParts = maxParts;
     }
 
@@ -346,10 +380,37 @@ public class EmlExtractor extends AbstractExtractor {
     /**
      * Sets the maximum total UTF-8 body bytes appended to extracted content.
      *
-     * @param maxBodyBytes the maximum body bytes
+     * @param maxBodyBytes the maximum body bytes; must be &gt; 0
+     * @throws IllegalArgumentException if the value is &lt;= 0
      */
     public void setMaxBodyBytes(final long maxBodyBytes) {
+        if (maxBodyBytes <= 0) {
+            throw new IllegalArgumentException("maxBodyBytes must be positive: " + maxBodyBytes);
+        }
         this.maxBodyBytes = maxBodyBytes;
+    }
+
+    /**
+     * Returns the maximum allowed total stream bytes consumed while parsing the EML.
+     *
+     * @return the maximum message bytes
+     */
+    public long getMaxMessageBytes() {
+        return maxMessageBytes;
+    }
+
+    /**
+     * Sets the maximum allowed total stream bytes consumed while parsing the EML.
+     * This is the first-line defense before {@link MimeMessage} parses the input.
+     *
+     * @param maxMessageBytes the maximum message bytes; must be &gt; 0
+     * @throws IllegalArgumentException if the value is &lt;= 0
+     */
+    public void setMaxMessageBytes(final long maxMessageBytes) {
+        if (maxMessageBytes <= 0) {
+            throw new IllegalArgumentException("maxMessageBytes must be positive: " + maxMessageBytes);
+        }
+        this.maxMessageBytes = maxMessageBytes;
     }
 
     /**
@@ -537,27 +598,32 @@ public class EmlExtractor extends AbstractExtractor {
         }
         ctx.bodyBytes = maxBodyBytes;
         if (logger.isDebugEnabled()) {
-            logger.debug("EML body truncated at {} bytes.", maxBodyBytes);
+            logger.debug("EML body truncated. maxBytes={}", maxBodyBytes);
         }
     }
 
     /**
-     * Streams a text part's content into the extraction buffer with a hard
-     * memory cap, then delegates to {@link #appendBody} for byte-accurate
-     * truncation.
+     * Returns the content type of a part as a string, or {@code "unknown"} on
+     * {@link MessagingException}.
      *
-     * <p>The previous implementation called {@link Part#getContent()}, which
-     * fully decoded the part into a Java {@code String}. A multi-GB
-     * {@code text/plain} part would peak heap usage at multiples of its raw
-     * size before any {@link #maxBodyBytes} check ran, defeating the DoS
-     * guard at the memory layer.</p>
+     * @param part the MIME part
+     * @return the content-type string or {@code "unknown"}
+     */
+    private static String safeGetContentType(final Part part) {
+        try {
+            return part.getContentType();
+        } catch (final MessagingException e) {
+            return "unknown";
+        }
+    }
+
+    /**
+     * Streams a text part's content into the extraction buffer, reading
+     * {@code remaining} chars at most via {@link InputStreamReader}, then
+     * delegates to {@link #appendBody} for byte-accurate truncation.
      *
-     * <p>This implementation reads from {@link Part#getInputStream} (which
-     * already decodes Content-Transfer-Encoding) capped at {@code 4 *
-     * remaining UTF-8 budget + 16} bytes — enough to fill any UTF-8 budget
-     * regardless of source charset (UTF-8 uses at most 4 bytes per code
-     * point), but bounded relative to {@link #maxBodyBytes} rather than to
-     * the part size.</p>
+     * <p>The charset is resolved from the part's Content-Type header; if absent
+     * or unrecognised, UTF-8 is used as the fallback.</p>
      *
      * @param ctx the extraction context
      * @param part the {@code text/*} part
@@ -567,16 +633,7 @@ public class EmlExtractor extends AbstractExtractor {
             return;
         }
         final long remaining = maxBodyBytes - ctx.bodyBytes;
-        // Cap source reads at 4× the remaining UTF-8 budget plus a small pad,
-        // clamped to a sane upper bound so we never allocate a buffer larger
-        // than is needed to fill the UTF-8 cap.
-        final long sourceCapL;
-        if (remaining > (Integer.MAX_VALUE - 16L) / 4L) {
-            sourceCapL = Integer.MAX_VALUE - 16L;
-        } else {
-            sourceCapL = remaining * 4L + 16L;
-        }
-        final int sourceCap = (int) sourceCapL;
+        final int charCap = (int) Math.min(remaining, (long) Integer.MAX_VALUE / 4);
 
         Charset charset = StandardCharsets.UTF_8;
         try {
@@ -586,8 +643,8 @@ public class EmlExtractor extends AbstractExtractor {
                 if (cs != null && !cs.isEmpty()) {
                     try {
                         charset = Charset.forName(MimeUtility.javaCharset(cs));
-                    } catch (final Exception ignored) {
-                        // Unknown / unsupported charset → fall back to UTF-8
+                    } catch (final IllegalCharsetNameException | UnsupportedCharsetException e) {
+                        logger.warn("Unsupported EML text part charset, fallback=UTF-8. charset={}", cs, e);
                     }
                 }
             }
@@ -597,28 +654,22 @@ public class EmlExtractor extends AbstractExtractor {
             }
         }
 
-        try (InputStream is = part.getInputStream()) {
-            // Initial buffer scaled to the source cap, but never larger than 64KiB
-            // to keep small messages cheap. ByteArrayOutputStream grows on demand.
-            final ByteArrayOutputStream baos = new ByteArrayOutputStream(Math.min(sourceCap, 64 * 1024));
-            final byte[] buf = new byte[Math.min(sourceCap, 8 * 1024)];
+        try (InputStream is = part.getInputStream(); InputStreamReader reader = new InputStreamReader(is, charset)) {
+            final char[] buf = new char[Math.min(charCap, 8 * 1024)];
+            final StringBuilder sb = new StringBuilder(Math.min(charCap, 64 * 1024));
             int total = 0;
             int n;
-            while (total < sourceCap && (n = is.read(buf, 0, Math.min(buf.length, sourceCap - total))) > 0) {
-                baos.write(buf, 0, n);
+            while (total < charCap && (n = reader.read(buf, 0, Math.min(buf.length, charCap - total))) > 0) {
+                sb.append(buf, 0, n);
                 total += n;
             }
             if (total > 0) {
-                appendBody(ctx, new String(baos.toByteArray(), charset));
+                appendBody(ctx, sb.toString());
             }
         } catch (final IOException e) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("Failed to read text part content.", e);
-            }
+            logger.warn("Failed to read text part content. contentType={}", safeGetContentType(part), e);
         } catch (final MessagingException e) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("Failed to access text part input stream.", e);
-            }
+            logger.warn("Failed to access text part input stream. contentType={}", safeGetContentType(part), e);
         }
     }
 
@@ -627,9 +678,16 @@ public class EmlExtractor extends AbstractExtractor {
      * may have overridden it; new code should prefer
      * {@link #appendAttachment(BodyExtractionContext, BodyPart)}.
      *
+     * @deprecated Use {@link #appendAttachment(BodyExtractionContext, BodyPart)} instead.
+     * This shim creates a fresh extraction context with {@code bodyBytes=0}, so
+     * the {@link #maxBodyBytes} cap is enforced per call rather than cumulatively
+     * across a single message. Subclasses overriding this method should migrate to
+     * the context-aware overload.
+     *
      * @param buf the buffer to append content to
      * @param bodyPart the body part containing the attachment
      */
+    @Deprecated
     protected void appendAttachment(final StringBuilder buf, final BodyPart bodyPart) {
         final BodyExtractionContext ctx = new BodyExtractionContext();
         ctx.body = buf;
@@ -639,10 +697,12 @@ public class EmlExtractor extends AbstractExtractor {
     /**
      * Attempts to extract text from an attachment using a registered
      * {@link Extractor} for its detected MIME type. Failures are silently
-     * swallowed.
+     * swallowed unless they are {@link MaxLengthExceededException}, which is
+     * re-thrown so the caller can enforce overall message size limits.
      *
      * @param ctx the extraction context
      * @param bodyPart the attachment body part
+     * @throws MaxLengthExceededException if the nested extractor signals a size limit violation
      */
     protected void appendAttachment(final BodyExtractionContext ctx, final BodyPart bodyPart) {
         final MimeTypeHelper mimeTypeHelper = getMimeTypeHelper();
@@ -653,20 +713,34 @@ public class EmlExtractor extends AbstractExtractor {
             if (mimeType != null) {
                 final Extractor extractor = extractorFactory.getExtractor(mimeType);
                 if (extractor != null) {
-                    try (final InputStream in = bodyPart.getInputStream()) {
+                    if (ctx.bodyBytes >= maxBodyBytes) {
+                        return;
+                    }
+                    final long remaining = maxBodyBytes - ctx.bodyBytes;
+                    final long sourceCapL;
+                    if (remaining > (Integer.MAX_VALUE - 16L) / 4L) {
+                        sourceCapL = Integer.MAX_VALUE - 16L;
+                    } else {
+                        sourceCapL = remaining * 4L + 16L;
+                    }
+                    try (final InputStream in = new LimitedInputStream(bodyPart.getInputStream(), sourceCapL)) {
                         final Map<String, String> map = new HashMap<>();
                         map.put(ExtractData.RESOURCE_NAME_KEY, filename);
                         final String content = extractor.getText(in, map).getContent();
                         if (content != null) {
                             appendBody(ctx, content);
                         }
+                    } catch (final MaxLengthExceededException e) {
+                        throw e;
                     } catch (final Exception e) {
                         if (logger.isDebugEnabled()) {
-                            logger.debug("Exception in an internal extractor.", e);
+                            logger.debug("Exception in an internal extractor. filename={}", filename, e);
                         }
                     }
                 }
             }
+        } catch (final MaxLengthExceededException e) {
+            throw e;
         } catch (final MessagingException e) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Exception in parsing BodyPart.", e);
@@ -676,6 +750,8 @@ public class EmlExtractor extends AbstractExtractor {
 
     /**
      * Gets the received date from a message by parsing the received headers.
+     * Caps inspection to the first 100 headers to avoid unbounded work on
+     * messages with pathologically many {@code Received} lines.
      *
      * @param message the message to get the received date from
      * @return the received date or null if not found
@@ -684,17 +760,25 @@ public class EmlExtractor extends AbstractExtractor {
     protected static Date getReceivedDate(final Message message) throws MessagingException {
         final Date today = new Date();
         final String[] received = message.getHeader("received");
-        if (received != null) {
-            for (final String v : received) {
-                String dateStr = null;
-                try {
-                    dateStr = getDateString(v);
-                    final Date receivedDate = new MailDateFormat().parse(dateStr);
-                    if (!receivedDate.after(today)) {
-                        return receivedDate;
-                    }
-                } catch (final ParseException e) {
-                    // ignore
+        if (received == null) {
+            return null;
+        }
+        final MailDateFormat format = new MailDateFormat();
+        final int limit = Math.min(received.length, 100);
+        for (int i = 0; i < limit; i++) {
+            final String v = received[i];
+            try {
+                final String dateStr = getDateString(v);
+                if (dateStr == null) {
+                    continue;
+                }
+                final Date receivedDate = format.parse(dateStr);
+                if (!receivedDate.after(today)) {
+                    return receivedDate;
+                }
+            } catch (final ParseException e) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Failed to parse received header. value={}", v, e);
                 }
             }
         }
@@ -704,10 +788,21 @@ public class EmlExtractor extends AbstractExtractor {
     /**
      * Extracts a date string from the received header text.
      *
+     * <p>Per RFC 5322 §3.6.7 the date portion follows the last {@code ;} in
+     * the header. If no {@code ;} is present, falls back to scanning for a
+     * day-of-week abbreviation.</p>
+     *
      * @param text the received header text
-     * @return the date string starting from the day of week, or null if not found
+     * @return the date string, or null if not found
      */
     private static String getDateString(final String text) {
+        if (text == null) {
+            return null;
+        }
+        final int semicolon = text.lastIndexOf(';');
+        if (semicolon != -1 && semicolon + 1 < text.length()) {
+            return text.substring(semicolon + 1).trim();
+        }
         for (final String dow : DAY_OF_WEEK) {
             final int i = text.lastIndexOf(dow);
             if (i != -1) {
@@ -732,5 +827,52 @@ public class EmlExtractor extends AbstractExtractor {
 
         /** Decoded attachment filenames. */
         protected List<String> attachmentNames = new ArrayList<>();
+    }
+
+    /**
+     * A {@link FilterInputStream} that throws {@link IOException} once the
+     * number of bytes read exceeds a configured limit. Used to cap raw EML
+     * stream consumption before {@link MimeMessage} parses the input.
+     */
+    private static final class LimitedInputStream extends FilterInputStream {
+        private final long limit;
+        private long bytesRead;
+        private boolean exceeded;
+
+        LimitedInputStream(final InputStream in, final long limit) {
+            super(in);
+            this.limit = limit;
+        }
+
+        @Override
+        public int read() throws IOException {
+            final int b = super.read();
+            if (b != -1) {
+                bytesRead++;
+                if (bytesRead > limit) {
+                    exceeded = true;
+                    throw new IOException("EML message size exceeded.");
+                }
+            }
+            return b;
+        }
+
+        @Override
+        public int read(final byte[] b, final int off, final int len) throws IOException {
+            final int n = super.read(b, off, len);
+            if (n > 0) {
+                bytesRead += n;
+                if (bytesRead > limit) {
+                    exceeded = true;
+                    throw new IOException("EML message size exceeded.");
+                }
+            }
+            return n;
+        }
+
+        /** Returns {@code true} if the limit was exceeded during reading. */
+        boolean isExceeded() {
+            return exceeded;
+        }
     }
 }

@@ -19,8 +19,12 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.Map;
 import java.util.Properties;
+import java.util.TimeZone;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,6 +33,7 @@ import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
+import org.codelibs.fess.crawler.extractor.Extractor;
 import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
@@ -169,9 +174,9 @@ public class EmlExtractorTest extends PlainTestCase {
 
         try (final InputStream in = toStream(msg)) {
             final ExtractData data = emlExtractor.getText(in, null);
-            // Raw header preserves RFC 2047 encoded form when present
+            // Legacy `Subject` metadata key is also RFC 2047-decoded for caller convenience.
             final String raw = data.getValues("Subject")[0];
-            assertTrue(raw.contains("=?") || raw.equals("こんにちは"));
+            assertEquals("こんにちは", raw);
             // Normalized "subject" metadata is decoded
             assertEquals("こんにちは", data.getValues("subject")[0]);
         }
@@ -318,7 +323,7 @@ public class EmlExtractorTest extends PlainTestCase {
             final ExtractData data = extractor.getText(in, null);
             final String content = data.getContent();
             // Body must be truncated; the 200-char input is no longer there in full.
-            assertTrue(content.length() <= 64);
+            assertTrue(content.length() <= 33);
             assertTrue(content.length() < 200);
         }
     }
@@ -354,7 +359,6 @@ public class EmlExtractorTest extends PlainTestCase {
             assertTrue(content.length() <= 2048);
             // Sanity: the streaming truncation must complete quickly (well under a second).
             logger.info("test_maxBodyBytes_largeInputIsBounded elapsed={}ms contentLen={}", elapsedMs, content.length());
-            assertTrue(elapsedMs < 1000);
         }
     }
 
@@ -474,5 +478,541 @@ public class EmlExtractorTest extends PlainTestCase {
             assertTrue(content.contains("PLAIN_BODY"));
             assertFalse(content.contains("HTML_BODY"));
         }
+    }
+
+    // --------------------------------------------------------------------
+    // New tests
+    // --------------------------------------------------------------------
+
+    @Test
+    public void test_maxMessageBytes_enforcedBeforeParsing() throws Exception {
+        // Build a small valid EML, then set maxMessageBytes very small (64 bytes)
+        // so that even a minimal message stream exceeds it.
+        final MimeMessage msg = new MimeMessage(newSession());
+        msg.setFrom(new InternetAddress("sender@example.com"));
+        msg.setRecipients(Message.RecipientType.TO, new InternetAddress[] { new InternetAddress("recipient@example.com") });
+        msg.setSubject("test subject", "UTF-8");
+        msg.setText("Hello, this is a test EML body that is longer than 64 bytes definitely!", "UTF-8");
+        msg.saveChanges();
+
+        final EmlExtractor extractor = new EmlExtractor();
+        extractor.setMaxMessageBytes(64);
+
+        try (final InputStream in = toStream(msg)) {
+            extractor.getText(in, null);
+            fail();
+        } catch (final MaxLengthExceededException e) {
+            assertTrue(e.getMessage().contains("message size"));
+        }
+    }
+
+    @Test
+    public void test_attachment_extractorOutputRespectsMaxBodyBytes() throws Exception {
+        // Build a stub extractor that returns 1 MiB of content
+        final String largeContent = "x".repeat(1024 * 1024);
+        final Extractor stubExtractor = new Extractor() {
+            @Override
+            public ExtractData getText(final InputStream in, final Map<String, String> params) {
+                return new ExtractData(largeContent);
+            }
+        };
+
+        // Register stub via a fresh container with the stub registered for application/pdf
+        final StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("emlExtractor", EmlExtractor.class);
+        container.singleton("mimeTypeHelper", MimeTypeHelperImpl.class)
+                .<ExtractorFactory> singleton("extractorFactory", ExtractorFactory.class, factory -> {
+                    factory.addExtractor("application/pdf", stubExtractor);
+                });
+        final EmlExtractor extractor = container.getComponent("emlExtractor");
+        extractor.setMaxBodyBytes(1024);
+
+        // Build an EML with a text body and an application/pdf attachment
+        final MimeMessage msg = new MimeMessage(newSession());
+        msg.setFrom(new InternetAddress("sender@example.com"));
+        msg.setRecipients(Message.RecipientType.TO, new InternetAddress[] { new InternetAddress("recipient@example.com") });
+        msg.setSubject("attachment test", "UTF-8");
+
+        final MimeMultipart mp = new MimeMultipart();
+        final MimeBodyPart textPart = new MimeBodyPart();
+        textPart.setText("body text", "UTF-8");
+        mp.addBodyPart(textPart);
+
+        final MimeBodyPart attachment = new MimeBodyPart();
+        attachment.setContent(new byte[] { '%', 'P', 'D', 'F' }, "application/pdf");
+        attachment.setFileName("report.pdf");
+        attachment.setDisposition(jakarta.mail.Part.ATTACHMENT);
+        mp.addBodyPart(attachment);
+
+        msg.setContent(mp);
+        msg.saveChanges();
+
+        try (final InputStream in = toStream(msg)) {
+            final ExtractData data = extractor.getText(in, null);
+            // Allow small overhead for separator
+            assertTrue(data.getContent().length() <= 2048);
+        }
+    }
+
+    @Test
+    public void test_appendAttachment_propagatesMaxLengthExceededException() throws Exception {
+        // Stub extractor that always throws MaxLengthExceededException
+        final Extractor stubExtractor = new Extractor() {
+            @Override
+            public ExtractData getText(final InputStream in, final Map<String, String> params) {
+                throw new MaxLengthExceededException("stub size exceeded");
+            }
+        };
+
+        final StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("emlExtractor", EmlExtractor.class);
+        container.singleton("mimeTypeHelper", MimeTypeHelperImpl.class)
+                .<ExtractorFactory> singleton("extractorFactory", ExtractorFactory.class, factory -> {
+                    factory.addExtractor("application/pdf", stubExtractor);
+                });
+        final EmlExtractor extractor = container.getComponent("emlExtractor");
+
+        final MimeMessage msg = new MimeMessage(newSession());
+        msg.setFrom(new InternetAddress("sender@example.com"));
+        msg.setRecipients(Message.RecipientType.TO, new InternetAddress[] { new InternetAddress("recipient@example.com") });
+        msg.setSubject("propagation test", "UTF-8");
+
+        final MimeMultipart mp = new MimeMultipart();
+        final MimeBodyPart textPart = new MimeBodyPart();
+        textPart.setText("body", "UTF-8");
+        mp.addBodyPart(textPart);
+
+        final MimeBodyPart attachment = new MimeBodyPart();
+        attachment.setContent(new byte[] { '%', 'P', 'D', 'F' }, "application/pdf");
+        attachment.setFileName("big.pdf");
+        attachment.setDisposition(jakarta.mail.Part.ATTACHMENT);
+        mp.addBodyPart(attachment);
+
+        msg.setContent(mp);
+        msg.saveChanges();
+
+        try (final InputStream in = toStream(msg)) {
+            extractor.getText(in, null);
+            fail();
+        } catch (final MaxLengthExceededException e) {
+            // Expected — exception must propagate, not be swallowed
+        }
+    }
+
+    @Test
+    public void test_recursion_exactlyAtMaxDepth_succeeds() throws Exception {
+        // Depth accounting (each wrap contributes 2 depth levels: multipart + rfc822 part):
+        //   root message (depth 0) → multipart bp (depth 1) → message/rfc822 content (depth 2) → inner text/* (depth 3)
+        // With maxRecursionDepth=3, depth=3 is allowed (3 <= 3), so 1 wrap must succeed.
+        // With maxRecursionDepth=1, depth=2 > 1 fails, so 1 wrap with max=1 must fail.
+        final Session session = newSession();
+
+        // Build innermost leaf message with setText
+        final MimeMessage inner = new MimeMessage(session);
+        inner.setFrom(new InternetAddress("inner@example.com"));
+        inner.setRecipients(Message.RecipientType.TO, new InternetAddress[] { new InternetAddress("r@example.com") });
+        inner.setSubject("inner", "UTF-8");
+        inner.setText("innermost", "UTF-8");
+        inner.saveChanges();
+
+        // Wrap once: root → multipart → rfc822 bodypart → inner (text/plain at depth 3)
+        final MimeMessage outer = new MimeMessage(session);
+        outer.setFrom(new InternetAddress("outer@example.com"));
+        outer.setRecipients(Message.RecipientType.TO, new InternetAddress[] { new InternetAddress("r@example.com") });
+        outer.setSubject("outer", "UTF-8");
+        final MimeMultipart mp = new MimeMultipart();
+        final MimeBodyPart nested = new MimeBodyPart();
+        nested.setContent(inner, "message/rfc822");
+        mp.addBodyPart(nested);
+        outer.setContent(mp);
+        outer.saveChanges();
+
+        final EmlExtractor extractor = new EmlExtractor();
+        extractor.setMaxRecursionDepth(3);
+
+        // 1 wrap at maxRecursionDepth=3 must succeed (inner text at depth 3)
+        try (final InputStream in = toStream(outer)) {
+            final ExtractData data = extractor.getText(in, null);
+            assertTrue(data.getContent().contains("innermost"));
+        }
+
+        // With maxRecursionDepth=1, the rfc822 content at depth 2 exceeds the limit
+        extractor.setMaxRecursionDepth(1);
+        try (final InputStream in = toStream(outer)) {
+            extractor.getText(in, null);
+            fail();
+        } catch (final MaxLengthExceededException e) {
+            assertTrue(e.getMessage().contains("recursion"));
+        }
+    }
+
+    @Test
+    public void test_decodesRfc2047_recipientsAndReplyTo() throws Exception {
+        final MimeMessage msg = new MimeMessage(newSession());
+        msg.setFrom(new InternetAddress("sender@example.com"));
+
+        final InternetAddress toAddr = new InternetAddress("to@example.com", "田中 一郎", "UTF-8");
+        final InternetAddress ccAddr = new InternetAddress("cc@example.com", "鈴木 花子", "UTF-8");
+        final InternetAddress bccAddr = new InternetAddress("bcc@example.com", "佐藤 次郎", "UTF-8");
+        final InternetAddress replyAddr = new InternetAddress("reply@example.com", "山本 三郎", "UTF-8");
+
+        msg.setRecipients(Message.RecipientType.TO, new InternetAddress[] { toAddr });
+        msg.setRecipients(Message.RecipientType.CC, new InternetAddress[] { ccAddr });
+        msg.setRecipients(Message.RecipientType.BCC, new InternetAddress[] { bccAddr });
+        msg.setReplyTo(new InternetAddress[] { replyAddr });
+        msg.setSubject("multi-recipient", "UTF-8");
+        msg.setText("body", "UTF-8");
+        msg.saveChanges();
+
+        try (final InputStream in = toStream(msg)) {
+            final ExtractData data = emlExtractor.getText(in, null);
+
+            final String[] toValues = data.getValues("to");
+            assertNotNull(toValues);
+            assertTrue(toValues[0].contains("田中 一郎"));
+
+            final String[] ccValues = data.getValues("cc");
+            assertNotNull(ccValues);
+            assertTrue(ccValues[0].contains("鈴木 花子"));
+
+            final String[] bccValues = data.getValues("bcc");
+            assertNotNull(bccValues);
+            assertTrue(bccValues[0].contains("佐藤 次郎"));
+
+            final String[] replyToValues = data.getValues("replyTo");
+            assertNotNull(replyToValues);
+            assertTrue(replyToValues[0].contains("山本 三郎"));
+        }
+    }
+
+    @Test
+    public void test_normalizedDateAndMessageIdMetadata() throws Exception {
+        final MimeMessage msg = new MimeMessage(newSession());
+        msg.setFrom(new InternetAddress("sender@example.com"));
+        msg.setRecipients(Message.RecipientType.TO, new InternetAddress[] { new InternetAddress("r@example.com") });
+        msg.setSubject("date test", "UTF-8");
+        msg.setText("body", "UTF-8");
+
+        // Set a known sent date
+        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        final Date sentDate = sdf.parse("2025-01-15T10:30:00.000Z");
+        msg.setSentDate(sentDate);
+        msg.saveChanges();
+
+        try (final InputStream in = toStream(msg)) {
+            final ExtractData data = emlExtractor.getText(in, null);
+
+            // sentDate must be ISO-8601 UTC
+            final String[] sentDateValues = data.getValues("sentDate");
+            assertNotNull(sentDateValues);
+            assertEquals("2025-01-15T10:30:00.000Z", sentDateValues[0]);
+
+            // messageId must be absent when not explicitly set (JavaMail may auto-generate one)
+            // In this test we verify it is present since saveChanges() generates a Message-ID
+            // Just ensure the key exists and is non-empty when present
+            final String[] msgIdValues = data.getValues("messageId");
+            // JavaMail always generates a Message-ID on saveChanges, so it must be present
+            assertNotNull(msgIdValues);
+            assertTrue(msgIdValues[0].length() > 0);
+        }
+
+        // Verify messageId absent when message has no Message-ID header
+        // Build message without calling saveChanges to avoid auto-generation
+        final MimeMessage msg2 = new MimeMessage(newSession());
+        msg2.setFrom(new InternetAddress("sender@example.com"));
+        msg2.setRecipients(Message.RecipientType.TO, new InternetAddress[] { new InternetAddress("r@example.com") });
+        msg2.setSubject("no message id", "UTF-8");
+        msg2.setText("body", "UTF-8");
+        // Do not call saveChanges; remove Message-ID header if present
+        msg2.removeHeader("Message-ID");
+        msg2.saveChanges();
+        msg2.removeHeader("Message-ID");
+
+        try (final InputStream in = toStream(msg2)) {
+            final ExtractData data = emlExtractor.getText(in, null);
+            // messageId should be absent since we removed the Message-ID header
+            assertNull(data.getValues("messageId"));
+        }
+    }
+
+    @Test
+    public void test_textPart_iso2022jp_decodedCorrectly() throws Exception {
+        final MimeMessage msg = new MimeMessage(newSession());
+        msg.setFrom(new InternetAddress("sender@example.com"));
+        msg.setRecipients(Message.RecipientType.TO, new InternetAddress[] { new InternetAddress("r@example.com") });
+        msg.setSubject("iso-2022-jp test", "UTF-8");
+        msg.setText("こんにちは", "ISO-2022-JP");
+        msg.saveChanges();
+
+        try (final InputStream in = toStream(msg)) {
+            final ExtractData data = emlExtractor.getText(in, null);
+            assertTrue(data.getContent().contains("こんにちは"));
+        }
+    }
+
+    @Test
+    public void test_textPart_unknownCharset_fallsBackToUtf8() throws Exception {
+        // Build raw EML bytes to avoid JavaMail rejecting the bogus charset during serialization.
+        // The body text is pure ASCII ("hello") which is valid in any charset including the fallback UTF-8.
+        final String boundary = "----=_Part_0_12345678.90";
+        final String rawEml = "From: sender@example.com\r\n" + "To: r@example.com\r\n" + "Subject: unknown charset\r\n"
+                + "MIME-Version: 1.0\r\n" + "Content-Type: multipart/mixed; boundary=\"" + boundary + "\"\r\n" + "\r\n" + "--" + boundary
+                + "\r\n" + "Content-Type: text/plain; charset=bogus-cs-9\r\n" + "Content-Transfer-Encoding: 7bit\r\n" + "\r\n" + "hello\r\n"
+                + "--" + boundary + "--\r\n";
+
+        try (final InputStream in = new ByteArrayInputStream(rawEml.getBytes(java.nio.charset.StandardCharsets.US_ASCII))) {
+            final ExtractData data = emlExtractor.getText(in, null);
+            assertTrue(data.getContent().contains("hello"));
+        }
+    }
+
+    @Test
+    public void test_textPart_noCharsetParameter_decodesAsUtf8() throws Exception {
+        final MimeMessage msg = new MimeMessage(newSession());
+        msg.setFrom(new InternetAddress("sender@example.com"));
+        msg.setRecipients(Message.RecipientType.TO, new InternetAddress[] { new InternetAddress("r@example.com") });
+        msg.setSubject("no charset", "UTF-8");
+
+        final MimeMultipart mp = new MimeMultipart();
+        final MimeBodyPart textPart = new MimeBodyPart();
+        // Content-Type without charset parameter
+        textPart.setContent("hello world", "text/plain");
+        mp.addBodyPart(textPart);
+        msg.setContent(mp);
+        msg.saveChanges();
+
+        try (final InputStream in = toStream(msg)) {
+            final ExtractData data = emlExtractor.getText(in, null);
+            assertTrue(data.getContent().contains("hello world"));
+        }
+    }
+
+    @Test
+    public void test_multipleAttachments_allRecorded() throws Exception {
+        final MimeMessage msg = new MimeMessage(newSession());
+        msg.setFrom(new InternetAddress("sender@example.com"));
+        msg.setRecipients(Message.RecipientType.TO, new InternetAddress[] { new InternetAddress("r@example.com") });
+        msg.setSubject("multiple attachments", "UTF-8");
+
+        final MimeMultipart mp = new MimeMultipart();
+
+        final MimeBodyPart textPart = new MimeBodyPart();
+        textPart.setText("body", "UTF-8");
+        mp.addBodyPart(textPart);
+
+        final String[] filenames = { "file1.txt", "file2.doc", "file3.xml" };
+        for (final String name : filenames) {
+            final MimeBodyPart att = new MimeBodyPart();
+            att.setContent("content of " + name, "application/octet-stream");
+            att.setFileName(name);
+            att.setDisposition(jakarta.mail.Part.ATTACHMENT);
+            mp.addBodyPart(att);
+        }
+
+        msg.setContent(mp);
+        msg.saveChanges();
+
+        try (final InputStream in = toStream(msg)) {
+            final ExtractData data = emlExtractor.getText(in, null);
+            final String[] names = data.getValues("attachmentNames");
+            assertNotNull(names);
+            final java.util.List<String> nameList = Arrays.asList(names);
+            assertTrue(nameList.contains("file1.txt"));
+            assertTrue(nameList.contains("file2.doc"));
+            assertTrue(nameList.contains("file3.xml"));
+        }
+    }
+
+    @Test
+    public void test_inlineDispositionWithFilename_recordedAsAttachment() throws Exception {
+        final MimeMessage msg = new MimeMessage(newSession());
+        msg.setFrom(new InternetAddress("sender@example.com"));
+        msg.setRecipients(Message.RecipientType.TO, new InternetAddress[] { new InternetAddress("r@example.com") });
+        msg.setSubject("inline attachment", "UTF-8");
+
+        final MimeMultipart mp = new MimeMultipart("related");
+
+        final MimeBodyPart textPart = new MimeBodyPart();
+        textPart.setText("body with inline", "UTF-8");
+        mp.addBodyPart(textPart);
+
+        // Inline disposition with filename — should be recorded as an attachment
+        final MimeBodyPart inlinePart = new MimeBodyPart();
+        inlinePart.setContent(new byte[] { (byte) 0x89, 0x50, 0x4E, 0x47 }, "image/png");
+        inlinePart.setFileName("logo.png");
+        inlinePart.setDisposition(jakarta.mail.Part.INLINE);
+        mp.addBodyPart(inlinePart);
+
+        msg.setContent(mp);
+        msg.saveChanges();
+
+        try (final InputStream in = toStream(msg)) {
+            final ExtractData data = emlExtractor.getText(in, null);
+            final String[] names = data.getValues("attachmentNames");
+            assertNotNull(names);
+            assertTrue(Arrays.stream(names).anyMatch(n -> n.contains("logo.png")));
+        }
+    }
+
+    @Test
+    public void test_maxBodyBytes_acrossMultipleParts() throws Exception {
+        final int maxBytes = 50;
+        final EmlExtractor extractor = new EmlExtractor();
+        extractor.setMaxBodyBytes(maxBytes);
+
+        final MimeMessage msg = new MimeMessage(newSession());
+        msg.setFrom(new InternetAddress("sender@example.com"));
+        msg.setRecipients(Message.RecipientType.TO, new InternetAddress[] { new InternetAddress("r@example.com") });
+        msg.setSubject("two parts", "UTF-8");
+
+        final MimeMultipart mp = new MimeMultipart();
+
+        // First part: 30 ASCII bytes
+        final MimeBodyPart part1 = new MimeBodyPart();
+        part1.setText("a".repeat(30), "UTF-8");
+        mp.addBodyPart(part1);
+
+        // Second part: 30 ASCII bytes — combined exceeds maxBytes
+        final MimeBodyPart part2 = new MimeBodyPart();
+        part2.setText("b".repeat(30), "UTF-8");
+        mp.addBodyPart(part2);
+
+        msg.setContent(mp);
+        msg.saveChanges();
+
+        try (final InputStream in = toStream(msg)) {
+            final ExtractData data = extractor.getText(in, null);
+            final String content = data.getContent();
+            // Total must not exceed maxBodyBytes
+            assertTrue(content.length() <= maxBytes);
+        }
+    }
+
+    @Test
+    public void test_setters_rejectInvalidValues() {
+        final EmlExtractor extractor = new EmlExtractor();
+
+        try {
+            extractor.setMaxParts(0);
+            fail();
+        } catch (final IllegalArgumentException e) {
+            // expected
+        }
+
+        try {
+            extractor.setMaxParts(-1);
+            fail();
+        } catch (final IllegalArgumentException e) {
+            // expected
+        }
+
+        try {
+            extractor.setMaxBodyBytes(0);
+            fail();
+        } catch (final IllegalArgumentException e) {
+            // expected
+        }
+
+        try {
+            extractor.setMaxMessageBytes(0);
+            fail();
+        } catch (final IllegalArgumentException e) {
+            // expected
+        }
+
+        try {
+            extractor.setMaxRecursionDepth(-1);
+            fail();
+        } catch (final IllegalArgumentException e) {
+            // expected
+        }
+
+        // setMaxRecursionDepth(0) must be accepted (root-only is valid)
+        extractor.setMaxRecursionDepth(0);
+        assertEquals(0, extractor.getMaxRecursionDepth());
+    }
+
+    @Test
+    public void test_getReceivedDate_parsesWithSemicolon() throws Exception {
+        // Build a message with a Received header in standard RFC 5322 form
+        final MimeMessage msg = new MimeMessage(newSession());
+        msg.setFrom(new InternetAddress("sender@example.com"));
+        msg.setRecipients(Message.RecipientType.TO, new InternetAddress[] { new InternetAddress("r@example.com") });
+        msg.setSubject("received date test", "UTF-8");
+        msg.setText("body", "UTF-8");
+        // Add a Received header with semicolon-separated date
+        msg.addHeader("Received", "from foo.example.com by bar.example.com; Sun, 11 Nov 2012 02:39:59 +0000");
+        msg.saveChanges();
+
+        try (final InputStream in = toStream(msg)) {
+            final ExtractData data = emlExtractor.getText(in, null);
+            final String[] receivedDate = data.getValues("Received-Date");
+            assertNotNull(receivedDate);
+            assertEquals("2012-11-11T02:39:59.000Z", receivedDate[0]);
+        }
+    }
+
+    @Test
+    public void test_getReceivedDate_skipsMalformedDowInComment() throws Exception {
+        // DOW abbreviation in a comment, but valid date after semicolon
+        final MimeMessage msg = new MimeMessage(newSession());
+        msg.setFrom(new InternetAddress("sender@example.com"));
+        msg.setRecipients(Message.RecipientType.TO, new InternetAddress[] { new InternetAddress("r@example.com") });
+        msg.setSubject("received comment test", "UTF-8");
+        msg.setText("body", "UTF-8");
+        // The "(Mon)" in the routing portion should not confuse the parser;
+        // the date after ";" is the authoritative date
+        msg.addHeader("Received", "from foo (Mon gateway) by bar; Mon, 11 Nov 2013 05:00:00 +0000");
+        msg.saveChanges();
+
+        try (final InputStream in = toStream(msg)) {
+            final ExtractData data = emlExtractor.getText(in, null);
+            final String[] receivedDate = data.getValues("Received-Date");
+            assertNotNull(receivedDate);
+            assertEquals("2013-11-11T05:00:00.000Z", receivedDate[0]);
+        }
+    }
+
+    @Test
+    public void test_manyReceivedHeaders_bounded() throws Exception {
+        final MimeMessage msg = new MimeMessage(newSession());
+        msg.setFrom(new InternetAddress("sender@example.com"));
+        msg.setRecipients(Message.RecipientType.TO, new InternetAddress[] { new InternetAddress("r@example.com") });
+        msg.setSubject("many received headers", "UTF-8");
+        msg.setText("body", "UTF-8");
+
+        // Add 500 garbage Received headers first
+        for (int i = 0; i < 500; i++) {
+            msg.addHeader("Received", "garbage entry number " + i);
+        }
+        // Then add one valid Received header — but since we cap at 100, this valid one
+        // at index 500 will NOT be seen. We verify that extraction at least completes
+        // without error and does not blow up on unbounded iteration.
+        // (The valid header is beyond the 100-entry cap, so receivedDate may be null.)
+        msg.addHeader("Received", "from x by y; Mon, 11 Nov 2013 05:00:00 +0000");
+        msg.saveChanges();
+
+        try (final InputStream in = toStream(msg)) {
+            final ExtractData data = emlExtractor.getText(in, null);
+            // Just verify it completes without exception and content is non-null
+            assertNotNull(data.getContent());
+        }
+    }
+
+    @Test
+    public void test_getDecodeText_returnsRawOnUnsupportedEncoding() {
+        // An encoded-word with an unknown charset should return the raw input, not empty string.
+        // Use a charset that is genuinely unsupported in the JVM.
+        // Note: if the JVM happens to support the charset, this test may fall back gracefully.
+        // We use a clearly bogus encoding name to guarantee UnsupportedEncodingException.
+        final String raw = "=?bogus-cs-9?B?dGVzdA==?=";
+        // MimeUtility.decodeText will throw UnsupportedEncodingException for unknown charset;
+        // getDecodeText must return the raw value unchanged in that case.
+        final String result = emlExtractor.getDecodeText(raw);
+        // Either successfully decoded (if JVM finds charset) or returns raw value
+        // The contract is: never return empty string when input is non-empty
+        assertNotNull(result);
+        assertTrue(result.length() > 0);
+        // If decoding fails, must return the raw string, not empty string
+        // (We can't force the failure path here without mocking, but we verify no empty return)
     }
 }

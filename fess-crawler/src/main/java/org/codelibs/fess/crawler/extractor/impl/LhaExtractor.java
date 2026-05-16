@@ -29,7 +29,6 @@ import org.apache.logging.log4j.Logger;
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.FileUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
-import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.extractor.Extractor;
@@ -116,14 +115,14 @@ public class LhaExtractor extends AbstractExtractor {
      */
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
-        if (in == null) {
-            throw new CrawlerSystemException("LHA archive input stream is null. Cannot extract text from null input.");
-        }
+        validateInputStream(in);
         checkDepth(params, maxArchiveDepth);
 
         final MimeTypeHelper mimeTypeHelper = getMimeTypeHelper();
         final ExtractorFactory extractorFactory = getExtractorFactory();
         final StringBuilder buf = new StringBuilder(1000);
+        int processedEntries = 0;
+        int failedEntries = 0;
 
         File tempFile = null;
         LhaFile lhaFile = null;
@@ -133,7 +132,7 @@ public class LhaExtractor extends AbstractExtractor {
                 // Stage the (untrusted) archive bytes to disk under a hard
                 // cap so a hostile producer cannot exhaust local storage by
                 // streaming an arbitrarily large body.
-                final long inputReadLimit = maxInputBytes > 0 ? maxInputBytes + 1L : Long.MAX_VALUE;
+                final long inputReadLimit = maxInputBytes > 0 ? addOneSaturating(maxInputBytes) : Long.MAX_VALUE;
                 final long staged = copyBounded(in, fos, inputReadLimit);
                 if (maxInputBytes > 0 && staged > maxInputBytes) {
                     throw new MaxLengthExceededException("lha input size exceeded: bytes=" + staged + " max=" + maxInputBytes);
@@ -175,10 +174,20 @@ public class LhaExtractor extends AbstractExtractor {
                 final byte[] entryBytes;
                 InputStream is = null;
                 try {
+                    // getInputStream(LhaHeader) can return null when the header
+                    // is not found in the archive index, and can throw
+                    // RuntimeException (e.g. IllegalArgumentException from
+                    // CompressMethod.getCore) for unknown/corrupt compression
+                    // methods — both must be handled before touching `is`.
                     is = lhaFile.getInputStream(head);
+                    if (is == null) {
+                        logger.warn("lha entry stream is null: name={}", filename);
+                        failedEntries++;
+                        continue;
+                    }
                     final long totalReadLimit;
                     if (maxBytes > 0) {
-                        totalReadLimit = Math.max(0L, maxBytes - totalBytes) + 1L;
+                        totalReadLimit = addOneSaturating(Math.max(0L, maxBytes - totalBytes));
                     } else {
                         totalReadLimit = Long.MAX_VALUE;
                     }
@@ -187,19 +196,23 @@ public class LhaExtractor extends AbstractExtractor {
                     // can buffer hundreds of MiB into memory.
                     final long contentReadLimit;
                     if (maxContentSize >= 0) {
-                        contentReadLimit = Math.max(0L, maxContentSize - totalBytes) + 1L;
+                        contentReadLimit = addOneSaturating(Math.max(0L, maxContentSize - totalBytes));
                     } else {
                         contentReadLimit = Long.MAX_VALUE;
                     }
-                    final long perEntryReadLimit = maxBytesPerEntry > 0 ? maxBytesPerEntry + 1L : Long.MAX_VALUE;
+                    final long perEntryReadLimit = maxBytesPerEntry > 0 ? addOneSaturating(maxBytesPerEntry) : Long.MAX_VALUE;
                     final long readLimit = Math.min(Math.min(totalReadLimit, contentReadLimit), perEntryReadLimit);
                     final ByteArrayOutputStream out = new ByteArrayOutputStream();
                     actualBytes = copyBounded(is, out, readLimit);
                     entryBytes = out.toByteArray();
-                } catch (final IOException ioe) {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Failed to read lha entry: name={}", filename, ioe);
-                    }
+                } catch (final IOException | RuntimeException ioe) {
+                    // IOException: normal read failure.
+                    // RuntimeException: includes IllegalArgumentException thrown
+                    // by CompressMethod.getCore() for corrupt/unknown compression
+                    // methods in the dangan LHA library (getInputStream does not
+                    // declare checked exceptions for these cases).
+                    logger.warn("Failed to read lha entry: name={}", filename, ioe);
+                    failedEntries++;
                     continue;
                 } finally {
                     CloseableUtil.closeQuietly(is);
@@ -223,13 +236,19 @@ public class LhaExtractor extends AbstractExtractor {
                     map.put(ExtractData.RESOURCE_NAME_KEY, filename);
                     buf.append(extractor.getText(new ByteArrayInputStream(entryBytes), map).getContent());
                     buf.append('\n');
+                    processedEntries++;
                 } catch (final MaxLengthExceededException e) {
                     throw e;
                 } catch (final Exception e) {
+                    failedEntries++;
                     if (logger.isDebugEnabled()) {
-                        logger.debug("Exception in an internal extractor.", e);
+                        logger.debug("Exception in an internal extractor: name={}", filename, e);
                     }
                 }
+            }
+            // Summary warn when the loop completed normally but some entries failed.
+            if (failedEntries > 0) {
+                logger.warn("LHA archive partially processed: processed={} failed={}", processedEntries, failedEntries);
             }
         } catch (final MaxLengthExceededException e) {
             throw e;
@@ -240,7 +259,7 @@ public class LhaExtractor extends AbstractExtractor {
                 try {
                     lhaFile.close();
                 } catch (final IOException e) {
-                    // ignore
+                    logger.warn("Failed to close LHA file. tempFile={}", tempFile, e);
                 }
             }
             FileUtil.deleteInBackground(tempFile);

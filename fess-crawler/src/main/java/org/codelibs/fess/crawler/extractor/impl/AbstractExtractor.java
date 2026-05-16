@@ -263,8 +263,18 @@ public abstract class AbstractExtractor implements Extractor {
         if (name.length() >= 2 && name.charAt(1) == ':') {
             return true;
         }
+        // Normalise backslashes to forward slashes BEFORE calling Paths.get().
+        // On Linux (and macOS) a backslash is a literal filename character, so
+        // Paths.get("a\\..")  treats "a\\.." as a SINGLE opaque segment and
+        // normalize() leaves it unchanged — bypassing the ".." segment check.
+        // Unifying to "/" first forces the path parser to recognise each
+        // component correctly on all platforms.
+        final String unified = name.replace('\\', '/');
+        if (unified.startsWith("/")) {
+            return true;
+        }
         try {
-            final Path normalised = Paths.get(name).normalize();
+            final Path normalised = Paths.get(unified).normalize();
             final String normStr = normalised.toString().replace('\\', '/');
             if (normStr.equals("..") || normStr.startsWith("../") || normStr.contains("/../")) {
                 return true;
@@ -281,6 +291,21 @@ public abstract class AbstractExtractor implements Extractor {
     }
 
     /**
+     * Saturating add: returns {@code value + 1} unless that would overflow
+     * {@code Long.MAX_VALUE}, in which case {@code Long.MAX_VALUE} is returned.
+     * Used when computing a read limit that is one byte beyond a cap so that
+     * the caller can detect "exactly at the cap" vs "exceeds the cap" without
+     * silently wrapping to a negative limit and reading nothing.
+     *
+     * @param value the value to increment (must be non-negative)
+     * @return {@code value + 1} or {@code Long.MAX_VALUE} if already at the
+     *         maximum
+     */
+    protected static long addOneSaturating(final long value) {
+        return value >= Long.MAX_VALUE ? Long.MAX_VALUE : value + 1L;
+    }
+
+    /**
      * Copies up to {@code limit} bytes from {@code in} to {@code out}, returning
      * the actual number of bytes copied. Used by archive extractors to bound
      * the amount of memory consumed when buffering an entry's uncompressed
@@ -288,14 +313,20 @@ public abstract class AbstractExtractor implements Extractor {
      *
      * @param in the source stream
      * @param out the sink stream
-     * @param limit the maximum number of bytes to copy (inclusive). Values
-     *              {@code <= 0} cause the method to return without reading.
+     * @param limit the maximum number of bytes to copy (inclusive). Must be
+     *              non-negative; a negative value throws
+     *              {@link IllegalArgumentException} so misconfiguration is
+     *              surfaced immediately rather than silently reading nothing.
      * @return the number of bytes actually copied
+     * @throws IllegalArgumentException if {@code limit} is negative
      * @throws IOException if reading from {@code in} or writing to {@code out}
      *                     fails
      */
     protected static long copyBounded(final InputStream in, final OutputStream out, final long limit) throws IOException {
-        if (limit <= 0) {
+        if (limit < 0) {
+            throw new IllegalArgumentException("copyBounded: limit must be non-negative, got " + limit);
+        }
+        if (limit == 0) {
             return 0;
         }
         final byte[] buffer = new byte[8192];

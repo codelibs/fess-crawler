@@ -31,6 +31,7 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
+import org.codelibs.fess.crawler.exception.ExtractException;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
@@ -594,6 +595,372 @@ public class ArchiveExtractorSecurityTest extends PlainTestCase {
             assertTrue(e.getMessage().contains("input size exceeded"));
         } catch (final IOException e) {
             fail();
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // ZIP signature checks (M1)
+    // ---------------------------------------------------------------------
+
+    @Test
+    public void test_zip_signatureCheck_rejectsDataDescriptorPrefix() throws Exception {
+        // PK\x07\x08 is a data-descriptor signature and must not appear at
+        // the start of a valid ZIP; reject it as ExtractException.
+        final byte[] data = new byte[] { 'P', 'K', 0x07, 0x08, 0, 0, 0, 0 };
+        try (InputStream in = new ByteArrayInputStream(data)) {
+            zipExtractor.getText(in, null);
+            fail();
+        } catch (final ExtractException e) {
+            assertTrue(e.getMessage().contains("ZIP"));
+        }
+    }
+
+    @Test
+    public void test_zip_signatureCheck_acceptsEmptyArchive() throws Exception {
+        // PK\x05\x06 is a valid empty-archive EOCD; extractor must return
+        // empty content rather than throwing.
+        final byte[] eocd = new byte[22];
+        eocd[0] = 'P';
+        eocd[1] = 'K';
+        eocd[2] = 0x05;
+        eocd[3] = 0x06;
+        // Remaining 18 bytes stay 0 (valid minimal EOCD).
+        try (InputStream in = new ByteArrayInputStream(eocd)) {
+            final String content = zipExtractor.getText(in, null).getContent();
+            assertEquals("", content);
+        }
+    }
+
+    @Test
+    public void test_zip_signatureCheck_rejectsTruncatedStream() throws Exception {
+        // 2 bytes — not enough for a valid ZIP magic → ExtractException.
+        final byte[] data = new byte[] { 'P', 'K' };
+        try (InputStream in = new ByteArrayInputStream(data)) {
+            zipExtractor.getText(in, null);
+            fail();
+        } catch (final ExtractException e) {
+            assertTrue(e.getMessage().contains("ZIP"));
+        }
+    }
+
+    @Test
+    public void test_zip_signatureCheck_rejectsNonZip() throws Exception {
+        // Completely wrong magic.
+        final byte[] data = "not a zip file at all".getBytes(StandardCharsets.UTF_8);
+        try (InputStream in = new ByteArrayInputStream(data)) {
+            zipExtractor.getText(in, null);
+            fail();
+        } catch (final ExtractException e) {
+            assertTrue(e.getMessage().contains("ZIP"));
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // Overflow: saturating +1L at Long.MAX_VALUE (C2)
+    // ---------------------------------------------------------------------
+
+    @Test
+    public void test_overflow_saturatingAdd_atLongMaxValue() throws Exception {
+        // With maxBytes=Long.MAX_VALUE a small archive must succeed, not
+        // silently read 0 bytes due to Long overflow wrapping to negative.
+        final byte[] payload = "hello world".getBytes(StandardCharsets.UTF_8);
+        final byte[] data = buildZip(new EntrySpec("ok.txt", payload));
+
+        zipExtractor.setMaxBytes(Long.MAX_VALUE);
+        zipExtractor.setMaxBytesPerEntry(Long.MAX_VALUE);
+        zipExtractor.setMaxContentSize(-1);
+        try (InputStream in = new ByteArrayInputStream(data)) {
+            final String content = zipExtractor.getText(in, null).getContent();
+            assertTrue(content.contains("hello world"));
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // Compression ratio — min(header, measured) (M3)
+    // ---------------------------------------------------------------------
+
+    @Test
+    public void test_zip_compressionRatio_usesMinOfHeaderAndMeasured() throws Exception {
+        // Build a zip where the entry header reports a huge compressedSize.
+        // The ratio check must use the minimum of header vs. measured bytes
+        // so a lying header cannot suppress the check. We build a highly
+        // compressible 2 MiB entry; the measured compressed bytes will be
+        // small, making the ratio >> 100 regardless of the header claim.
+        final byte[] payload = new byte[2 * 1024 * 1024]; // all zeros
+
+        final java.util.zip.Deflater def = new java.util.zip.Deflater(java.util.zip.Deflater.BEST_COMPRESSION);
+        def.setInput(payload);
+        def.finish();
+        final ByteArrayOutputStream compBuf = new ByteArrayOutputStream();
+        final byte[] tmpBuf = new byte[8192];
+        while (!def.finished()) {
+            final int n = def.deflate(tmpBuf);
+            compBuf.write(tmpBuf, 0, n);
+        }
+        def.end();
+        final java.util.zip.CRC32 crc = new java.util.zip.CRC32();
+        crc.update(payload);
+
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try (ZipArchiveOutputStream zos = new ZipArchiveOutputStream(baos)) {
+            final ZipArchiveEntry entry = new ZipArchiveEntry("zeros.txt");
+            entry.setMethod(ZipArchiveEntry.DEFLATED);
+            entry.setSize(payload.length);
+            // Set a deliberately inflated compressedSize in the header so
+            // that ratio = uncompressed / fakeCompressed would be < threshold.
+            // If the code uses min(header, measured) the measured value wins
+            // and ratio >> threshold => MaxLengthExceededException fires.
+            entry.setCompressedSize(payload.length); // 1:1 — no bomb per header
+            entry.setCrc(crc.getValue());
+            zos.putArchiveEntry(entry);
+            zos.write(payload);
+            zos.closeArchiveEntry();
+            zos.finish();
+        }
+        final byte[] data = baos.toByteArray();
+
+        zipExtractor.setMaxBytes(-1);
+        zipExtractor.setMaxContentSize(-1);
+        // Ratio threshold: 100 — actual ratio >> 100 using measured bytes.
+        zipExtractor.setMaxCompressionRatio(100L);
+        try (InputStream in = new ByteArrayInputStream(data)) {
+            zipExtractor.getText(in, null);
+            fail();
+        } catch (final MaxLengthExceededException e) {
+            assertTrue(e.getMessage().contains("compression ratio"));
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // Nested recursion depth (zip-in-zip) (test 6)
+    // ---------------------------------------------------------------------
+
+    @Test
+    public void test_zip_nestedRecursionCountsDepth() throws Exception {
+        // Build inner zip containing a text file.
+        final byte[] innerPayload = buildZip(new EntrySpec("inner.txt", "hello".getBytes(StandardCharsets.UTF_8)));
+        // Build outer zip containing the inner zip.
+        final byte[] data = buildZip(new EntrySpec("nested.zip", innerPayload));
+
+        // Allow depth=1 only — outer zip processes ok (depth 0→1),
+        // inner zip invocation is at depth=1 which == maxArchiveDepth → throws.
+        zipExtractor.setMaxArchiveDepth(1);
+        try (InputStream in = new ByteArrayInputStream(data)) {
+            zipExtractor.getText(in, null);
+            fail();
+        } catch (final MaxLengthExceededException e) {
+            assertTrue(e.getMessage().toLowerCase().contains("recursion"));
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // Per-entry cap fires when total cap disabled (test 7)
+    // ---------------------------------------------------------------------
+
+    @Test
+    public void test_zip_perEntryCap_whenMaxBytesDisabled() throws Exception {
+        final byte[] payload = new byte[2 * 1024 * 1024]; // 2 MiB
+        final byte[] data = buildZip(new EntrySpec("big.txt", payload));
+
+        zipExtractor.setMaxBytes(-1);
+        zipExtractor.setMaxContentSize(-1);
+        zipExtractor.setMaxCompressionRatio(-1);
+        zipExtractor.setMaxBytesPerEntry(1024 * 1024); // 1 MiB cap
+        try (InputStream in = new ByteArrayInputStream(data)) {
+            zipExtractor.getText(in, null);
+            fail();
+        } catch (final MaxLengthExceededException e) {
+            assertTrue(e.getMessage().contains("per-entry size exceeded"));
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // Total cap fires when per-entry cap disabled (test 8)
+    // ---------------------------------------------------------------------
+
+    @Test
+    public void test_zip_maxBytes_whenPerEntryDisabled() throws Exception {
+        final byte[] payload = new byte[64 * 1024]; // 64 KiB each
+        final byte[] data = buildZip(new EntrySpec("a.txt", payload), new EntrySpec("b.txt", payload));
+
+        zipExtractor.setMaxBytesPerEntry(-1); // disable per-entry
+        zipExtractor.setMaxCompressionRatio(-1);
+        zipExtractor.setMaxBytes(64 * 1024); // exactly one entry → second exceeds
+        try (InputStream in = new ByteArrayInputStream(data)) {
+            zipExtractor.getText(in, null);
+            fail();
+        } catch (final MaxLengthExceededException e) {
+            assertTrue(e.getMessage().contains("zip uncompressed size exceeded"));
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // CP932 filename (m2: use Assumptions instead of silent return)
+    // ---------------------------------------------------------------------
+
+    @Test
+    public void test_cp932Filename_withAssumption() throws Exception {
+        // If MS932 is unavailable, skip with Assumptions rather than a
+        // silent return, so the test result is clearly SKIPPED not PASSED.
+        org.junit.jupiter.api.Assumptions.assumeTrue(Charset.isSupported("MS932"), "MS932 charset not available on this JVM");
+
+        final Charset cp932 = Charset.forName("MS932");
+        final byte[] data = buildZipWithCharset(cp932, new EntrySpec("テスト.txt", "japan".getBytes(StandardCharsets.UTF_8)));
+
+        zipExtractor.setFilenameEncoding("MS932");
+        try (InputStream in = new ByteArrayInputStream(data)) {
+            final String content = zipExtractor.getText(in, null).getContent();
+            assertTrue(content.contains("japan"));
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // Compression-ratio message tightened (m3)
+    // ---------------------------------------------------------------------
+
+    @Test
+    public void test_compressionRatioExceeded_messageContainsRatio() throws Exception {
+        // Same high-ratio archive as the existing test; assert the message
+        // specifically contains "compression ratio" (not just "uncompressed
+        // size"), because maxBytes=-1 means the total cap is disabled.
+        final byte[] payload = new byte[2 * 1024 * 1024];
+        final java.util.zip.Deflater def = new java.util.zip.Deflater(java.util.zip.Deflater.BEST_COMPRESSION);
+        def.setInput(payload);
+        def.finish();
+        final ByteArrayOutputStream compBuf = new ByteArrayOutputStream();
+        final byte[] tmpBuf = new byte[8192];
+        while (!def.finished()) {
+            final int n = def.deflate(tmpBuf);
+            compBuf.write(tmpBuf, 0, n);
+        }
+        def.end();
+        final java.util.zip.CRC32 crc = new java.util.zip.CRC32();
+        crc.update(payload);
+
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try (ZipArchiveOutputStream zos = new ZipArchiveOutputStream(baos)) {
+            final ZipArchiveEntry entry = new ZipArchiveEntry("zeros.txt");
+            entry.setMethod(ZipArchiveEntry.DEFLATED);
+            entry.setSize(payload.length);
+            entry.setCompressedSize(compBuf.size());
+            entry.setCrc(crc.getValue());
+            zos.putArchiveEntry(entry);
+            zos.write(payload);
+            zos.closeArchiveEntry();
+            zos.finish();
+        }
+        final byte[] data = baos.toByteArray();
+
+        zipExtractor.setMaxBytes(-1);
+        zipExtractor.setMaxContentSize(-1);
+        try (InputStream in = new ByteArrayInputStream(data)) {
+            zipExtractor.getText(in, null);
+            fail();
+        } catch (final MaxLengthExceededException e) {
+            // With maxBytes=-1, only the ratio check can fire.
+            assertTrue(e.getMessage().contains("compression ratio"));
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // Tar PAX global header does not consume entry count (m4)
+    // ---------------------------------------------------------------------
+
+    @Test
+    public void test_tar_paxGlobalHeader_doesNotConsumeEntryCount() throws Exception {
+        // Build a tar that, when read by TarArchiveInputStream, produces a
+        // PAX global header entry followed by a real text entry.  We use a
+        // long filename (>100 chars) with LONGFILE_POSIX mode, which causes
+        // Commons Compress to emit a PAX extended header (type 'x') for the
+        // long name before the real entry.  isPaxHeader() returns true for
+        // type 'x', so the fix must skip it without incrementing entryCount.
+        // With maxEntries=1, if the PAX extension header is counted the real
+        // entry would push the count to 2 and trigger the cap.
+        final String longName = "a".repeat(110) + ".txt"; // > 100-char POSIX limit
+        final byte[] content = "hello".getBytes(StandardCharsets.UTF_8);
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try (TarArchiveOutputStream tos = new TarArchiveOutputStream(baos)) {
+            tos.setLongFileMode(TarArchiveOutputStream.LONGFILE_POSIX);
+            final TarArchiveEntry real = new TarArchiveEntry(longName);
+            real.setSize(content.length);
+            tos.putArchiveEntry(real);
+            tos.write(content);
+            tos.closeArchiveEntry();
+            tos.finish();
+        }
+        final byte[] data = baos.toByteArray();
+
+        tarExtractor.setMaxEntries(1); // only 1 real entry allowed
+        try (InputStream in = new ByteArrayInputStream(data)) {
+            final String text = tarExtractor.getText(in, null).getContent();
+            assertTrue(text.contains("hello"));
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // Tar per-entry cap enforced (test 13)
+    // ---------------------------------------------------------------------
+
+    @Test
+    public void test_tar_perEntryCapEnforced() throws Exception {
+        final byte[] payload = new byte[2 * 1024 * 1024]; // 2 MiB
+        final byte[] data = buildTar(new TarEntrySpec("big.txt", payload));
+
+        tarExtractor.setMaxBytes(-1);
+        tarExtractor.setMaxContentSize(-1);
+        tarExtractor.setMaxBytesPerEntry(1024 * 1024); // 1 MiB cap
+        try (InputStream in = new ByteArrayInputStream(data)) {
+            tarExtractor.getText(in, null);
+            fail();
+        } catch (final MaxLengthExceededException e) {
+            assertTrue(e.getMessage().contains("tar per-entry size exceeded"));
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // Tar symlink skip now at WARN (m9) — verify it does not throw
+    // ---------------------------------------------------------------------
+
+    @Test
+    public void test_tar_symlinkSkipped_doesNotThrow() throws Exception {
+        // Already covered by test_tar_symlinkSkipped; this confirms the
+        // behaviour is unchanged after upgrading the log level to WARN.
+        final byte[] data = buildTar(new TarEntrySpec("ok.txt", "regular".getBytes(StandardCharsets.UTF_8)),
+                new TarEntrySpec("evil.txt", null, TarArchiveEntry.LF_SYMLINK, "/etc/passwd"));
+
+        try (InputStream in = new ByteArrayInputStream(data)) {
+            final String content = tarExtractor.getText(in, null).getContent();
+            assertTrue(content.contains("regular"));
+            assertFalse(content.contains("passwd"));
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // setMaxArchiveDepth changes threshold (test 16)
+    // ---------------------------------------------------------------------
+
+    @Test
+    public void test_setMaxArchiveDepth_changesThreshold() throws Exception {
+        final byte[] data = buildZip(new EntrySpec("ok.txt", "hi".getBytes(StandardCharsets.UTF_8)));
+
+        // depth=3 at maxArchiveDepth=3 → throws
+        zipExtractor.setMaxArchiveDepth(3);
+        final Map<String, String> params3 = new HashMap<>();
+        params3.put(AbstractExtractor.EXTRACTOR_DEPTH_KEY, "3");
+        try (InputStream in = new ByteArrayInputStream(data)) {
+            zipExtractor.getText(in, params3);
+            fail();
+        } catch (final MaxLengthExceededException e) {
+            assertTrue(e.getMessage().toLowerCase().contains("recursion"));
+        }
+
+        // depth=11 at maxArchiveDepth=20 → passes
+        zipExtractor.setMaxArchiveDepth(20);
+        final Map<String, String> params11 = new HashMap<>();
+        params11.put(AbstractExtractor.EXTRACTOR_DEPTH_KEY, "11");
+        try (InputStream in = new ByteArrayInputStream(data)) {
+            final String content = zipExtractor.getText(in, params11).getContent();
+            assertTrue(content.contains("hi"));
         }
     }
 }

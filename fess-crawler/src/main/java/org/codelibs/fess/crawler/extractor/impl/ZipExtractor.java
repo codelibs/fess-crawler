@@ -142,7 +142,19 @@ public class ZipExtractor extends AbstractExtractor {
                 read += n;
             }
             wrapped.reset();
-            if (read != 4 || sig[0] != 'P' || sig[1] != 'K' || (sig[2] != 0x03 && sig[2] != 0x05 && sig[2] != 0x07)) {
+            // ZIP local-file-header:  PK\x03\x04
+            // ZIP empty-archive EOCD: PK\x05\x06
+            // PK\x07\x08 is a data-descriptor signature and must NEVER appear
+            // at the very start of a valid ZIP; reject it along with anything
+            // else that is not a recognised opening signature.
+            if (read < 4 || sig[0] != 'P' || sig[1] != 'K') {
+                throw new ExtractException("Failed to extract content from ZIP archive. Not a recognised ZIP signature.");
+            }
+            if (sig[2] == 0x05 && sig[3] == 0x06) {
+                // Valid but empty archive — short-circuit immediately.
+                return new ExtractData("");
+            }
+            if (sig[2] != 0x03 || sig[3] != 0x04) {
                 throw new ExtractException("Failed to extract content from ZIP archive. Not a recognised ZIP signature.");
             }
         } catch (final IOException ioe) {
@@ -153,7 +165,10 @@ public class ZipExtractor extends AbstractExtractor {
         // signal in streaming mode (ZipArchiveEntry#getCompressedSize() is
         // often -1 when entries use a data descriptor).
         final CountingInputStream counter = new CountingInputStream(wrapped);
-        try (final ZipArchiveInputStream ais = new ZipArchiveInputStream(counter, filenameEncoding, true, true)) {
+        // allowStoredEntriesWithDataDescriptor=false (the default) to avoid
+        // widening the attack surface; the pre-PR factory default was also
+        // false and no test requires the looser mode.
+        try (final ZipArchiveInputStream ais = new ZipArchiveInputStream(counter, filenameEncoding, true, false)) {
             ZipArchiveEntry entry;
             long totalBytes = 0;
             long lastCompressedBytes = counter.getByteCount();
@@ -196,7 +211,7 @@ public class ZipExtractor extends AbstractExtractor {
                 try {
                     final long totalReadLimit;
                     if (maxBytes > 0) {
-                        totalReadLimit = Math.max(0L, maxBytes - totalBytes) + 1L;
+                        totalReadLimit = addOneSaturating(Math.max(0L, maxBytes - totalBytes));
                     } else {
                         totalReadLimit = Long.MAX_VALUE;
                     }
@@ -205,7 +220,7 @@ public class ZipExtractor extends AbstractExtractor {
                     // can buffer hundreds of MiB into memory.
                     final long contentReadLimit;
                     if (maxContentSize >= 0) {
-                        contentReadLimit = Math.max(0L, maxContentSize - totalBytes) + 1L;
+                        contentReadLimit = addOneSaturating(Math.max(0L, maxContentSize - totalBytes));
                     } else {
                         contentReadLimit = Long.MAX_VALUE;
                     }
@@ -214,7 +229,7 @@ public class ZipExtractor extends AbstractExtractor {
                     // the JVM heap. We read one byte beyond the cap so the
                     // explicit overflow check below can distinguish
                     // "exactly at the cap" from "exceeds the cap".
-                    final long perEntryReadLimit = maxBytesPerEntry > 0 ? maxBytesPerEntry + 1L : Long.MAX_VALUE;
+                    final long perEntryReadLimit = maxBytesPerEntry > 0 ? addOneSaturating(maxBytesPerEntry) : Long.MAX_VALUE;
                     final long readLimit = Math.min(Math.min(totalReadLimit, contentReadLimit), perEntryReadLimit);
                     final ByteArrayOutputStream out = new ByteArrayOutputStream();
                     actualBytes = copyBounded(ais, out, readLimit);
@@ -242,21 +257,26 @@ public class ZipExtractor extends AbstractExtractor {
                 }
 
                 // Compression-ratio check (only meaningful for non-tiny entries).
-                // Prefer the entry header's compressed size when present;
-                // otherwise fall back to the bytes actually consumed from the
-                // underlying stream during this entry's read.
-                long compressed = entry.getCompressedSize();
-                if (compressed <= 0) {
-                    final long now = counter.getByteCount();
-                    compressed = Math.max(0L, now - lastCompressedBytes);
-                    lastCompressedBytes = now;
-                } else {
-                    lastCompressedBytes = counter.getByteCount();
-                }
-                if (maxCompressionRatio > 0 && compressed > 0 && actualBytes > COMPRESSION_RATIO_MIN_BYTES
-                        && actualBytes / compressed > maxCompressionRatio) {
-                    throw new MaxLengthExceededException("zip compression ratio exceeded: name=" + filename + " ratio="
-                            + (actualBytes / compressed) + " max=" + maxCompressionRatio);
+                // Always measure the bytes actually consumed from the underlying
+                // stream during this entry's read (this is the only reliable
+                // signal in streaming mode where data descriptors are used).
+                // When the header also reports a positive compressed size, take
+                // the minimum of both so an attacker who inflates the header
+                // value cannot suppress the ratio check.
+                final long now = counter.getByteCount();
+                final long measuredCompressed = Math.max(0L, now - lastCompressedBytes);
+                lastCompressedBytes = now;
+                final long headerCompressed = entry.getCompressedSize();
+                final long compressed = (headerCompressed > 0) ? Math.min(headerCompressed, measuredCompressed) : measuredCompressed;
+                if (maxCompressionRatio > 0 && actualBytes > COMPRESSION_RATIO_MIN_BYTES) {
+                    if (compressed == 0) {
+                        // Zero compressed bytes with substantial output is suspicious;
+                        // log it but let the per-entry cap enforce the real limit.
+                        logger.warn("zip entry has 0 compressed bytes with {} uncompressed bytes: name={}", actualBytes, filename);
+                    } else if (actualBytes / compressed > maxCompressionRatio) {
+                        throw new MaxLengthExceededException("zip compression ratio exceeded: name=" + filename + " ratio="
+                                + (actualBytes / compressed) + " max=" + maxCompressionRatio);
+                    }
                 }
 
                 try {
@@ -273,6 +293,10 @@ public class ZipExtractor extends AbstractExtractor {
                         logger.debug("Failed to extract content from archive entry: name={}", filename, e);
                     }
                 }
+            }
+            // Summary warn when the loop completed normally but some entries failed.
+            if (failedEntries > 0) {
+                logger.warn("ZIP archive partially processed: processed={} failed={}", processedEntries, failedEntries);
             }
         } catch (final MaxLengthExceededException e) {
             throw e;

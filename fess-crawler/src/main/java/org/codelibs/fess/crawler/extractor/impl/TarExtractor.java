@@ -123,6 +123,13 @@ public class TarExtractor extends AbstractExtractor {
             long totalBytes = 0;
             int entryCount = 0;
             while ((entry = (TarArchiveEntry) ais.getNextEntry()) != null) {
+                // PAX extended / global headers are metadata-only pseudo-entries
+                // that must NOT count toward maxEntries. Commons Compress
+                // usually absorbs them, but skip defensively for non-standard
+                // tar dialects that surface them through getNextEntry().
+                if (entry.isPaxHeader() || entry.isGlobalPaxHeader()) {
+                    continue;
+                }
                 entryCount++;
                 if (maxEntries > 0 && entryCount > maxEntries) {
                     throw new MaxLengthExceededException("tar entry count exceeded: count=" + entryCount + " max=" + maxEntries);
@@ -132,9 +139,7 @@ public class TarExtractor extends AbstractExtractor {
                     continue;
                 }
                 if (entry.isSymbolicLink() || entry.isLink()) {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("tar entry skipped: name={} reason=link link={}", filename, entry.getLinkName());
-                    }
+                    logger.warn("tar entry skipped: name={} reason=link link={}", filename, entry.getLinkName());
                     continue;
                 }
                 if (isPathTraversal(filename)) {
@@ -158,7 +163,7 @@ public class TarExtractor extends AbstractExtractor {
                 try {
                     final long totalReadLimit;
                     if (maxBytes > 0) {
-                        totalReadLimit = Math.max(0L, maxBytes - totalBytes) + 1L;
+                        totalReadLimit = addOneSaturating(Math.max(0L, maxBytes - totalBytes));
                     } else {
                         totalReadLimit = Long.MAX_VALUE;
                     }
@@ -167,11 +172,11 @@ public class TarExtractor extends AbstractExtractor {
                     // can buffer hundreds of MiB into memory.
                     final long contentReadLimit;
                     if (maxContentSize >= 0) {
-                        contentReadLimit = Math.max(0L, maxContentSize - totalBytes) + 1L;
+                        contentReadLimit = addOneSaturating(Math.max(0L, maxContentSize - totalBytes));
                     } else {
                         contentReadLimit = Long.MAX_VALUE;
                     }
-                    final long perEntryReadLimit = maxBytesPerEntry > 0 ? maxBytesPerEntry + 1L : Long.MAX_VALUE;
+                    final long perEntryReadLimit = maxBytesPerEntry > 0 ? addOneSaturating(maxBytesPerEntry) : Long.MAX_VALUE;
                     final long readLimit = Math.min(Math.min(totalReadLimit, contentReadLimit), perEntryReadLimit);
                     final ByteArrayOutputStream out = new ByteArrayOutputStream();
                     actualBytes = copyBounded(ais, out, readLimit);
@@ -211,6 +216,10 @@ public class TarExtractor extends AbstractExtractor {
                         logger.debug("Failed to extract content from archive entry: name={}", filename, e);
                     }
                 }
+            }
+            // Summary warn when the loop completed normally but some entries failed.
+            if (failedEntries > 0) {
+                logger.warn("TAR archive partially processed: processed={} failed={}", processedEntries, failedEntries);
             }
         } catch (final MaxLengthExceededException e) {
             throw e;

@@ -79,6 +79,15 @@ public class AbstractExtractorTest extends PlainTestCase {
         public void testCheckDepth(final Map<String, String> params, final int maxDepth) {
             checkDepth(params, maxDepth);
         }
+
+        // Expose static helpers for testing.
+        public boolean testIsPathTraversal(final String name) {
+            return isPathTraversal(name);
+        }
+
+        public long testAddOneSaturating(final long value) {
+            return addOneSaturating(value);
+        }
     }
 
     private TestExtractor extractor;
@@ -338,5 +347,105 @@ public class AbstractExtractorTest extends PlainTestCase {
         } catch (final MaxLengthExceededException e) {
             // pass
         }
+    }
+
+    // -----------------------------------------------------------------------
+    // isPathTraversal tests (C3 fix validation)
+    // -----------------------------------------------------------------------
+
+    /** null and empty are always traversals. */
+    @Test
+    public void test_isPathTraversal_nullAndEmpty() {
+        assertTrue(extractor.testIsPathTraversal(null));
+        assertTrue(extractor.testIsPathTraversal(""));
+    }
+
+    /** Drive letter prefix is always rejected. */
+    @Test
+    public void test_isPathTraversal_driveLetter() {
+        assertTrue(extractor.testIsPathTraversal("C:\\foo"));
+        assertTrue(extractor.testIsPathTraversal("C:foo"));
+    }
+
+    /** Leading slash (Unix absolute) is rejected. */
+    @Test
+    public void test_isPathTraversal_leadingSlash() {
+        assertTrue(extractor.testIsPathTraversal("/etc/passwd"));
+    }
+
+    /** Leading backslash is rejected. */
+    @Test
+    public void test_isPathTraversal_leadingBackslash() {
+        assertTrue(extractor.testIsPathTraversal("\\foo\\bar"));
+    }
+
+    /** Lone ".." is rejected. */
+    @Test
+    public void test_isPathTraversal_loneDotDot() {
+        assertTrue(extractor.testIsPathTraversal(".."));
+    }
+
+    /** Classic traversal sequences are rejected. */
+    @Test
+    public void test_isPathTraversal_classicTraversal() {
+        assertTrue(extractor.testIsPathTraversal("../../etc/passwd"));
+        assertTrue(extractor.testIsPathTraversal("foo/../../etc/passwd"));
+    }
+
+    /** Safe name that resolves inside the root is allowed. */
+    @Test
+    public void test_isPathTraversal_safeRelativePath() {
+        assertFalse(extractor.testIsPathTraversal("foo/bar.txt"));
+        assertFalse(extractor.testIsPathTraversal("foo/../bar.txt")); // normalises to bar.txt
+    }
+
+    /**
+     * Single-segment backslash traversal (C3 regression).
+     * On Linux the path "a\..\..\etc" is a single opaque filename when
+     * Paths.get() is called without pre-normalisation, so ".." segments are
+     * not detected.  After unifying backslash to forward-slash before
+     * Paths.get(), "a/../../etc" normalises to "../etc" which starts with
+     * ".." and is correctly rejected.
+     * Note: "a\.." unifies to "a/.." which normalises to the empty path
+     * (current dir, i.e. the archive root) — that is safe and is NOT rejected.
+     */
+    @Test
+    public void test_isPathTraversal_backslashSingleSegment() {
+        // "a\..\..\etc" must be caught — escapes the archive root.
+        assertTrue(extractor.testIsPathTraversal("a\\..\\..\\etc"));
+        // Three levels up — definitely escapes.
+        assertTrue(extractor.testIsPathTraversal("a\\..\\..\\..")); // escapes
+        // "a\.." normalises to the archive root (current dir) — safe.
+        assertFalse(extractor.testIsPathTraversal("a\\.."));
+        // A purely safe backslash path: "foo\\bar.txt" → "foo/bar.txt" — safe.
+        assertFalse(extractor.testIsPathTraversal("foo\\bar.txt"));
+    }
+
+    /** NUL character in path — should be rejected (InvalidPathException path). */
+    @Test
+    public void test_isPathTraversal_nulCharacter() {
+        assertTrue(extractor.testIsPathTraversal("a\0b"));
+    }
+
+    // -----------------------------------------------------------------------
+    // addOneSaturating (C2 fix validation)
+    // -----------------------------------------------------------------------
+
+    /** addOneSaturating returns value+1 for normal inputs. */
+    @Test
+    public void test_addOneSaturating_normalIncrement() {
+        assertEquals(1L, extractor.testAddOneSaturating(0L));
+        assertEquals(101L, extractor.testAddOneSaturating(100L));
+        assertEquals(Long.MAX_VALUE - 1L, extractor.testAddOneSaturating(Long.MAX_VALUE - 2L));
+    }
+
+    /** addOneSaturating returns Long.MAX_VALUE when already at max. */
+    @Test
+    public void test_addOneSaturating_saturatesAtMax() {
+        assertEquals(Long.MAX_VALUE, extractor.testAddOneSaturating(Long.MAX_VALUE));
+        // (MAX-1)+1 = MAX naturally — not overflow.
+        assertEquals(Long.MAX_VALUE, extractor.testAddOneSaturating(Long.MAX_VALUE - 1L));
+        // Verify the result is positive (not wrapped to negative).
+        assertTrue(extractor.testAddOneSaturating(Long.MAX_VALUE) > 0);
     }
 }

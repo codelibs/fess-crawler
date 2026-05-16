@@ -131,19 +131,30 @@ public class ApiExtractorTest extends PlainTestCase {
 
     @Test
     public void test_extractorUrlOverride_disabledByDefault_isIgnored() throws Exception {
-        // With allowExtractorUrlOverride defaulting to false, the params override must be ignored
-        // and the configured (working) URL must be used regardless of the bogus override.
-        final ApiExtractor extractor = new ApiExtractor();
-        extractor.setUrl("http://127.0.0.1:" + port + "/");
-        extractor.init();
+        final SimpleHttpServer overrideServer = new SimpleHttpServer();
+        final AtomicInteger overrideHits = new AtomicInteger();
+        overrideServer.setHandler(exchange -> {
+            overrideHits.incrementAndGet();
+            drain(exchange.getRequestBody());
+            exchange.sendResponseHeaders(200, -1);
+            exchange.close();
+        });
+        overrideServer.start();
         try {
-            final Map<String, String> params = new HashMap<>();
-            params.put(ApiExtractor.PARAM_EXTRACTOR_URL, "http://127.0.0.1:1/should-be-ignored");
-            final ExtractData text = extractor.getText(new ByteArrayInputStream("def".getBytes()), params);
-            // Successful extraction proves the configured URL was used, not the unreachable override.
-            assertEquals(ATTR_NAME + ",def", text.getContent());
+            final ApiExtractor extractor = new ApiExtractor();
+            extractor.setUrl("http://127.0.0.1:" + port + "/");
+            extractor.init();
+            try {
+                final Map<String, String> params = new HashMap<>();
+                params.put(ApiExtractor.PARAM_EXTRACTOR_URL, "http://127.0.0.1:" + overrideServer.port() + "/");
+                final ExtractData text = extractor.getText(new ByteArrayInputStream("def".getBytes()), params);
+                assertEquals(ATTR_NAME + ",def", text.getContent());
+                assertEquals(0, overrideHits.get());
+            } finally {
+                extractor.destroy();
+            }
         } finally {
-            extractor.destroy();
+            overrideServer.stop();
         }
     }
 
@@ -309,7 +320,8 @@ public class ApiExtractorTest extends PlainTestCase {
             final ApiExtractor retrying = new ApiExtractor();
             retrying.setUrl("http://127.0.0.1:" + simple.port() + "/");
             retrying.setMaxRetries(1);
-            retrying.setRetryBackoffMs(10L);
+            // Large default backoff: if Retry-After is ignored, retry would take ~5s.
+            retrying.setRetryBackoffMs(5000L);
             retrying.init();
             try {
                 final long t0 = System.currentTimeMillis();
@@ -318,9 +330,9 @@ public class ApiExtractorTest extends PlainTestCase {
                 assertNotNull(data);
                 assertEquals("ok", data.getContent());
                 assertEquals(2, calls.get());
-                // Retry-After: 0 means we should not artificially delay.
-                org.junit.jupiter.api.Assertions.assertTrue(elapsed < 2000,
-                        "retry should not block when Retry-After=0 (was " + elapsed + "ms)");
+                // Retry-After: 0 must beat the 5s default backoff.
+                org.junit.jupiter.api.Assertions.assertTrue(elapsed < 2500L,
+                        "Retry-After:0 must override default backoff (elapsed=" + elapsed + "ms)");
             } finally {
                 retrying.destroy();
             }
@@ -781,6 +793,387 @@ public class ApiExtractorTest extends PlainTestCase {
             }
         } finally {
             server.stop();
+        }
+    }
+
+    @Test
+    public void test_overrideRejects_ControlCharacters() throws Exception {
+        final SimpleHttpServer overrideServer = new SimpleHttpServer();
+        final AtomicInteger overrideHits = new AtomicInteger();
+        overrideServer.setHandler(exchange -> {
+            overrideHits.incrementAndGet();
+            drain(exchange.getRequestBody());
+            exchange.sendResponseHeaders(200, -1);
+            exchange.close();
+        });
+        overrideServer.start();
+        try {
+            final ApiExtractor extractor = new ApiExtractor();
+            extractor.setUrl("http://127.0.0.1:" + port + "/");
+            extractor.setAllowExtractorUrlOverride(true);
+            extractor.init();
+            try {
+                // URL with embedded newline must be rejected even when override is enabled.
+                final Map<String, String> params = new HashMap<>();
+                params.put(ApiExtractor.PARAM_EXTRACTOR_URL, "http://127.0.0.1:" + overrideServer.port() + "/\r\nX-Injected: yes");
+                final ExtractData text = extractor.getText(new ByteArrayInputStream("ctl".getBytes()), params);
+                assertEquals(ATTR_NAME + ",ctl", text.getContent());
+                assertEquals(0, overrideHits.get());
+            } finally {
+                extractor.destroy();
+            }
+        } finally {
+            overrideServer.stop();
+        }
+    }
+
+    @Test
+    public void test_overrideRejects_Userinfo() throws Exception {
+        final SimpleHttpServer overrideServer = new SimpleHttpServer();
+        final AtomicInteger overrideHits = new AtomicInteger();
+        overrideServer.setHandler(exchange -> {
+            overrideHits.incrementAndGet();
+            drain(exchange.getRequestBody());
+            exchange.sendResponseHeaders(200, -1);
+            exchange.close();
+        });
+        overrideServer.start();
+        try {
+            final ApiExtractor extractor = new ApiExtractor();
+            extractor.setUrl("http://127.0.0.1:" + port + "/");
+            extractor.setAllowExtractorUrlOverride(true);
+            extractor.init();
+            try {
+                final Map<String, String> params = new HashMap<>();
+                params.put(ApiExtractor.PARAM_EXTRACTOR_URL, "http://user:pass@127.0.0.1:" + overrideServer.port() + "/");
+                final ExtractData text = extractor.getText(new ByteArrayInputStream("ui".getBytes()), params);
+                assertEquals(ATTR_NAME + ",ui", text.getContent());
+                assertEquals(0, overrideHits.get());
+            } finally {
+                extractor.destroy();
+            }
+        } finally {
+            overrideServer.stop();
+        }
+    }
+
+    @Test
+    public void test_overrideRejects_OpaqueUri() throws Exception {
+        final ApiExtractor extractor = new ApiExtractor();
+        extractor.setUrl("http://127.0.0.1:" + port + "/");
+        extractor.setAllowExtractorUrlOverride(true);
+        extractor.init();
+        try {
+            final Map<String, String> params = new HashMap<>();
+            params.put(ApiExtractor.PARAM_EXTRACTOR_URL, "http:opaque");
+            final ExtractData text = extractor.getText(new ByteArrayInputStream("op".getBytes()), params);
+            assertEquals(ATTR_NAME + ",op", text.getContent());
+        } finally {
+            extractor.destroy();
+        }
+    }
+
+    @Test
+    public void test_overrideAccepts_HttpsScheme() throws Exception {
+        // We can't easily stand up an HTTPS server in the test, so just confirm that the SCHEME
+        // gate accepts https by trying to call an unreachable https URL. The call should fail
+        // attempting to connect (not be silently rejected as disallowed scheme — that would
+        // succeed against the configured URL).
+        final ApiExtractor extractor = new ApiExtractor();
+        extractor.setUrl("http://127.0.0.1:" + port + "/");
+        extractor.setAllowExtractorUrlOverride(true);
+        extractor.setMaxRetries(0);
+        extractor.setConnectionTimeout(300);
+        extractor.setSoTimeout(300);
+        extractor.init();
+        try {
+            final Map<String, String> params = new HashMap<>();
+            // Port 1 is reserved; connection refused is expected.
+            params.put(ApiExtractor.PARAM_EXTRACTOR_URL, "https://127.0.0.1:1/blackhole");
+            try {
+                extractor.getText(new ByteArrayInputStream("hs".getBytes()), params);
+                org.junit.jupiter.api.Assertions.fail(
+                        "Override to unreachable https should have raised ExtractException, not silently fallen back to configured URL.");
+            } catch (final ExtractException expected) {
+                // expected: the override scheme passes, so we tried to connect and failed.
+            }
+        } finally {
+            extractor.destroy();
+        }
+    }
+
+    @Test
+    public void test_retryExhausted_5xx_throwsWithCauseAndAttemptCount() throws Exception {
+        final SimpleHttpServer simple = new SimpleHttpServer();
+        final AtomicInteger calls = new AtomicInteger();
+        simple.setHandler(exchange -> {
+            calls.incrementAndGet();
+            drain(exchange.getRequestBody());
+            exchange.sendResponseHeaders(503, -1);
+            exchange.close();
+        });
+        simple.start();
+        try {
+            final ApiExtractor retrying = new ApiExtractor();
+            retrying.setUrl("http://127.0.0.1:" + simple.port() + "/");
+            retrying.setMaxRetries(2);
+            retrying.setRetryBackoffMs(10L);
+            retrying.init();
+            try {
+                retrying.getText(new ByteArrayInputStream("x".getBytes()), new HashMap<>());
+                org.junit.jupiter.api.Assertions.fail("Expected ExtractException after 3 failed attempts");
+            } catch (final ExtractException e) {
+                org.junit.jupiter.api.Assertions.assertTrue(e.getMessage().contains("3 attempts"),
+                        "message should contain attempt count: " + e.getMessage());
+                org.junit.jupiter.api.Assertions.assertTrue(e.getMessage().contains("status=503"),
+                        "message should contain status code: " + e.getMessage());
+                org.junit.jupiter.api.Assertions.assertNotNull(e.getCause(), "exhaustion ExtractException must carry a cause");
+                assertEquals(3, calls.get());
+            } finally {
+                retrying.destroy();
+            }
+        } finally {
+            simple.stop();
+        }
+    }
+
+    @Test
+    public void test_unknownHost_notRetried() throws Exception {
+        final ApiExtractor extractor = new ApiExtractor();
+        // .invalid is reserved per RFC 2606 — should always be unresolvable.
+        extractor.setUrl("http://this-host-must-not-resolve.invalid/");
+        extractor.setMaxRetries(5);
+        extractor.setRetryBackoffMs(1000L);
+        extractor.setConnectionTimeout(2000);
+        extractor.init();
+        try {
+            final long t0 = System.currentTimeMillis();
+            try {
+                extractor.getText(new ByteArrayInputStream("uh".getBytes()), new HashMap<>());
+                org.junit.jupiter.api.Assertions.fail("Expected ExtractException for unknown host");
+            } catch (final ExtractException e) {
+                final long elapsed = System.currentTimeMillis() - t0;
+                org.junit.jupiter.api.Assertions.assertTrue(elapsed < 3000L,
+                        "UnknownHost should not be retried (elapsed=" + elapsed + "ms)");
+                org.junit.jupiter.api.Assertions.assertTrue(e.getMessage().contains("non-transient"),
+                        "message should mark error as non-transient: " + e.getMessage());
+            }
+        } finally {
+            extractor.destroy();
+        }
+    }
+
+    @Test
+    public void test_getTextAfterDestroy_throwsExtractException() throws Exception {
+        final ApiExtractor extractor = new ApiExtractor();
+        extractor.setUrl("http://127.0.0.1:" + port + "/");
+        extractor.init();
+        extractor.destroy();
+        try {
+            extractor.getText(new ByteArrayInputStream("post-destroy".getBytes()), new HashMap<>());
+            org.junit.jupiter.api.Assertions.fail("Expected ExtractException after destroy()");
+        } catch (final ExtractException e) {
+            org.junit.jupiter.api.Assertions.assertTrue(e.getMessage().contains("destroyed"),
+                    "message should explain why: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void test_destroyIsIdempotent() throws Exception {
+        final ApiExtractor extractor = new ApiExtractor();
+        extractor.setUrl("http://127.0.0.1:" + port + "/");
+        extractor.init();
+        extractor.destroy();
+        extractor.destroy(); // must not throw
+    }
+
+    @Test
+    public void test_setterValidation_rejectsNegative() throws Exception {
+        final ApiExtractor extractor = new ApiExtractor();
+        try {
+            extractor.setMaxRetries(-1);
+            fail();
+        } catch (final IllegalArgumentException expected) {
+            // ok
+        }
+        try {
+            extractor.setMaxResponseSize(-1L);
+            fail();
+        } catch (final IllegalArgumentException expected) {
+            // ok
+        }
+        try {
+            extractor.setMaxRequestSize(-1L);
+            fail();
+        } catch (final IllegalArgumentException expected) {
+            // ok
+        }
+        try {
+            extractor.setMaxConnections(0);
+            fail();
+        } catch (final IllegalArgumentException expected) {
+            // ok
+        }
+        try {
+            extractor.setMaxConnectionsPerRoute(0);
+            fail();
+        } catch (final IllegalArgumentException expected) {
+            // ok
+        }
+        try {
+            extractor.setRetryBackoffMs(-1L);
+            fail();
+        } catch (final IllegalArgumentException expected) {
+            // ok
+        }
+        try {
+            extractor.setMaxRetryAfterMs(-1L);
+            fail();
+        } catch (final IllegalArgumentException expected) {
+            // ok
+        }
+        try {
+            extractor.setRequestSpoolThreshold(-1);
+            fail();
+        } catch (final IllegalArgumentException expected) {
+            // ok
+        }
+    }
+
+    @Test
+    public void test_responseBody_emptyEntity_returnsEmptyContent() throws Exception {
+        final SimpleHttpServer simple = new SimpleHttpServer();
+        simple.setHandler(exchange -> {
+            drain(exchange.getRequestBody());
+            // Status 200 with explicit zero-length body — exercises the entity-present-but-empty path.
+            exchange.sendResponseHeaders(200, -1);
+            exchange.close();
+        });
+        simple.start();
+        try {
+            final ApiExtractor extractor = new ApiExtractor();
+            extractor.setUrl("http://127.0.0.1:" + simple.port() + "/");
+            extractor.setMaxRetries(0);
+            extractor.init();
+            try {
+                final ExtractData data = extractor.getText(new ByteArrayInputStream("x".getBytes()), new HashMap<>());
+                assertNotNull(data);
+                assertEquals("", data.getContent());
+            } finally {
+                extractor.destroy();
+            }
+        } finally {
+            simple.stop();
+        }
+    }
+
+    @Test
+    public void test_parseRetryAfter_garbageFallsBackToDefaultBackoff() throws Exception {
+        final SimpleHttpServer simple = new SimpleHttpServer();
+        final AtomicInteger calls = new AtomicInteger();
+        simple.setHandler(exchange -> {
+            drain(exchange.getRequestBody());
+            final int n = calls.incrementAndGet();
+            if (n == 1) {
+                // Garbage Retry-After: not a number, not an HTTP-date.
+                exchange.getResponseHeaders().add("Retry-After", "tomorrow-please");
+                exchange.sendResponseHeaders(503, -1);
+                exchange.close();
+            } else {
+                final byte[] body = "ok".getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(200, body.length);
+                try (OutputStream out = exchange.getResponseBody()) {
+                    out.write(body);
+                }
+            }
+        });
+        simple.start();
+        try {
+            final ApiExtractor retrying = new ApiExtractor();
+            retrying.setUrl("http://127.0.0.1:" + simple.port() + "/");
+            retrying.setMaxRetries(1);
+            retrying.setRetryBackoffMs(10L);
+            retrying.init();
+            try {
+                final ExtractData data = retrying.getText(new ByteArrayInputStream("x".getBytes()), new HashMap<>());
+                assertNotNull(data);
+                assertEquals("ok", data.getContent());
+                assertEquals(2, calls.get());
+            } finally {
+                retrying.destroy();
+            }
+        } finally {
+            simple.stop();
+        }
+    }
+
+    @Test
+    public void test_parseRetryAfter_negativeFallsBackToDefaultBackoff() throws Exception {
+        final SimpleHttpServer simple = new SimpleHttpServer();
+        final AtomicInteger calls = new AtomicInteger();
+        simple.setHandler(exchange -> {
+            drain(exchange.getRequestBody());
+            final int n = calls.incrementAndGet();
+            if (n == 1) {
+                exchange.getResponseHeaders().add("Retry-After", "-5");
+                exchange.sendResponseHeaders(503, -1);
+                exchange.close();
+            } else {
+                final byte[] body = "ok".getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(200, body.length);
+                try (OutputStream out = exchange.getResponseBody()) {
+                    out.write(body);
+                }
+            }
+        });
+        simple.start();
+        try {
+            final ApiExtractor retrying = new ApiExtractor();
+            retrying.setUrl("http://127.0.0.1:" + simple.port() + "/");
+            retrying.setMaxRetries(1);
+            retrying.setRetryBackoffMs(10L);
+            retrying.init();
+            try {
+                final ExtractData data = retrying.getText(new ByteArrayInputStream("x".getBytes()), new HashMap<>());
+                assertNotNull(data);
+                assertEquals("ok", data.getContent());
+                assertEquals(2, calls.get());
+            } finally {
+                retrying.destroy();
+            }
+        } finally {
+            simple.stop();
+        }
+    }
+
+    @Test
+    public void test_resolveCharset_shiftJis() throws Exception {
+        final SimpleHttpServer simple = new SimpleHttpServer();
+        final String greeting = "こんにちは";
+        final byte[] sjis = greeting.getBytes(java.nio.charset.Charset.forName("Shift_JIS"));
+        simple.setHandler(exchange -> {
+            drain(exchange.getRequestBody());
+            exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=Shift_JIS");
+            exchange.sendResponseHeaders(200, sjis.length);
+            try (OutputStream out = exchange.getResponseBody()) {
+                out.write(sjis);
+            }
+        });
+        simple.start();
+        try {
+            final ApiExtractor extractor = new ApiExtractor();
+            extractor.setUrl("http://127.0.0.1:" + simple.port() + "/");
+            extractor.setMaxRetries(0);
+            extractor.init();
+            try {
+                final ExtractData data = extractor.getText(new ByteArrayInputStream("x".getBytes()), new HashMap<>());
+                assertNotNull(data);
+                assertEquals(greeting, data.getContent());
+            } finally {
+                extractor.destroy();
+            }
+        } finally {
+            simple.stop();
         }
     }
 

@@ -15,10 +15,15 @@
  */
 package org.codelibs.fess.crawler.extractor.impl;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
@@ -27,6 +32,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
+import javax.net.ssl.SSLHandshakeException;
+import javax.net.ssl.SSLPeerUnverifiedException;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BoundedInputStream;
 import org.apache.commons.io.output.DeferredFileOutputStream;
@@ -34,7 +42,6 @@ import org.apache.commons.lang3.SystemUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
-import org.apache.http.NoHttpResponseException;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
@@ -46,7 +53,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.DateUtils;
 import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.BasicAuthCache;
@@ -263,6 +270,10 @@ public class ApiExtractor extends AbstractExtractor {
         connectionManager.setMaxTotal(maxConnections);
         connectionManager.setDefaultMaxPerRoute(maxConnectionsPerRoute);
         httpClientBuilder.setConnectionManager(connectionManager);
+        // We manage the connection manager's lifecycle in destroy(), so prevent the client from
+        // shutting it down on close(). This makes destroy ordering explicit and avoids the
+        // double-close path that previously required a broad catch.
+        httpClientBuilder.setConnectionManagerShared(true);
         // Disable the built-in retry handler; we implement our own classification below.
         httpClientBuilder.disableAutomaticRetries();
 
@@ -300,7 +311,7 @@ public class ApiExtractor extends AbstractExtractor {
         if (connectionManager != null) {
             try {
                 connectionManager.close();
-            } catch (final Exception e) {
+            } catch (final RuntimeException e) {
                 logger.warn("Failed to close connection manager for API extractor", e);
             } finally {
                 connectionManager = null;
@@ -324,12 +335,12 @@ public class ApiExtractor extends AbstractExtractor {
         }
         if (!allowExtractorUrlOverride) {
             if (logger.isDebugEnabled()) {
-                logger.debug("Ignoring {} param because allowExtractorUrlOverride is disabled.", PARAM_EXTRACTOR_URL);
+                logger.debug("Ignoring param=[{}] because allowExtractorUrlOverride is disabled.", PARAM_EXTRACTOR_URL);
             }
             return url;
         }
         if (!isAllowedOverrideScheme(override)) {
-            logger.warn("Ignoring {} param with disallowed scheme: {}", PARAM_EXTRACTOR_URL, override);
+            logger.warn("Ignoring param=[{}] with disallowed scheme: override={}", PARAM_EXTRACTOR_URL, override);
             return url;
         }
         if (logger.isInfoEnabled()) {
@@ -339,10 +350,29 @@ public class ApiExtractor extends AbstractExtractor {
     }
 
     private static boolean isAllowedOverrideScheme(final String candidate) {
+        if (candidate == null) {
+            return false;
+        }
+        for (int i = 0; i < candidate.length(); i++) {
+            final char c = candidate.charAt(i);
+            if (c <= 0x20 || c == 0x7F) {
+                return false;
+            }
+        }
         try {
-            final String scheme = java.net.URI.create(candidate).getScheme();
-            return "http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme);
-        } catch (final IllegalArgumentException e) {
+            final URI uri = new URI(candidate);
+            final String scheme = uri.getScheme();
+            if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme)) {
+                return false;
+            }
+            if (uri.getHost() == null || uri.getHost().isEmpty()) {
+                return false;
+            }
+            if (uri.getUserInfo() != null) {
+                return false;
+            }
+            return true;
+        } catch (final URISyntaxException e) {
             return false;
         }
     }
@@ -361,7 +391,7 @@ public class ApiExtractor extends AbstractExtractor {
         final String targetUrl = resolveTargetUrl(params);
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Accessing {}", targetUrl);
+            logger.debug("Accessing url={}", targetUrl);
         }
 
         // start
@@ -381,11 +411,11 @@ public class ApiExtractor extends AbstractExtractor {
             // or malformed source document cannot OOM the extractor.
             return executeWithRetries(in, targetUrl);
         } finally {
-            if (accessTimeout != null) {
+            if (accessTimeoutTarget != null) {
                 accessTimeoutTarget.stop();
-                if (!accessTimeoutTask.isCanceled()) {
-                    accessTimeoutTask.cancel();
-                }
+            }
+            if (accessTimeoutTask != null && !accessTimeoutTask.isCanceled()) {
+                accessTimeoutTask.cancel();
             }
         }
     }
@@ -441,44 +471,26 @@ public class ApiExtractor extends AbstractExtractor {
             } catch (final RetryableStatusException e) {
                 final long sleepMs = computeBackoff(attempt, e.retryAfterMs);
                 if (attempt >= maxRetries) {
-                    throw new ExtractException("API request failed after " + (attempt + 1) + " attempts: status=" + e.statusCode);
+                    throw new ExtractException("API request failed after " + (attempt + 1) + " attempts: status=" + e.statusCode, e);
                 }
                 if (logger.isDebugEnabled()) {
                     logger.debug("Retrying API request (status={}, attempt={}/{}, sleep={}ms)", e.statusCode, attempt + 1, maxRetries + 1,
                             sleepMs);
                 }
                 sleepQuietly(sleepMs);
-            } catch (final ConnectTimeoutException e) {
-                lastIoException = e;
-                if (attempt >= maxRetries) {
-                    throw new ExtractException("API request failed", e);
-                }
-                final long sleepMs = computeBackoff(attempt, -1L);
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Retrying API request after connect timeout (attempt={}/{}, sleep={}ms)", attempt + 1, maxRetries + 1,
-                            sleepMs, e);
-                }
-                sleepQuietly(sleepMs);
-            } catch (final NoHttpResponseException e) {
-                lastIoException = e;
-                if (attempt >= maxRetries) {
-                    throw new ExtractException("API request failed", e);
-                }
-                final long sleepMs = computeBackoff(attempt, -1L);
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Retrying API request after no-response (attempt={}/{}, sleep={}ms)", attempt + 1, maxRetries + 1, sleepMs,
-                            e);
-                }
-                sleepQuietly(sleepMs);
             } catch (final IOException e) {
+                // M5: skip retries for non-transient errors — retrying will not help.
+                if (e instanceof UnknownHostException || e instanceof SSLHandshakeException || e instanceof SSLPeerUnverifiedException) {
+                    throw new ExtractException("API request failed (non-transient): url=" + targetUrl, e);
+                }
                 lastIoException = e;
                 if (attempt >= maxRetries) {
                     throw new ExtractException("API request failed", e);
                 }
                 final long sleepMs = computeBackoff(attempt, -1L);
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Retrying API request after I/O error (attempt={}/{}, sleep={}ms)", attempt + 1, maxRetries + 1, sleepMs,
-                            e);
+                    logger.debug("Retrying API request after {} (attempt={}/{}, sleep={}ms)", e.getClass().getSimpleName(), attempt + 1,
+                            maxRetries + 1, sleepMs, e);
                 }
                 sleepQuietly(sleepMs);
             }
@@ -504,6 +516,10 @@ public class ApiExtractor extends AbstractExtractor {
      * @throws IOException on transport-level failure
      */
     protected ExtractData executeOnce(final DeferredFileOutputStream dfos, final String targetUrl, final int attempt) throws IOException {
+        final CloseableHttpClient client = httpClient;
+        if (client == null) {
+            throw new ExtractException("ApiExtractor has been destroyed");
+        }
         if (attempt > 0 && logger.isDebugEnabled()) {
             logger.debug("Executing API request (url={}, attempt={})", targetUrl, attempt);
         }
@@ -512,10 +528,10 @@ public class ApiExtractor extends AbstractExtractor {
             final HttpEntity postEntity = MultipartEntityBuilder.create()
                     .setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
                     .setCharset(Charset.forName("UTF-8"))
-                    .addBinaryBody("filedata", bodyStream, org.apache.http.entity.ContentType.APPLICATION_OCTET_STREAM, "filedata")
+                    .addBinaryBody("filedata", bodyStream, ContentType.APPLICATION_OCTET_STREAM, "filedata")
                     .build();
             httpPost.setEntity(postEntity);
-            try (CloseableHttpResponse response = httpClient.execute(httpPost)) {
+            try (CloseableHttpResponse response = client.execute(httpPost)) {
                 final int statusCode = response.getStatusLine().getStatusCode();
                 if (statusCode != Constants.OK_STATUS_CODE) {
                     if (isRetryableStatus(statusCode)) {
@@ -545,6 +561,9 @@ public class ApiExtractor extends AbstractExtractor {
                         data.setContent(new String(body, charset));
                     }
                 } else {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("API extractor returned 200 with no response entity: url={}", targetUrl);
+                    }
                     data.setContent("");
                 }
                 final Header[] headers = response.getAllHeaders();
@@ -560,7 +579,7 @@ public class ApiExtractor extends AbstractExtractor {
         if (dfos.isInMemory()) {
             return new ByteArrayInputStream(dfos.getData());
         }
-        return new java.io.BufferedInputStream(new java.io.FileInputStream(dfos.getFile()));
+        return new BufferedInputStream(new FileInputStream(dfos.getFile()));
     }
 
     /**
@@ -659,25 +678,10 @@ public class ApiExtractor extends AbstractExtractor {
     }
 
     /**
-     * Drains the response entity, ignoring errors. Safe even when the entity is null.
-     *
-     * @param entity entity to consume (may be null)
-     */
-    protected void consumeQuietly(final HttpEntity entity) {
-        if (entity == null) {
-            return;
-        }
-        try {
-            org.apache.http.util.EntityUtils.consumeQuietly(entity);
-        } catch (final Exception e) {
-            // ignore
-        }
-    }
-
-    /**
      * Drains the response entity content with a hard upper bound of {@link #maxResponseSize}
      * bytes so a hostile server cannot trickle out an unbounded body purely to keep us reading.
-     * Errors are intentionally swallowed: the goal is just to make the connection reusable.
+     * If the server sent more than the bound, the under-consumed entity causes HC to discard the
+     * underlying connection — that is the trade-off for the cap. Errors are intentionally swallowed.
      *
      * @param entity entity to drain (may be null)
      */
@@ -704,7 +708,7 @@ public class ApiExtractor extends AbstractExtractor {
      */
     protected Charset resolveCharset(final HttpEntity entity) {
         try {
-            final org.apache.http.entity.ContentType contentType = org.apache.http.entity.ContentType.get(entity);
+            final ContentType contentType = ContentType.get(entity);
             if (contentType != null && contentType.getCharset() != null) {
                 return contentType.getCharset();
             }
@@ -814,6 +818,9 @@ public class ApiExtractor extends AbstractExtractor {
      * @param maxConnections maximum total pooled connections
      */
     public void setMaxConnections(final int maxConnections) {
+        if (maxConnections <= 0) {
+            throw new IllegalArgumentException("maxConnections must be > 0: maxConnections=" + maxConnections);
+        }
         this.maxConnections = maxConnections;
     }
 
@@ -822,6 +829,9 @@ public class ApiExtractor extends AbstractExtractor {
      * @param maxConnectionsPerRoute maximum pooled connections per route
      */
     public void setMaxConnectionsPerRoute(final int maxConnectionsPerRoute) {
+        if (maxConnectionsPerRoute <= 0) {
+            throw new IllegalArgumentException("maxConnectionsPerRoute must be > 0: maxConnectionsPerRoute=" + maxConnectionsPerRoute);
+        }
         this.maxConnectionsPerRoute = maxConnectionsPerRoute;
     }
 
@@ -831,6 +841,9 @@ public class ApiExtractor extends AbstractExtractor {
      * @param maxResponseSize maximum accepted response size in bytes
      */
     public void setMaxResponseSize(final long maxResponseSize) {
+        if (maxResponseSize < 0) {
+            throw new IllegalArgumentException("maxResponseSize must be >= 0: maxResponseSize=" + maxResponseSize);
+        }
         this.maxResponseSize = maxResponseSize;
     }
 
@@ -840,6 +853,9 @@ public class ApiExtractor extends AbstractExtractor {
      * @param maxRequestSize maximum accepted request body size in bytes
      */
     public void setMaxRequestSize(final long maxRequestSize) {
+        if (maxRequestSize < 0) {
+            throw new IllegalArgumentException("maxRequestSize must be >= 0: maxRequestSize=" + maxRequestSize);
+        }
         this.maxRequestSize = maxRequestSize;
     }
 
@@ -848,6 +864,9 @@ public class ApiExtractor extends AbstractExtractor {
      * @param maxRetries number of retries (in addition to the initial attempt)
      */
     public void setMaxRetries(final int maxRetries) {
+        if (maxRetries < 0) {
+            throw new IllegalArgumentException("maxRetries must be >= 0: maxRetries=" + maxRetries);
+        }
         this.maxRetries = maxRetries;
     }
 
@@ -857,6 +876,9 @@ public class ApiExtractor extends AbstractExtractor {
      * @param retryBackoffMs initial backoff in milliseconds
      */
     public void setRetryBackoffMs(final long retryBackoffMs) {
+        if (retryBackoffMs < 0) {
+            throw new IllegalArgumentException("retryBackoffMs must be >= 0: retryBackoffMs=" + retryBackoffMs);
+        }
         this.retryBackoffMs = retryBackoffMs;
     }
 
@@ -867,6 +889,9 @@ public class ApiExtractor extends AbstractExtractor {
      * @param maxRetryAfterMs maximum effective Retry-After value in milliseconds
      */
     public void setMaxRetryAfterMs(final long maxRetryAfterMs) {
+        if (maxRetryAfterMs < 0) {
+            throw new IllegalArgumentException("maxRetryAfterMs must be >= 0: maxRetryAfterMs=" + maxRetryAfterMs);
+        }
         this.maxRetryAfterMs = maxRetryAfterMs;
     }
 
@@ -877,6 +902,9 @@ public class ApiExtractor extends AbstractExtractor {
      * @param requestSpoolThreshold byte threshold for memory-to-file spillover
      */
     public void setRequestSpoolThreshold(final int requestSpoolThreshold) {
+        if (requestSpoolThreshold < 0) {
+            throw new IllegalArgumentException("requestSpoolThreshold must be >= 0: requestSpoolThreshold=" + requestSpoolThreshold);
+        }
         this.requestSpoolThreshold = requestSpoolThreshold;
     }
 

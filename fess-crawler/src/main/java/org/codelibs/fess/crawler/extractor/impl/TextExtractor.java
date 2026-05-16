@@ -54,10 +54,13 @@ public class TextExtractor extends AbstractExtractor {
     protected String encoding = Constants.UTF_8;
 
     /**
-     * Maximum number of characters to read from the input. Defaults to
-     * {@link Long#MAX_VALUE} which effectively imposes no limit. Set to a
-     * positive value to cap the resulting text length and avoid excessive heap
-     * usage on very large inputs.
+     * Maximum number of characters to read from the input. The default is
+     * {@link Long#MAX_VALUE}, which is effectively unlimited. Values less than
+     * or equal to zero explicitly disable the limit.
+     *
+     * <p>The limit is measured in Java {@code char} units (UTF-16 code units).
+     * At the truncation boundary, an unpaired high surrogate is dropped to avoid
+     * leaving an invalid string.
      */
     protected long maxTextLength = Long.MAX_VALUE;
 
@@ -68,38 +71,66 @@ public class TextExtractor extends AbstractExtractor {
         super();
     }
 
+    /**
+     * Extracts text from the supplied input stream.
+     *
+     * <p>The stream is decoded using the configured {@link #encoding}, overridden
+     * when a BOM (UTF-8, UTF-16 LE/BE, UTF-32 LE/BE) is detected at the start.
+     * The total character count is bounded by {@link #maxTextLength}. When
+     * truncation occurs, a WARN-level log message is emitted and the returned
+     * {@link ExtractData} carries {@code truncated=true} and
+     * {@code maxTextLength=<value>} metadata entries. The supplied {@code in} is
+     * closed by this method.
+     *
+     * @param in the text input stream; must not be {@code null}
+     * @param params optional extraction parameters (may be {@code null})
+     * @return the extracted text and optional truncation metadata
+     * @throws org.codelibs.fess.crawler.exception.CrawlerSystemException if {@code in} is {@code null}
+     * @throws ExtractException if reading or decoding fails
+     */
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
         validateInputStream(in);
         try {
-            final BOMInputStream bomIn = BOMInputStream.builder()
+            try (BOMInputStream bomIn = BOMInputStream.builder()
                     .setInputStream(in)
                     .setInclude(false)
                     .setByteOrderMarks(ByteOrderMark.UTF_8, ByteOrderMark.UTF_16LE, ByteOrderMark.UTF_16BE, ByteOrderMark.UTF_32LE,
                             ByteOrderMark.UTF_32BE)
-                    .get();
-            final String detected = bomIn.getBOMCharsetName();
-            final String charset = detected != null ? detected : getEncoding();
-            try (Reader reader = new InputStreamReader(bomIn, charset); BufferedReader br = new BufferedReader(reader)) {
-                final StringBuilder sb = new StringBuilder();
-                final char[] buf = new char[READ_BUFFER_SIZE];
-                long total = 0;
-                int n;
-                while ((n = br.read(buf)) >= 0) {
-                    if (maxTextLength > 0 && total + n > maxTextLength) {
-                        final int remaining = (int) (maxTextLength - total);
-                        if (remaining > 0) {
-                            sb.append(buf, 0, remaining);
+                    .get()) {
+                final String detected = bomIn.getBOMCharsetName();
+                final String charset = detected != null ? detected : getEncoding();
+                try (Reader reader = new InputStreamReader(bomIn, charset); BufferedReader br = new BufferedReader(reader)) {
+                    final StringBuilder sb = new StringBuilder();
+                    final char[] buf = new char[READ_BUFFER_SIZE];
+                    long total = 0;
+                    boolean truncated = false;
+                    int n;
+                    while ((n = br.read(buf)) >= 0) {
+                        if (maxTextLength > 0 && total + n > maxTextLength) {
+                            final int remaining = (int) (maxTextLength - total);
+                            if (remaining > 0) {
+                                sb.append(buf, 0, remaining);
+                            }
+                            // Avoid leaving an unpaired high surrogate at the end.
+                            if (sb.length() > 0 && Character.isHighSurrogate(sb.charAt(sb.length() - 1))) {
+                                sb.setLength(sb.length() - 1);
+                            }
+                            logger.warn("Extracted content truncated: extractor={} maxTextLength={} totalChars={}",
+                                    getClass().getSimpleName(), maxTextLength, total + n);
+                            truncated = true;
+                            break;
                         }
-                        if (logger.isDebugEnabled()) {
-                            logger.debug("Truncating text content at maxTextLength={} characters", maxTextLength);
-                        }
-                        break;
+                        sb.append(buf, 0, n);
+                        total += n;
                     }
-                    sb.append(buf, 0, n);
-                    total += n;
+                    final ExtractData extractData = new ExtractData(sb.toString());
+                    if (truncated) {
+                        extractData.putValue("truncated", "true");
+                        extractData.putValue("maxTextLength", Long.toString(maxTextLength));
+                    }
+                    return extractData;
                 }
-                return new ExtractData(sb.toString());
             }
         } catch (final Exception e) {
             throw new ExtractException("Failed to extract text content using encoding: " + getEncoding(), e);
@@ -131,11 +162,13 @@ public class TextExtractor extends AbstractExtractor {
     }
 
     /**
-     * Sets the maximum number of characters that will be extracted. The
-     * default is {@link Long#MAX_VALUE} which effectively means unlimited.
-     * Setting a positive value caps the resulting text and stops reading once
-     * the limit is reached. Values less than or equal to zero are interpreted
-     * as unlimited.
+     * Sets the maximum number of characters that will be extracted. The default
+     * is {@link Long#MAX_VALUE}, which is effectively unlimited. Values less
+     * than or equal to zero explicitly disable the limit.
+     *
+     * <p>The limit is measured in Java {@code char} units (UTF-16 code units).
+     * At the truncation boundary, an unpaired high surrogate is dropped to avoid
+     * leaving an invalid string.
      *
      * @param maxTextLength the maximum text length in characters
      */

@@ -18,6 +18,7 @@ package org.codelibs.fess.crawler.extractor.impl;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.SequenceInputStream;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.logging.log4j.LogManager;
@@ -28,7 +29,6 @@ import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.dbflute.utflute.core.PlainTestCase;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
@@ -267,5 +267,89 @@ public class MarkdownExtractorTest extends PlainTestCase {
         final String content = extractData.getContent();
         // The rendered content cannot exceed the truncated source length.
         assertTrue(content.length() <= 20);
+    }
+
+    @Test
+    public void test_extractsUtf16LeWithBom_markdown() {
+        markdownExtractor.setEncoding("UTF-8");
+        final String md = "# Hello UTF-16 LE\n\nBody text.";
+        final byte[] bom = { (byte) 0xFF, (byte) 0xFE };
+        final InputStream in =
+                new SequenceInputStream(new ByteArrayInputStream(bom), new ByteArrayInputStream(md.getBytes(StandardCharsets.UTF_16LE)));
+        final ExtractData extractData = markdownExtractor.getText(in, null);
+        CloseableUtil.closeQuietly(in);
+        final String content = extractData.getContent();
+        assertTrue(content.contains("Hello UTF-16 LE"));
+        assertTrue(content.contains("Body text."));
+    }
+
+    @Test
+    public void test_extractsUtf16BeWithBom_markdown() {
+        markdownExtractor.setEncoding("UTF-8");
+        final String md = "# Hello UTF-16 BE\n\nBody text.";
+        final byte[] bom = { (byte) 0xFE, (byte) 0xFF };
+        final InputStream in =
+                new SequenceInputStream(new ByteArrayInputStream(bom), new ByteArrayInputStream(md.getBytes(StandardCharsets.UTF_16BE)));
+        final ExtractData extractData = markdownExtractor.getText(in, null);
+        CloseableUtil.closeQuietly(in);
+        final String content = extractData.getContent();
+        assertTrue(content.contains("Hello UTF-16 BE"));
+        assertTrue(content.contains("Body text."));
+    }
+
+    @Test
+    public void test_extractsShiftJis_markdown_noBom() {
+        markdownExtractor.setEncoding("Shift_JIS");
+        final String md = "# シフトJIS\n\n本文テスト。";
+        final InputStream in = new ByteArrayInputStream(md.getBytes(Charset.forName("Shift_JIS")));
+        final ExtractData extractData = markdownExtractor.getText(in, null);
+        CloseableUtil.closeQuietly(in);
+        final String content = extractData.getContent();
+        assertTrue(content.contains("シフトJIS"));
+        assertTrue(content.contains("本文テスト"));
+    }
+
+    @Test
+    public void test_maxTextLength_zero_isUnlimited() {
+        // maxTextLength=0 means unlimited (condition: maxTextLength > 0 is false).
+        markdownExtractor.setMaxTextLength(0);
+        final String md = "# Title\n\nHello world full content.";
+        final InputStream in = new ByteArrayInputStream(md.getBytes(StandardCharsets.UTF_8));
+        final ExtractData extractData = markdownExtractor.getText(in, null);
+        CloseableUtil.closeQuietly(in);
+        final String content = extractData.getContent();
+        assertTrue(content.contains("Title"));
+        assertTrue(content.contains("Hello world full content."));
+        // No truncation metadata expected.
+        assertNull(extractData.getValues("truncated"));
+    }
+
+    @Test
+    public void test_maxTextLength_negative_isUnlimited() {
+        // Negative maxTextLength means unlimited.
+        markdownExtractor.setMaxTextLength(-1);
+        final String md = "# Title\n\nFull content survives.";
+        final InputStream in = new ByteArrayInputStream(md.getBytes(StandardCharsets.UTF_8));
+        final ExtractData extractData = markdownExtractor.getText(in, null);
+        CloseableUtil.closeQuietly(in);
+        final String content = extractData.getContent();
+        assertTrue(content.contains("Full content survives."));
+        assertNull(extractData.getValues("truncated"));
+    }
+
+    @Test
+    public void test_truncatedMetadataFlag() {
+        // When truncation occurs the ExtractData must carry truncated=true and maxTextLength metadata.
+        markdownExtractor.setMaxTextLength(10);
+        final String md = "# Title\n\nThis is a much longer Markdown document that should be truncated.";
+        final InputStream in = new ByteArrayInputStream(md.getBytes(StandardCharsets.UTF_8));
+        final ExtractData extractData = markdownExtractor.getText(in, null);
+        CloseableUtil.closeQuietly(in);
+        final String[] truncated = extractData.getValues("truncated");
+        assertNotNull(truncated);
+        assertEquals("true", truncated[0]);
+        final String[] maxLen = extractData.getValues("maxTextLength");
+        assertNotNull(maxLen);
+        assertEquals("10", maxLen[0]);
     }
 }

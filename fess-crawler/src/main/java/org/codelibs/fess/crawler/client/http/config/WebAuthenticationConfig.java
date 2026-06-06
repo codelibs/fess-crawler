@@ -49,6 +49,13 @@ import java.util.Map;
 public class WebAuthenticationConfig {
 
     /**
+     * Creates a new WebAuthenticationConfig instance.
+     */
+    public WebAuthenticationConfig() {
+        // Default constructor
+    }
+
+    /**
      * Type of authentication scheme.
      */
     public enum AuthSchemeType {

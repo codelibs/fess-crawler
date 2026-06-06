@@ -212,6 +212,7 @@ public class SitemapsHelper {
     /**
      * Parses a text-based sitemap from the given input stream.
      * @param in the input stream to parse
+     * @param sitemapBaseUrl the base URL used to resolve relative sitemap URLs
      * @return the parsed sitemap set
      */
     protected SitemapSet parseTextSitemaps(final InputStream in, final String sitemapBaseUrl) {
@@ -265,6 +266,7 @@ public class SitemapsHelper {
     /**
      * Parses an XML sitemap from the given input stream.
      * @param in the input stream to parse
+     * @param sitemapBaseUrl the base URL used to resolve relative sitemap URLs
      * @return the parsed sitemap set
      */
     protected SitemapSet parseXmlSitemaps(final InputStream in, final String sitemapBaseUrl) {
@@ -699,6 +701,7 @@ public class SitemapsHelper {
     /**
      * Parses an XML sitemap index from the given input stream.
      * @param in the input stream to parse
+     * @param sitemapBaseUrl the base URL used to resolve relative sitemap URLs
      * @return the parsed sitemap set
      */
     protected SitemapSet parseXmlSitemapsIndex(final InputStream in, final String sitemapBaseUrl) {
@@ -1161,6 +1164,11 @@ public class SitemapsHelper {
 
         private long bytesRead;
 
+        /**
+         * Creates a new SizeLimitedInputStream wrapping the given input stream.
+         * @param in the input stream to wrap
+         * @param maxSize the maximum number of bytes allowed to be read
+         */
         protected SizeLimitedInputStream(final InputStream in, final long maxSize) {
             super(in);
             this.maxSize = maxSize;

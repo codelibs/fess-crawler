@@ -99,6 +99,11 @@ public class PsExtractor extends AbstractExtractor {
         this.encoding = encoding;
     }
 
+    /**
+     * Extracts readable text from the given PostScript content.
+     * @param psContent the PostScript content to extract text from
+     * @return the extracted text
+     */
     protected String extractText(final String psContent) {
         final List<String> collectedTexts = new ArrayList<>();
         final List<String> stack = new ArrayList<>();

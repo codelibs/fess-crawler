@@ -38,6 +38,13 @@ package org.codelibs.fess.crawler.client.http.config;
 public class CredentialsConfig {
 
     /**
+     * Creates a new CredentialsConfig instance.
+     */
+    public CredentialsConfig() {
+        // Default constructor
+    }
+
+    /**
      * Type of credentials.
      */
     public enum CredentialsType {

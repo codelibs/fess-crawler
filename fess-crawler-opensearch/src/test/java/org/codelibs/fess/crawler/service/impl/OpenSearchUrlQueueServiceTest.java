@@ -15,6 +15,7 @@
  */
 package org.codelibs.fess.crawler.service.impl;
 
+import static org.codelibs.fess.crawler.util.OpenSearchRunnerUtil.findFreePort;
 import static org.codelibs.opensearch.runner.OpenSearchRunner.newConfigs;
 
 import java.util.ArrayList;
@@ -62,15 +63,20 @@ public class OpenSearchUrlQueueServiceTest extends LastaDiTestCase {
         runner = new OpenSearchRunner();
         // create ES nodes
         final String clusterName = UUID.randomUUID().toString();
+        final int httpPort = findFreePort();
+        // OpenSearchRunner binds the first node to (baseHttpPort + 1) and selects the port via an
+        // unreliable connect-based scan. Pin it to the reserved free port and disable the scan to
+        // avoid intermittent "Address already in use" failures.
+        runner.setMaxHttpPort(-1);
         runner.onBuild((number, settingsBuilder) -> {
             settingsBuilder.put("http.cors.enabled", true);
             settingsBuilder.put("discovery.type", "single-node");
-        }).build(newConfigs().clusterName(clusterName).numOfNode(1));
+        }).build(newConfigs().clusterName(clusterName).numOfNode(1).baseHttpPort(httpPort - 1));
 
         // wait for yellow status
         runner.ensureYellow();
 
-        System.setProperty(FesenClient.HTTP_ADDRESS, "localhost:" + runner.node().settings().get("http.port", "9201"));
+        System.setProperty(FesenClient.HTTP_ADDRESS, "localhost:" + runner.node().settings().get("http.port", String.valueOf(httpPort)));
 
         super.setUp(testInfo);
     }

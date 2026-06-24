@@ -67,7 +67,9 @@ public class CrawlerClientCreator {
      * @param crawlerClientFactory The CrawlerClientFactory to register.
      */
     public synchronized void register(final CrawlerClientFactory crawlerClientFactory) {
-        clientMap.entrySet().stream().forEach(e -> load(crawlerClientFactory, e.getKey(), e.getValue()));
+        for (final Map.Entry<String, String> e : clientMap.entrySet()) {
+            load(crawlerClientFactory, e.getKey(), e.getValue());
+        }
         clientFactoryList.add(crawlerClientFactory);
         if (clientFactoryList.size() > maxClientFactorySize) {
             clientFactoryList.remove(0);
@@ -82,7 +84,9 @@ public class CrawlerClientCreator {
      */
     public synchronized void register(final String regex, final String componentName) {
         clientMap.put(regex, componentName);
-        clientFactoryList.forEach(f -> load(f, regex, componentName));
+        for (final CrawlerClientFactory f : clientFactoryList) {
+            load(f, regex, componentName);
+        }
     }
 
     /**

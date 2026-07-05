@@ -32,7 +32,7 @@ import org.codelibs.fess.crawler.exception.ExtractException;
  * <p>The extractor honors a Byte Order Mark (BOM) at the start of the stream when
  * present (UTF-8, UTF-16 LE/BE, UTF-32 LE/BE) and decodes the stream accordingly.
  * If no BOM is detected, the configured {@link #encoding} is used.
- * The text is streamed via a {@link BufferedReader} so that very large inputs do
+ * The text is streamed via a {@code BufferedReader} so that very large inputs do
  * not require buffering the entire file as a byte array. The total number of
  * characters appended to the result can be capped by {@link #maxTextLength}.
  */

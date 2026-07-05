@@ -125,7 +125,7 @@ public abstract class AbstractXmlExtractor extends AbstractExtractor {
      *
      * <p>This method detects the character encoding via a leading BOM (UTF-8,
      * UTF-16 LE/BE, UTF-32 LE/BE, UTF-7) or from the XML declaration, then
-     * streams the content through a {@link BufferedReader}. The raw character
+     * streams the content through a {@code BufferedReader}. The raw character
      * count is bounded by {@link #maxTextLength} before tag-stripping is applied.
      * When truncation occurs, a WARN-level log message is emitted and the returned
      * {@link ExtractData} carries {@code truncated=true} and

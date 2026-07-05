@@ -15,12 +15,12 @@
  */
 package org.codelibs.fess.crawler.filter.impl;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -163,7 +163,7 @@ public class UrlFilterImpl implements UrlFilter {
         this.sessionId = sessionId;
         if (!cachedIncludeSet.isEmpty()) {
             try {
-                getUrlFilterService().addIncludeUrlFilter(sessionId, cachedIncludeSet.stream().collect(Collectors.toList()));
+                getUrlFilterService().addIncludeUrlFilter(sessionId, new ArrayList<>(cachedIncludeSet));
             } catch (final Exception e) {
                 logger.warn("Failed to add include_urls on " + sessionId, e);
             }
@@ -171,7 +171,7 @@ public class UrlFilterImpl implements UrlFilter {
         }
         if (!cachedExcludeSet.isEmpty()) {
             try {
-                getUrlFilterService().addExcludeUrlFilter(sessionId, cachedExcludeSet.stream().collect(Collectors.toList()));
+                getUrlFilterService().addExcludeUrlFilter(sessionId, new ArrayList<>(cachedExcludeSet));
             } catch (final Exception e) {
                 logger.warn("Failed to add exclude_urls on " + sessionId, e);
             }

@@ -16,6 +16,7 @@
 package org.codelibs.fess.crawler.extractor.impl;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -32,6 +33,7 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.io.output.DeferredFileOutputStream;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
@@ -1175,6 +1177,257 @@ public class ApiExtractorTest extends PlainTestCase {
         } finally {
             simple.stop();
         }
+    }
+
+    /**
+     * Regression for the temp-file leak on the spill-then-fail path: a body that both spills to a
+     * temp file (threshold below payload) AND exceeds the request-size limit (limit below payload)
+     * must still have its spool file cleaned up. Previously the spool file was registered for
+     * deletion only after the limit check passed, so oversize uploads leaked ~payload-sized temp
+     * files forever. No HTTP call must be made for an oversize body.
+     */
+    @Test
+    public void test_uploadSpillAndExceedsLimit_cleansUpTempFile() throws Exception {
+        final SimpleHttpServer simple = new SimpleHttpServer();
+        final AtomicInteger calls = new AtomicInteger();
+        simple.setHandler(exchange -> {
+            calls.incrementAndGet();
+            drain(exchange.getRequestBody());
+            exchange.sendResponseHeaders(200, -1);
+            exchange.close();
+        });
+        simple.start();
+        try {
+            final ApiExtractor capped = new ApiExtractor();
+            capped.setUrl("http://127.0.0.1:" + simple.port() + "/");
+            // Threshold below the payload forces a spill to a temp file; the limit below the payload
+            // forces the oversize throw AFTER the body has already spilled to disk.
+            capped.setRequestSpoolThreshold(10);
+            capped.setMaxRequestSize(100L);
+            capped.setMaxRetries(0);
+            capped.init();
+            try {
+                final byte[] tooBig = new byte[500];
+                for (int i = 0; i < tooBig.length; i++) {
+                    tooBig[i] = (byte) ('a' + (i % 26));
+                }
+                final java.util.Set<String> before = listApiExtractorTempFiles();
+                try {
+                    capped.getText(new ByteArrayInputStream(tooBig), new HashMap<>());
+                    fail();
+                } catch (final ExtractException e) {
+                    org.junit.jupiter.api.Assertions.assertTrue(e.getMessage().contains("request body exceeded limit"),
+                            "message should mention request body limit: " + e.getMessage());
+                }
+                // Oversize body must be rejected before any HTTP call.
+                assertEquals(0, calls.get());
+                // FileUtil.deleteInBackground is asynchronous (TimeoutManager polls at ~1s cadence),
+                // so poll for up to ~5s for the spool file to disappear.
+                final long deadline = System.currentTimeMillis() + 5_000L;
+                java.util.Set<String> leaked = listApiExtractorTempFiles();
+                leaked.removeAll(before);
+                while (!leaked.isEmpty() && System.currentTimeMillis() < deadline) {
+                    Thread.sleep(100L);
+                    leaked = listApiExtractorTempFiles();
+                    leaked.removeAll(before);
+                }
+                org.junit.jupiter.api.Assertions.assertTrue(leaked.isEmpty(),
+                        "spooled temp file must be deleted after oversize failure, leaked=" + leaked);
+            } finally {
+                capped.destroy();
+            }
+        } finally {
+            simple.stop();
+        }
+    }
+
+    /**
+     * {@link ApiExtractor#incrementWithoutOverflow(long)} must add one for normal values and must
+     * saturate at {@link Long#MAX_VALUE} instead of overflowing to a negative "unbounded" value.
+     */
+    @Test
+    public void test_incrementWithoutOverflow() throws Exception {
+        assertEquals(1L, ApiExtractor.incrementWithoutOverflow(0L));
+        assertEquals(101L, ApiExtractor.incrementWithoutOverflow(100L));
+        assertEquals(Long.MAX_VALUE, ApiExtractor.incrementWithoutOverflow(Long.MAX_VALUE));
+    }
+
+    /**
+     * Guard 2a: a thread whose interrupt flag is already set must abort the retry loop before any
+     * HTTP attempt is made — even against a server that would otherwise return a retryable 500.
+     */
+    @Test
+    public void test_preInterrupted_abortsBeforeFirstAttempt() throws Exception {
+        final SimpleHttpServer simple = new SimpleHttpServer();
+        final AtomicInteger calls = new AtomicInteger();
+        simple.setHandler(exchange -> {
+            calls.incrementAndGet();
+            drain(exchange.getRequestBody());
+            exchange.sendResponseHeaders(500, -1);
+            exchange.close();
+        });
+        simple.start();
+        try {
+            final ApiExtractor extractor = new ApiExtractor();
+            extractor.setUrl("http://127.0.0.1:" + simple.port() + "/");
+            extractor.setMaxRetries(3);
+            extractor.setRetryBackoffMs(10L);
+            extractor.init();
+            try {
+                Thread.currentThread().interrupt();
+                try {
+                    extractor.getText(new ByteArrayInputStream("x".getBytes()), new HashMap<>());
+                    fail();
+                } catch (final ExtractException expected) {
+                    // expected: guard 2a short-circuits before any HTTP attempt
+                }
+                assertEquals(0, calls.get());
+            } finally {
+                // Drain the interrupt flag so it does not leak into subsequent tests.
+                Thread.interrupted();
+                extractor.destroy();
+            }
+        } finally {
+            simple.stop();
+        }
+    }
+
+    /**
+     * Guard 2c: an already-interrupted thread must abort {@link ApiExtractor#sleepQuietly(long)}
+     * even for a zero or negative backoff, so an interrupted retry loop configured with
+     * {@code retryBackoffMs=0} cannot spin through further attempts. Uses {@code isInterrupted()}
+     * so the flag is preserved across the successive calls.
+     */
+    @Test
+    public void test_sleepQuietly_preInterrupted_zeroOrNegativeBackoffStillAborts() throws Exception {
+        final ApiExtractor extractor = new ApiExtractor();
+        extractor.setUrl("http://127.0.0.1:1/unused");
+        extractor.init();
+        try {
+            Thread.currentThread().interrupt();
+            try {
+                extractor.sleepQuietly(0L);
+                fail();
+            } catch (final ExtractException expected) {
+                // ok
+            }
+            org.junit.jupiter.api.Assertions.assertTrue(Thread.currentThread().isInterrupted(),
+                    "interrupt flag must remain set after a zero-backoff abort");
+            try {
+                extractor.sleepQuietly(-1L);
+                fail();
+            } catch (final ExtractException expected) {
+                // ok
+            }
+            try {
+                extractor.sleepQuietly(5L);
+                fail();
+            } catch (final ExtractException expected) {
+                // ok
+            }
+        } finally {
+            // Drain the interrupt flag so it does not leak into subsequent tests.
+            Thread.interrupted();
+            extractor.destroy();
+        }
+    }
+
+    /**
+     * No-regression proof for the interrupt fix: an ordinary {@link java.net.SocketTimeoutException}
+     * (a subclass of {@link java.io.InterruptedIOException}) is a transient read-timeout and MUST
+     * still be retried. The interrupt flag is left unset, matching a real {@code soTimeout}. Uses a
+     * subclass that throws from {@code executeOnce} so the retry classification is exercised
+     * deterministically without depending on server timing.
+     */
+    @Test
+    public void test_socketTimeout_isRetriedAsTransient() throws Exception {
+        final AtomicInteger attempts = new AtomicInteger();
+        final ApiExtractor extractor = new ApiExtractor() {
+            @Override
+            protected ExtractData executeOnce(final DeferredFileOutputStream dfos, final String targetUrl, final int attempt)
+                    throws IOException {
+                attempts.incrementAndGet();
+                throw new java.net.SocketTimeoutException("read timed out");
+            }
+        };
+        extractor.setUrl("http://127.0.0.1:1/unused");
+        extractor.setMaxRetries(2);
+        extractor.setRetryBackoffMs(1L);
+        extractor.init();
+        try {
+            try {
+                extractor.getText(new ByteArrayInputStream("x".getBytes()), new HashMap<>());
+                fail();
+            } catch (final ExtractException expected) {
+                // expected after exhausting retries
+            }
+            // maxRetries=2 => 3 total attempts. Proves SocketTimeout is treated as transient, not as
+            // a genuine interrupt (which would abort after the first attempt).
+            assertEquals(3, attempts.get());
+        } finally {
+            extractor.destroy();
+        }
+    }
+
+    /**
+     * Wire-format regression: the {@code filedata} multipart part must carry {@code name="filedata"}
+     * and MUST NOT carry a {@code filename=} attribute, matching the pre-PR two-argument
+     * {@code addBinaryBody} form. Captures the raw multipart request body to assert on the header.
+     */
+    @Test
+    public void test_multipartWireFormat_hasNoFilename() throws Exception {
+        final SimpleHttpServer simple = new SimpleHttpServer();
+        final java.util.concurrent.atomic.AtomicReference<byte[]> received = new java.util.concurrent.atomic.AtomicReference<>();
+        simple.setHandler(exchange -> {
+            final java.io.ByteArrayOutputStream sink = new java.io.ByteArrayOutputStream();
+            final byte[] buf = new byte[4096];
+            int n;
+            while ((n = exchange.getRequestBody().read(buf)) >= 0) {
+                sink.write(buf, 0, n);
+            }
+            received.set(sink.toByteArray());
+            final byte[] body = "ok".getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=UTF-8");
+            exchange.sendResponseHeaders(200, body.length);
+            try (OutputStream out = exchange.getResponseBody()) {
+                out.write(body);
+            }
+        });
+        simple.start();
+        try {
+            final ApiExtractor extractor = new ApiExtractor();
+            extractor.setUrl("http://127.0.0.1:" + simple.port() + "/");
+            extractor.setMaxRetries(0);
+            extractor.init();
+            try {
+                final ExtractData data = extractor.getText(new ByteArrayInputStream("payload".getBytes()), new HashMap<>());
+                assertNotNull(data);
+                final byte[] body = received.get();
+                assertNotNull(body);
+                // Decode byte-for-byte so multipart framing survives intact for the header assertions.
+                final String wire = new String(body, StandardCharsets.ISO_8859_1);
+                org.junit.jupiter.api.Assertions.assertTrue(wire.contains("name=\"filedata\""),
+                        "multipart part must carry the filedata field name");
+                org.junit.jupiter.api.Assertions.assertFalse(wire.contains("filename="),
+                        "multipart part must NOT carry a filename (matches pre-PR wire format)");
+            } finally {
+                extractor.destroy();
+            }
+        } finally {
+            simple.stop();
+        }
+    }
+
+    private static java.util.Set<String> listApiExtractorTempFiles() {
+        final File dir = org.apache.commons.lang3.SystemUtils.getJavaIoTmpDir();
+        final File[] files = dir.listFiles((d, name) -> name.startsWith("apiExtractor-") && name.endsWith(".tmp"));
+        final java.util.Set<String> names = new java.util.HashSet<>();
+        if (files != null) {
+            for (final File f : files) {
+                names.add(f.getName());
+            }
+        }
+        return names;
     }
 
     private static void drain(final InputStream in) throws IOException {

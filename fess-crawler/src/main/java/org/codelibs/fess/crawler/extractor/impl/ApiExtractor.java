@@ -435,21 +435,21 @@ public class ApiExtractor extends AbstractExtractor {
     protected ExtractData executeWithRetries(final InputStream in, final String targetUrl) {
         // Spool the input once so we can re-send it on retry. Small bodies stay in memory; larger
         // ones spill to a temp file so we don't pin maxRequestSize bytes of heap per concurrent call.
-        File spoolFile = null;
-        try (DeferredFileOutputStream dfos = DeferredFileOutputStream.builder()
+        final DeferredFileOutputStream dfos = DeferredFileOutputStream.builder()
                 .setThreshold(requestSpoolThreshold)
                 .setPrefix("apiExtractor-")
                 .setSuffix(".tmp")
                 .setDirectory(SystemUtils.getJavaIoTmpDir())
                 .get();
-                BoundedInputStream bounded = BoundedInputStream.builder().setInputStream(in).setMaxCount(maxRequestSize + 1L).get()) {
-            final long copied = IOUtils.copyLarge(bounded, dfos);
-            dfos.close();
-            if (copied > maxRequestSize) {
-                throw new ExtractException("ApiExtractor request body exceeded limit: limit=" + maxRequestSize);
-            }
-            if (!dfos.isInMemory()) {
-                spoolFile = dfos.getFile();
+        try {
+            try (BoundedInputStream bounded =
+                    BoundedInputStream.builder().setInputStream(in).setMaxCount(incrementWithoutOverflow(maxRequestSize)).get()) {
+                final long copied = IOUtils.copyLarge(bounded, dfos);
+                // Flush and close the spool so the buffered body is complete before we read it back.
+                dfos.close();
+                if (copied > maxRequestSize) {
+                    throw new ExtractException("ApiExtractor request body exceeded limit: limit=" + maxRequestSize);
+                }
             }
             return runRetryLoop(dfos, targetUrl);
         } catch (final ExtractException e) {
@@ -457,8 +457,19 @@ public class ApiExtractor extends AbstractExtractor {
         } catch (final IOException e) {
             throw new ExtractException("Failed to read input stream for API extractor", e);
         } finally {
-            if (spoolFile != null) {
-                FileUtil.deleteInBackground(spoolFile);
+            // Always release the spool: close is idempotent (already closed on the success/limit paths),
+            // and any spilled temp file must be removed on every exit — including the oversize-limit
+            // throw and a mid-copy read error, both of which happen before the body reaches runRetryLoop.
+            try {
+                dfos.close();
+            } catch (final IOException e) {
+                logger.warn("Failed to close request spool for API extractor", e);
+            }
+            if (!dfos.isInMemory()) {
+                final File spoolFile = dfos.getFile();
+                if (spoolFile != null) {
+                    FileUtil.deleteInBackground(spoolFile);
+                }
             }
         }
     }
@@ -466,6 +477,9 @@ public class ApiExtractor extends AbstractExtractor {
     private ExtractData runRetryLoop(final DeferredFileOutputStream dfos, final String targetUrl) {
         IOException lastIoException = null;
         for (int attempt = 0; attempt <= maxRetries; attempt++) {
+            if (Thread.currentThread().isInterrupted()) {
+                throw new ExtractException("API request interrupted");
+            }
             try {
                 return executeOnce(dfos, targetUrl, attempt);
             } catch (final RetryableStatusException e) {
@@ -479,6 +493,9 @@ public class ApiExtractor extends AbstractExtractor {
                 }
                 sleepQuietly(sleepMs);
             } catch (final IOException e) {
+                if (Thread.currentThread().isInterrupted()) {
+                    throw new ExtractException("API request interrupted", e);
+                }
                 // M5: skip retries for non-transient errors — retrying will not help.
                 if (e instanceof UnknownHostException || e instanceof SSLHandshakeException || e instanceof SSLPeerUnverifiedException) {
                     throw new ExtractException("API request failed (non-transient): url=" + targetUrl, e);
@@ -528,7 +545,7 @@ public class ApiExtractor extends AbstractExtractor {
             final HttpEntity postEntity = MultipartEntityBuilder.create()
                     .setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
                     .setCharset(Charset.forName("UTF-8"))
-                    .addBinaryBody("filedata", bodyStream, ContentType.APPLICATION_OCTET_STREAM, "filedata")
+                    .addBinaryBody("filedata", bodyStream)
                     .build();
             httpPost.setEntity(postEntity);
             try (CloseableHttpResponse response = client.execute(httpPost)) {
@@ -552,8 +569,10 @@ public class ApiExtractor extends AbstractExtractor {
                 if (entity != null) {
                     final Charset charset = resolveCharset(entity);
                     try (InputStream entityStream = entity.getContent();
-                            BoundedInputStream bounded =
-                                    BoundedInputStream.builder().setInputStream(entityStream).setMaxCount(maxResponseSize + 1L).get()) {
+                            BoundedInputStream bounded = BoundedInputStream.builder()
+                                    .setInputStream(entityStream)
+                                    .setMaxCount(incrementWithoutOverflow(maxResponseSize))
+                                    .get()) {
                         final byte[] body = bounded.readAllBytes();
                         if (body.length > maxResponseSize) {
                             throw new ExtractException("ApiExtractor response exceeded limit: limit=" + maxResponseSize);
@@ -580,6 +599,20 @@ public class ApiExtractor extends AbstractExtractor {
             return new ByteArrayInputStream(dfos.getData());
         }
         return new BufferedInputStream(new FileInputStream(dfos.getFile()));
+    }
+
+    /**
+     * Returns {@code value + 1} for use as a {@link BoundedInputStream} max-count that permits reading
+     * one byte past the configured limit so the caller can detect an over-limit body. When {@code value}
+     * is {@link Long#MAX_VALUE}, returns {@code Long.MAX_VALUE} unchanged instead of overflowing to a
+     * negative number, which {@code BoundedInputStream} would treat as "unbounded" — silently disabling
+     * the cap.
+     *
+     * @param value the configured size limit in bytes
+     * @return {@code value + 1}, or {@code Long.MAX_VALUE} if incrementing would overflow
+     */
+    protected static long incrementWithoutOverflow(final long value) {
+        return value == Long.MAX_VALUE ? Long.MAX_VALUE : value + 1L;
     }
 
     /**
@@ -656,16 +689,21 @@ public class ApiExtractor extends AbstractExtractor {
     }
 
     /**
-     * Sleeps between retries. If the current thread is interrupted (e.g. by
-     * {@code accessTimeout} via {@code AccessTimeoutTarget}), aborts the retry
-     * loop by throwing {@link ExtractException} instead of silently continuing
-     * to the next HTTP attempt. The interrupt flag is preserved so callers
-     * further up the stack can also observe the cancellation.
+     * Sleeps between retries. The interrupt flag is checked up front — before the
+     * {@code millis <= 0} early return — so a zero or negative backoff cannot let an
+     * interrupted retry loop spin through further HTTP attempts. If the current thread is
+     * interrupted (e.g. by {@code accessTimeout} via {@code AccessTimeoutTarget}), aborts the
+     * retry loop by throwing {@link ExtractException} instead of silently continuing to the next
+     * HTTP attempt. The interrupt flag is preserved so callers further up the stack can also
+     * observe the cancellation.
      *
      * @param millis sleep duration in milliseconds
-     * @throws ExtractException if interrupted while sleeping
+     * @throws ExtractException if interrupted before or while sleeping
      */
     protected void sleepQuietly(final long millis) {
+        if (Thread.currentThread().isInterrupted()) {
+            throw new ExtractException("API retry was interrupted");
+        }
         if (millis <= 0L) {
             return;
         }

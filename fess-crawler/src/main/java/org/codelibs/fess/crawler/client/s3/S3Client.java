@@ -79,8 +79,12 @@ import software.amazon.awssdk.services.s3.model.Tag;
  *       are blank, the AWS SDK default credential provider chain is used, e.g. IAM role/instance
  *       profile/ECS task role/EKS IRSA/environment/profile)</li>
  *   <li>secretKey - The secret key for authentication (optional; see accessKey)</li>
- *   <li>region - The AWS region (default: us-east-1). For standard Amazon S3, set this to the
- *       bucket's region; there is no automatic region resolution</li>
+ *   <li>region - The AWS region (default: us-east-1). Used as the initial region for standard
+ *       Amazon S3; when crossRegionAccessEnabled is true the SDK resolves a bucket's actual region
+ *       automatically, so this only needs to match when cross-region access is disabled</li>
+ *   <li>crossRegionAccessEnabled - For standard Amazon S3 only (endpoint blank), enables automatic
+ *       cross-region access so buckets in any region are reachable without configuring region
+ *       (default: true). Ignored when endpoint is set (S3-compatible storage)</li>
  *   <li>connectTimeout - Connection timeout in milliseconds (default: 10000)</li>
  *   <li>readTimeout - Read timeout in milliseconds (default: 10000)</li>
  * </ul>
@@ -152,6 +156,11 @@ public class S3Client extends AbstractCrawlerClient {
         }
         final String endpoint = getInitParameter("endpoint", null, String.class);
         final String region = getInitParameter("region", "us-east-1", String.class);
+        // For standard Amazon S3, enable cross-region access by default so a bucket in any region
+        // is reachable without requiring "region" to be configured to match. The SDK detects the
+        // bucket's actual region on a redirect and caches it, avoiding a 301 PermanentRedirect
+        // failure on every object when the default region does not match. Set to false to opt out.
+        final boolean crossRegionAccessEnabled = getInitParameter("crossRegionAccessEnabled", true, Boolean.class);
 
         try {
             final S3ClientBuilder builder = software.amazon.awssdk.services.s3.S3Client.builder();
@@ -166,6 +175,11 @@ public class S3Client extends AbstractCrawlerClient {
                 builder.endpointOverride(URI.create(endpoint));
                 // Path-style access is required for MinIO and other S3-compatible services.
                 builder.forcePathStyle(true);
+            } else if (crossRegionAccessEnabled) {
+                // Standard Amazon S3 only: cross-region access rewrites the endpoint from the
+                // bucket's region, so it is incompatible with a custom endpoint override and is
+                // applied only when no endpoint is set.
+                builder.crossRegionAccessEnabled(true);
             }
 
             // Set static credentials when provided. When both are blank, no credentials provider
@@ -182,8 +196,9 @@ public class S3Client extends AbstractCrawlerClient {
 
         isInit = true;
         if (logger.isInfoEnabled()) {
-            logger.info("S3 client initialized successfully: endpoint={}, region={}, credentials={}", endpoint, region,
-                    StringUtil.isNotBlank(accessKey) ? "static" : "default-chain");
+            logger.info("S3 client initialized successfully: endpoint={}, region={}, credentials={}, crossRegionAccess={}", endpoint,
+                    region, StringUtil.isNotBlank(accessKey) ? "static" : "default-chain",
+                    StringUtil.isBlank(endpoint) && crossRegionAccessEnabled);
         }
     }
 

@@ -18,6 +18,8 @@ package org.codelibs.fess.crawler.extractor.impl;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -32,7 +34,6 @@ import org.apache.commons.text.translate.LookupTranslator;
 import org.apache.commons.text.translate.NumericEntityUnescaper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.codelibs.core.io.InputStreamUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.ExtractData;
@@ -44,6 +45,14 @@ import org.codelibs.fess.crawler.exception.ExtractException;
  * Provides common functionality for extracting text content from XML-like documents.
  * It handles encoding detection, HTML entity unescaping, and tag-based content extraction.
  *
+ * <p>Features:
+ * <ul>
+ *   <li>BOM detection for UTF-8, UTF-16 LE/BE, UTF-32 LE/BE, and UTF-7</li>
+ *   <li>Reader-based streaming to avoid loading entire documents into memory</li>
+ *   <li>Optional {@code maxTextLength} cap to bound heap usage on very large inputs</li>
+ *   <li>HTML entity unescaping</li>
+ *   <li>Configurable comment-tag suppression</li>
+ * </ul>
  */
 public abstract class AbstractXmlExtractor extends AbstractExtractor {
 
@@ -54,6 +63,8 @@ public abstract class AbstractXmlExtractor extends AbstractExtractor {
 
     /**
      * UTF-7 Byte Order Mark definition.
+     * Note: 'UTF-7' is not always provided by the JVM. Reading content declared as UTF-7
+     * may fail with {@code UnsupportedEncodingException}.
      */
     protected static final ByteOrderMark BOM_UTF_7 = new ByteOrderMark("UTF-7", 0x2B, 0x2F, 0x76);
 
@@ -80,6 +91,17 @@ public abstract class AbstractXmlExtractor extends AbstractExtractor {
     protected boolean ignoreCommentTag = false;
 
     /**
+     * Maximum number of characters to read from the input. The default is
+     * {@link Long#MAX_VALUE}, which is effectively unlimited. Values less than
+     * or equal to zero explicitly disable the limit.
+     *
+     * <p>The limit is measured in Java {@code char} units (UTF-16 code units).
+     * At the truncation boundary, an unpaired high surrogate is dropped to avoid
+     * leaving an invalid string.
+     */
+    protected long maxTextLength = Long.MAX_VALUE;
+
+    /**
      * Constructs a new AbstractXmlExtractor.
      */
     public AbstractXmlExtractor() {
@@ -98,6 +120,24 @@ public abstract class AbstractXmlExtractor extends AbstractExtractor {
      */
     protected abstract Pattern getTagPattern();
 
+    /**
+     * Extracts text from the supplied XML input stream.
+     *
+     * <p>This method detects the character encoding via a leading BOM (UTF-8,
+     * UTF-16 LE/BE, UTF-32 LE/BE, UTF-7) or from the XML declaration, then
+     * streams the content through a {@code BufferedReader}. The raw character
+     * count is bounded by {@link #maxTextLength} before tag-stripping is applied.
+     * When truncation occurs, a WARN-level log message is emitted and the returned
+     * {@link ExtractData} carries {@code truncated=true} and
+     * {@code maxTextLength=<value>} metadata entries. The supplied {@code in} is
+     * closed by this method.
+     *
+     * @param in the XML input stream; must not be {@code null}
+     * @param params optional extraction parameters (may be {@code null})
+     * @return the extracted text and optional truncation metadata
+     * @throws CrawlerSystemException if {@code in} is {@code null}
+     * @throws ExtractException if reading or decoding fails
+     */
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
         if (in == null) {
@@ -106,10 +146,40 @@ public abstract class AbstractXmlExtractor extends AbstractExtractor {
         try {
             final BufferedInputStream bis = new BufferedInputStream(in);
             final String enc = getEncoding(bis);
-            final String content = UNESCAPE_HTML4.translate(new String(InputStreamUtil.getBytes(bis), enc));
-            return createExtractData(content);
+            // Strip any BOM bytes from the actual stream (the encoding lookup above
+            // resets the underlying buffer, so the BOM is still present here).
+            try (BOMInputStream bomStripped = BOMInputStream.builder()
+                    .setInputStream(bis)
+                    .setInclude(false)
+                    .setByteOrderMarks(ByteOrderMark.UTF_8, ByteOrderMark.UTF_16LE, ByteOrderMark.UTF_16BE, ByteOrderMark.UTF_32LE,
+                            ByteOrderMark.UTF_32BE, BOM_UTF_7)
+                    .get()) {
+                final TextReadResult result = readAsString(bomStripped, enc);
+                final String content = UNESCAPE_HTML4.translate(result.content);
+                final ExtractData extractData = createExtractData(content);
+                if (result.truncated) {
+                    extractData.putValue("truncated", "true");
+                    extractData.putValue("maxTextLength", Long.toString(maxTextLength));
+                }
+                return extractData;
+            }
         } catch (final Exception e) {
             throw new ExtractException(e);
+        }
+    }
+
+    /**
+     * Streams the supplied input into a string using the given charset. The
+     * total number of characters appended is bounded by {@link #maxTextLength}.
+     *
+     * @param in the input stream
+     * @param charset the charset name
+     * @return a {@link TextReadResult} containing the decoded content and whether truncation occurred
+     * @throws IOException if reading fails
+     */
+    protected TextReadResult readAsString(final InputStream in, final String charset) throws IOException {
+        try (Reader reader = new InputStreamReader(in, charset)) {
+            return readWithLimit(reader, maxTextLength);
         }
     }
 
@@ -131,9 +201,15 @@ public abstract class AbstractXmlExtractor extends AbstractExtractor {
         final byte[] b = new byte[preloadSizeForCharset];
         try {
             bis.mark(preloadSizeForCharset);
+            // The wrapping BOMInputStream is intentionally not closed here so the
+            // underlying buffered stream can be reset (see finally) and reused by getText.
             @SuppressWarnings("resource")
-            final BOMInputStream bomIn = new BOMInputStream(bis, false, ByteOrderMark.UTF_8, ByteOrderMark.UTF_16BE, ByteOrderMark.UTF_16LE,
-                    ByteOrderMark.UTF_32BE, ByteOrderMark.UTF_32LE, BOM_UTF_7);
+            final BOMInputStream bomIn = BOMInputStream.builder()
+                    .setInputStream(bis)
+                    .setInclude(false)
+                    .setByteOrderMarks(ByteOrderMark.UTF_8, ByteOrderMark.UTF_16BE, ByteOrderMark.UTF_16LE, ByteOrderMark.UTF_32BE,
+                            ByteOrderMark.UTF_32LE, BOM_UTF_7)
+                    .get();
             if (bomIn.hasBOM()) {
                 if (logger.isDebugEnabled()) {
                     logger.debug("BOM: {}", bomIn.getBOMCharsetName());
@@ -246,6 +322,31 @@ public abstract class AbstractXmlExtractor extends AbstractExtractor {
      */
     public void setIgnoreCommentTag(final boolean ignoreCommentTag) {
         this.ignoreCommentTag = ignoreCommentTag;
+    }
+
+    /**
+     * Returns the maximum number of characters that will be read from the
+     * input stream before truncation.
+     *
+     * @return the maximum text length
+     */
+    public long getMaxTextLength() {
+        return maxTextLength;
+    }
+
+    /**
+     * Sets the maximum number of characters that will be read from the input
+     * stream. The default is {@link Long#MAX_VALUE}, which is effectively
+     * unlimited. Values less than or equal to zero explicitly disable the limit.
+     *
+     * <p>The limit is measured in Java {@code char} units (UTF-16 code units).
+     * At the truncation boundary, an unpaired high surrogate is dropped to avoid
+     * leaving an invalid string.
+     *
+     * @param maxTextLength the maximum text length
+     */
+    public void setMaxTextLength(final long maxTextLength) {
+        this.maxTextLength = maxTextLength;
     }
 
 }

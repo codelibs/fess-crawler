@@ -15,15 +15,19 @@
  */
 package org.codelibs.fess.crawler.extractor.impl;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.ByteOrderMark;
+import org.apache.commons.io.input.BOMInputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.codelibs.core.io.InputStreamUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.ExtractData;
@@ -49,7 +53,8 @@ import org.commonmark.renderer.text.TextContentRenderer;
  *   <li>Link URL extraction</li>
  *   <li>Code block content extraction</li>
  *   <li>Clean text conversion from Markdown</li>
- *   <li>Configurable encoding</li>
+ *   <li>Configurable encoding with BOM detection (UTF-8, UTF-16 LE/BE, UTF-32 LE/BE)</li>
+ *   <li>Reader-based streaming with optional length cap to bound heap usage</li>
  * </ul>
  */
 public class MarkdownExtractor extends AbstractExtractor {
@@ -67,6 +72,17 @@ public class MarkdownExtractor extends AbstractExtractor {
 
     /** Whether to extract link URLs as metadata. */
     protected boolean extractLinks = false;
+
+    /**
+     * Maximum number of characters to read from the input. The default is
+     * {@link Long#MAX_VALUE}, which is effectively unlimited. Values less than
+     * or equal to zero explicitly disable the limit.
+     *
+     * <p>The limit is measured in Java {@code char} units (UTF-16 code units).
+     * At the truncation boundary, an unpaired high surrogate is dropped to avoid
+     * leaving an invalid string.
+     */
+    protected long maxTextLength = Long.MAX_VALUE;
 
     /** Markdown parser with extensions. */
     protected Parser parser;
@@ -96,18 +112,40 @@ public class MarkdownExtractor extends AbstractExtractor {
         textRenderer = TextContentRenderer.builder().build();
     }
 
+    /**
+     * Extracts text from the supplied Markdown input stream.
+     *
+     * <p>The stream is decoded using the configured {@link #encoding}, overridden
+     * when a BOM (UTF-8, UTF-16 LE/BE, UTF-32 LE/BE) is detected at the start.
+     * The raw character count is bounded by {@link #maxTextLength} before Markdown
+     * parsing begins. When truncation occurs, a WARN-level log message is emitted
+     * and the returned {@link ExtractData} carries {@code truncated=true} and
+     * {@code maxTextLength=<value>} metadata entries. The supplied {@code in} is
+     * closed by this method.
+     *
+     * @param in the Markdown input stream; must not be {@code null}
+     * @param params optional extraction parameters (may be {@code null})
+     * @return the extracted text and metadata
+     * @throws org.codelibs.fess.crawler.exception.CrawlerSystemException if {@code in} is {@code null}
+     * @throws ExtractException if reading or parsing fails
+     */
     @Override
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
         validateInputStream(in);
 
         try {
-            final String content = new String(InputStreamUtil.getBytes(in), getEncoding());
-            final Node document = parser.parse(content);
+            final TextReadResult readResult = readMarkdown(in);
+            final Node document = parser.parse(readResult.content);
 
             // Extract plain text
             final String plainText = textRenderer.render(document);
 
             final ExtractData extractData = new ExtractData(plainText);
+
+            if (readResult.truncated) {
+                extractData.putValue("truncated", "true");
+                extractData.putValue("maxTextLength", Long.toString(maxTextLength));
+            }
 
             // Extract front matter metadata
             if (extractFrontMatter) {
@@ -127,6 +165,34 @@ public class MarkdownExtractor extends AbstractExtractor {
             return extractData;
         } catch (final Exception e) {
             throw new ExtractException("Failed to extract Markdown content", e);
+        }
+    }
+
+    /**
+     * Reads the entire Markdown source from the supplied input stream, honoring
+     * a leading BOM when present and bounding the result by {@link #maxTextLength}.
+     *
+     * <p>Note: When {@code maxTextLength} truncates the input before the closing
+     * YAML front-matter delimiter ({@code ---}), front-matter metadata extraction
+     * will silently fail. Set {@code maxTextLength} large enough to contain the
+     * front matter.
+     *
+     * @param in the input stream
+     * @return a {@link TextReadResult} containing the decoded Markdown source and whether truncation occurred
+     * @throws IOException if reading fails
+     */
+    protected TextReadResult readMarkdown(final InputStream in) throws IOException {
+        try (BOMInputStream bomIn = BOMInputStream.builder()
+                .setInputStream(in)
+                .setInclude(false)
+                .setByteOrderMarks(ByteOrderMark.UTF_8, ByteOrderMark.UTF_16LE, ByteOrderMark.UTF_16BE, ByteOrderMark.UTF_32LE,
+                        ByteOrderMark.UTF_32BE)
+                .get()) {
+            final String detected = bomIn.getBOMCharsetName();
+            final String charset = detected != null ? detected : getEncoding();
+            try (Reader reader = new InputStreamReader(bomIn, charset)) {
+                return readWithLimit(reader, maxTextLength);
+            }
         }
     }
 
@@ -250,5 +316,29 @@ public class MarkdownExtractor extends AbstractExtractor {
      */
     public void setExtractLinks(final boolean extractLinks) {
         this.extractLinks = extractLinks;
+    }
+
+    /**
+     * Returns the maximum number of characters that will be extracted.
+     *
+     * @return the maximum text length
+     */
+    public long getMaxTextLength() {
+        return maxTextLength;
+    }
+
+    /**
+     * Sets the maximum number of characters that will be extracted. The default
+     * is {@link Long#MAX_VALUE}, which is effectively unlimited. Values less
+     * than or equal to zero explicitly disable the limit.
+     *
+     * <p>The limit is measured in Java {@code char} units (UTF-16 code units).
+     * At the truncation boundary, an unpaired high surrogate is dropped to avoid
+     * leaving an invalid string.
+     *
+     * @param maxTextLength the maximum text length
+     */
+    public void setMaxTextLength(final long maxTextLength) {
+        this.maxTextLength = maxTextLength;
     }
 }

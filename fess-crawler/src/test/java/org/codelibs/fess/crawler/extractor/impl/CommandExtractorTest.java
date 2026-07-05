@@ -31,7 +31,8 @@ import org.codelibs.core.exception.IORuntimeException;
 import org.codelibs.core.io.FileUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.ExecutionTimeoutException;
-import org.codelibs.fess.crawler.exception.ExtractException;
+import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
+import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.Test;
 
@@ -315,33 +316,28 @@ public class CommandExtractorTest extends PlainTestCase {
     }
 
     /**
-     * Verifies that when the subprocess produces more bytes on stderr than
-     * {@code maxOutputSize} the call fails fast with an {@link ExtractException}
-     * rather than buffering an unbounded amount of data.
+     * Verifies that when the subprocess floods stderr (a diagnostic-only stream when
+     * {@code standardOutput=false}), the reader caps-and-discards the excess and the command still
+     * completes successfully instead of being killed. Content comes from $OUTPUT_FILE (empty here),
+     * so stderr volume must not fail the extraction.
      */
     @Test
-    public void test_outputSizeExceeded_throwsExtractException() throws IOException {
+    public void test_oversizeStderr_capAndDiscard_doesNotThrow() throws IOException {
         if (!SystemUtils.IS_OS_UNIX) {
             return;
         }
         final CommandExtractor extractor = new CommandExtractor();
-        // print 5 MiB of zeros to stderr; cap at 1 MiB.
+        // print 5 MiB of zeros to stderr; the diagnostic reader retains only a small prefix.
         extractor.command = "sh -c \"head -c 5242880 /dev/zero 1>&2\"";
         extractor.executionTimeout = 30_000L;
-        extractor.maxOutputSize = 1024L * 1024L; // 1 MiB
+        extractor.maxDiagnosticRetainSize = 64 * 1024; // 64 KiB retained; the rest is drained and discarded
 
         final long start = System.currentTimeMillis();
-        try {
-            extractor.getText(new ByteArrayInputStream(new byte[0]), new HashMap<>());
-            fail();
-        } catch (final ExtractException e) {
-            // expected
-        }
+        // Must NOT throw: stderr is diagnostic and is cap-and-discarded, not fatal.
+        final ExtractData data = extractor.getText(new ByteArrayInputStream(new byte[0]), new HashMap<>());
+        assertEquals("", data.getContent());
         final long elapsed = System.currentTimeMillis() - start;
-        if (elapsed >= 5000L) {
-            logger.warn("test_outputSizeExceeded_throwsExtractException: did not fast-fail (was {}ms)", elapsed);
-        }
-        assertTrue(elapsed < 5000L);
+        assertTrue(elapsed < 10_000L);
     }
 
     /**
@@ -381,10 +377,10 @@ public class CommandExtractorTest extends PlainTestCase {
 
     /**
      * Verifies the input copy is bounded by {@code maxInputSize} and the
-     * extractor fails fast before invoking the command.
+     * extractor fails fast with {@link MaxLengthExceededException} before invoking the command.
      */
     @Test
-    public void test_inputSizeExceeded_throwsExtractException() {
+    public void test_inputSizeExceeded_throwsMaxLengthExceededException() {
         if (!SystemUtils.IS_OS_UNIX) {
             return;
         }
@@ -398,7 +394,7 @@ public class CommandExtractorTest extends PlainTestCase {
         try {
             extractor.getText(big, new HashMap<>());
             fail();
-        } catch (final ExtractException e) {
+        } catch (final MaxLengthExceededException e) {
             // expected
         }
     }
@@ -528,41 +524,41 @@ public class CommandExtractorTest extends PlainTestCase {
     }
 
     // ==========================================================
-    // Fix 1: outputFile exceeds maxOutputSize → ExtractException
+    // Content bound: extracted content exceeds the content-length limit → MaxLengthExceededException
     // ==========================================================
 
     /**
-     * Fix 1 (standardOutput=true): when the command writes more than maxOutputSize bytes to
-     * stdout, getText() must throw ExtractException rather than loading the entire file into
-     * memory.
+     * Content bound (standardOutput=true): when the command writes more than the content limit to
+     * stdout, getText() must throw {@link MaxLengthExceededException} rather than loading the entire
+     * output into memory.
      */
     @Test
-    public void test_outputFileExceedsMaxOutputSize_throws() throws IOException {
+    public void test_outputExceedsContentLimit_standardOutputTrue_throws() throws IOException {
         if (!SystemUtils.IS_OS_UNIX) {
             return;
         }
         final CommandExtractor extractor = new CommandExtractor();
-        // cat $INPUT_FILE sends content to stdout; we will pipe a 5-MiB input with standardOutput=true.
-        // 5 MiB output > 1 MiB limit should trigger the guard.
+        // 5 MiB stdout > 1 MiB content limit should trigger the bound.
         extractor.standardOutput = true;
         extractor.command = "sh -c \"head -c 5242880 /dev/zero\"";
         extractor.executionTimeout = 30_000L;
-        extractor.maxOutputSize = 1024L * 1024L; // 1 MiB
+        extractor.setMaxContentLength(1024L * 1024L); // 1 MiB
 
         try {
             extractor.getText(new ByteArrayInputStream(new byte[0]), new HashMap<>());
             fail();
-        } catch (final ExtractException e) {
+        } catch (final MaxLengthExceededException e) {
             // expected
         }
     }
 
     /**
-     * Fix 1 (standardOutput=false): when the command writes more than maxOutputSize bytes to
-     * $OUTPUT_FILE, getText() must throw ExtractException (length-check defensive line).
+     * Content bound (standardOutput=false): when the command writes more than the content limit to
+     * $OUTPUT_FILE, getText() must throw {@link MaxLengthExceededException} (post-exec length guard).
+     * This variant exercises the {@link ContentLengthHelper}-driven limit.
      */
     @Test
-    public void test_outputFileExceedsMaxOutputSize_standardOutputFalse_throws() throws IOException {
+    public void test_outputFileExceedsContentLimit_standardOutputFalse_throws() throws IOException {
         if (!SystemUtils.IS_OS_UNIX) {
             return;
         }
@@ -570,7 +566,7 @@ public class CommandExtractorTest extends PlainTestCase {
         try {
             scriptFile = File.createTempFile("big_output_", ".sh");
             scriptFile.deleteOnExit();
-            // Write 5 MiB of zeros to $OUTPUT_FILE directly (bypasses BoundedStreamReader).
+            // Write 5 MiB of zeros to $OUTPUT_FILE directly (bypasses the diagnostic reader).
             FileUtil.writeBytes(scriptFile.getAbsolutePath(), "#!/bin/bash\nhead -c 5242880 /dev/zero > \"$2\"\n".getBytes());
         } catch (final IOException e) {
             throw new IORuntimeException(e);
@@ -579,12 +575,14 @@ public class CommandExtractorTest extends PlainTestCase {
         final CommandExtractor extractor = new CommandExtractor();
         extractor.command = "sh " + scriptFile.getAbsolutePath() + " $INPUT_FILE $OUTPUT_FILE";
         extractor.executionTimeout = 30_000L;
-        extractor.maxOutputSize = 1024L * 1024L; // 1 MiB
+        final ContentLengthHelper contentLengthHelper = new ContentLengthHelper();
+        contentLengthHelper.setDefaultMaxLength(1024L * 1024L); // 1 MiB
+        extractor.setContentLengthHelper(contentLengthHelper);
 
         try {
             extractor.getText(new ByteArrayInputStream(new byte[0]), new HashMap<>());
             fail();
-        } catch (final ExtractException e) {
+        } catch (final MaxLengthExceededException e) {
             // expected
         }
     }
@@ -645,31 +643,32 @@ public class CommandExtractorTest extends PlainTestCase {
     // ==========================================================
 
     /**
-     * Fix 3 + overflow fail-fast: when BoundedStreamReader detects overflow it throws
-     * OutputSizeExceededException and sets the overflow flag so the main thread breaks
-     * out of its polling loop and calls destroyProcessTree immediately — well before the
-     * full executionTimeout elapses. Also verifies the background sleep child is reaped.
+     * Content-overflow kills descendants: when {@code standardOutput=true} and the command floods
+     * stdout beyond the content limit, the {@code BoundedFileWriter} sets the overflow flag so the
+     * main thread breaks out of its polling loop and calls destroyProcessTree immediately — well
+     * before the full executionTimeout — reaping the background child too.
      */
     @Test
-    public void test_overflow_killsDescendants() throws Exception {
+    public void test_contentOverflow_killsDescendants() throws Exception {
         if (!SystemUtils.IS_OS_UNIX) {
             return;
         }
         final CommandExtractor extractor = new CommandExtractor();
-        // Spawn a background sleep, then flood stderr with zeros to trigger overflow.
-        // standardOutput=false so stdout is piped; stderr triggers BoundedStreamReader overflow.
-        extractor.command = "sh -c \"sleep 30 & head -c 5242880 /dev/zero 1>&2; wait\"";
+        // Spawn a background sleep, then flood stdout to trigger a content-limit overflow.
+        // standardOutput=true so stdout is the content path (BoundedFileWriter enforces the limit).
+        extractor.standardOutput = true;
+        extractor.command = "sh -c \"sleep 37 & head -c 5242880 /dev/zero; wait\"";
         // Use 10 s timeout — test must complete well below this if fail-fast works.
         extractor.executionTimeout = 10_000L;
-        extractor.maxOutputSize = 1024L * 1024L; // 1 MiB
+        extractor.setMaxContentLength(1024L * 1024L); // 1 MiB
         extractor.destroyGracePeriodMillis = 200L;
 
         final long start = System.currentTimeMillis();
         try {
             extractor.getText(new ByteArrayInputStream(new byte[0]), new HashMap<>());
             fail();
-        } catch (final ExtractException e) {
-            // expected — overflow detected
+        } catch (final MaxLengthExceededException e) {
+            // expected — content overflow detected
         }
         final long elapsed = System.currentTimeMillis() - start;
         // Overflow should be detected and process killed well before the 10 s timeout.
@@ -681,7 +680,7 @@ public class CommandExtractorTest extends PlainTestCase {
                 .filter(ProcessHandle::isAlive)
                 .anyMatch(ph -> ph.info().command().map(c -> c.contains("sleep")).orElse(false) && ph.info().arguments().map(args -> {
                     for (final String a : args) {
-                        if ("30".equals(a)) {
+                        if ("37".equals(a)) {
                             return true;
                         }
                     }
@@ -689,39 +688,29 @@ public class CommandExtractorTest extends PlainTestCase {
                 }).orElse(false));
 
         if (orphanAlive) {
-            logger.warn("test_overflow_killsDescendants: orphan 'sleep 30' still alive after kill attempt");
+            logger.warn("test_contentOverflow_killsDescendants: orphan 'sleep 37' still alive after kill attempt");
         }
         assertFalse(orphanAlive);
     }
 
     // ==========================================================
-    // Fix 4: setMaxOutputLine conservatively shrinks maxOutputSize
+    // Deprecated setMaxOutputLine is now a NOP (content bound via ContentLengthHelper)
     // ==========================================================
 
     /**
-     * Fix 4a: setMaxOutputLine(1) should shrink maxOutputSize to max(64KiB, 1*1024) = 64 KiB
-     * when setMaxOutputSize has not been called.
+     * The deprecated {@code setMaxOutputLine} no longer affects the content bound (which now comes
+     * from {@link ContentLengthHelper}/{@code maxContentLength}); it is retained only for source and
+     * binary compatibility and must be a harmless NOP.
      */
     @Test
     @SuppressWarnings("deprecation")
-    public void test_setMaxOutputLine_shrinksMaxOutputSize() {
+    public void test_setMaxOutputLine_isNoOp() {
         final CommandExtractor extractor = new CommandExtractor();
-        // Default maxOutputSize is 10 MiB; setMaxOutputLine(1) infers 64 KiB (floor), which is smaller.
+        final long before = extractor.getMaxContentLength();
         extractor.setMaxOutputLine(1);
-        assertTrue(extractor.getMaxOutputSize() <= 64L * 1024L);
-    }
-
-    /**
-     * Fix 4b: when setMaxOutputSize has been called explicitly, a subsequent setMaxOutputLine
-     * must not override it — the explicit value must be preserved regardless of call order.
-     */
-    @Test
-    @SuppressWarnings("deprecation")
-    public void test_setMaxOutputLine_doesNotOverrideExplicitMaxOutputSize() {
-        final CommandExtractor extractor = new CommandExtractor();
-        extractor.setMaxOutputSize(50L * 1024L * 1024L); // 50 MiB explicit
-        extractor.setMaxOutputLine(1); // would infer 64 KiB but must not override explicit
-        assertEquals(50L * 1024L * 1024L, extractor.getMaxOutputSize());
+        extractor.setMaxOutputLine(100000);
+        // The content bound is unaffected by the deprecated line-count setter.
+        assertEquals(before, extractor.getMaxContentLength());
     }
 
     // ==========================================================
@@ -729,29 +718,30 @@ public class CommandExtractorTest extends PlainTestCase {
     // ==========================================================
 
     /**
-     * Validates C1: standardOutput=true overflow must fail fast (not wait for executionTimeout).
+     * Validates content-overflow fast-fail: standardOutput=true overflow must fail fast (not wait for
+     * executionTimeout).
      */
     @Test
-    public void test_standardOutputOverflow_failsFastWithoutWaitingForTimeout() throws IOException {
+    public void test_contentOverflow_failsFastWithoutWaitingForTimeout() throws IOException {
         if (!SystemUtils.IS_OS_UNIX) {
             return;
         }
         final CommandExtractor extractor = new CommandExtractor();
         extractor.standardOutput = true;
-        // Produce 5 MiB then keep running. Without C1 fix the test would wait the full executionTimeout.
+        // Produce 5 MiB then keep running. Without fail-fast the test would wait the full executionTimeout.
         extractor.command = "sh -c \"head -c 5242880 /dev/zero; sleep 30\"";
         extractor.executionTimeout = 10_000L;
-        extractor.maxOutputSize = 1024L * 1024L;
+        extractor.setMaxContentLength(1024L * 1024L);
         final long start = System.currentTimeMillis();
         try {
             extractor.getText(new ByteArrayInputStream(new byte[0]), new HashMap<>());
             fail();
-        } catch (final ExtractException e) {
+        } catch (final MaxLengthExceededException e) {
             // expected
         }
         final long elapsed = System.currentTimeMillis() - start;
         if (elapsed >= 5000L) {
-            logger.warn("test_standardOutputOverflow_failsFastWithoutWaitingForTimeout: overflow did not fail fast (was {}ms)", elapsed);
+            logger.warn("test_contentOverflow_failsFastWithoutWaitingForTimeout: overflow did not fail fast (was {}ms)", elapsed);
         }
         assertTrue(elapsed < 5000L);
     }
@@ -832,17 +822,6 @@ public class CommandExtractorTest extends PlainTestCase {
         // Lenient contract: non-zero exit does NOT throw; content is returned.
         final ExtractData data = extractor.getText(new FileInputStream(contentFile), new HashMap<>());
         assertTrue(data.getContent().contains("partial"));
-    }
-
-    /**
-     * Tightened version of test_setMaxOutputLine_shrinksMaxOutputSize: verifies exact 64 KiB floor.
-     */
-    @Test
-    @SuppressWarnings("deprecation")
-    public void test_setMaxOutputLine_shrinksMaxOutputSize_toExactFloor() {
-        final CommandExtractor extractor = new CommandExtractor();
-        extractor.setMaxOutputLine(1);
-        assertEquals(64L * 1024L, extractor.getMaxOutputSize());
     }
 
     /**
@@ -948,5 +927,112 @@ public class CommandExtractorTest extends PlainTestCase {
         final CommandExtractor.InputStreamThread it =
                 new CommandExtractor.InputStreamThread(new ByteArrayInputStream(new byte[0]), "UTF-8", 100);
         assertEquals("", it.getOutput());
+    }
+
+    // ==========================================================
+    // Cap-and-discard diagnostic streams + ContentLengthHelper-driven bound
+    // ==========================================================
+
+    /**
+     * Verifies that when {@code standardOutput=false} the command may flood stdout (a diagnostic-only
+     * stream) without being killed: the reader caps-and-discards stdout while $OUTPUT_FILE content is
+     * returned intact.
+     */
+    @Test
+    public void test_diagnosticStdout_capAndDiscard_standardOutputFalse() throws IOException {
+        if (!SystemUtils.IS_OS_UNIX) {
+            return;
+        }
+        final File scriptFile;
+        try {
+            scriptFile = File.createTempFile("stdout_flood_", ".sh");
+            scriptFile.deleteOnExit();
+            // Flood stdout with 5 MiB, then write the real content to $OUTPUT_FILE.
+            FileUtil.writeBytes(scriptFile.getAbsolutePath(), "#!/bin/bash\nhead -c 5242880 /dev/zero\necho content > \"$2\"\n".getBytes());
+        } catch (final IOException e) {
+            throw new IORuntimeException(e);
+        }
+
+        final File contentFile = createContentFile(".txt", new byte[] { 0 });
+        final CommandExtractor extractor = new CommandExtractor();
+        extractor.command = "sh " + scriptFile.getAbsolutePath() + " $INPUT_FILE $OUTPUT_FILE";
+        extractor.executionTimeout = 30_000L;
+        extractor.maxDiagnosticRetainSize = 64 * 1024;
+
+        // Must NOT throw despite 5 MiB on stdout; content comes from $OUTPUT_FILE.
+        final ExtractData data = extractor.getText(new FileInputStream(contentFile), new HashMap<>());
+        assertTrue(data.getContent().contains("content"));
+    }
+
+    /**
+     * Verifies the content bound honours a per-MIME-type limit from {@link ContentLengthHelper} when
+     * a {@code Content-Type} is present in the extraction parameters.
+     */
+    @Test
+    public void test_contentLimit_perMimeType_fromParams() throws IOException {
+        if (!SystemUtils.IS_OS_UNIX) {
+            return;
+        }
+        final File scriptFile;
+        try {
+            scriptFile = File.createTempFile("mime_output_", ".sh");
+            scriptFile.deleteOnExit();
+            // Write 2 MiB to $OUTPUT_FILE.
+            FileUtil.writeBytes(scriptFile.getAbsolutePath(), "#!/bin/bash\nhead -c 2097152 /dev/zero > \"$2\"\n".getBytes());
+        } catch (final IOException e) {
+            throw new IORuntimeException(e);
+        }
+
+        final CommandExtractor extractor = new CommandExtractor();
+        extractor.command = "sh " + scriptFile.getAbsolutePath() + " $INPUT_FILE $OUTPUT_FILE";
+        extractor.executionTimeout = 30_000L;
+        final ContentLengthHelper contentLengthHelper = new ContentLengthHelper();
+        contentLengthHelper.setDefaultMaxLength(10L * 1024L * 1024L); // generous default
+        contentLengthHelper.addMaxLength("text/plain", 1024L * 1024L); // 1 MiB for text/plain
+        extractor.setContentLengthHelper(contentLengthHelper);
+
+        final Map<String, String> params = new HashMap<>();
+        params.put(ExtractData.CONTENT_TYPE, "text/plain");
+        // 2 MiB output exceeds the 1 MiB text/plain limit -> rejected.
+        try {
+            extractor.getText(new ByteArrayInputStream(new byte[0]), params);
+            fail();
+        } catch (final MaxLengthExceededException e) {
+            // expected
+        }
+    }
+
+    /**
+     * Verifies that when {@code includeStderrInOutput=true} the appended stderr is truncated so the
+     * combined content never exceeds the content limit (stderr is diagnostic — truncate, don't fail).
+     */
+    @Test
+    public void test_includeStderrInOutput_combinedContentStaysWithinLimit() throws IOException {
+        if (!SystemUtils.IS_OS_UNIX) {
+            return;
+        }
+        final File scriptFile;
+        try {
+            scriptFile = File.createTempFile("stderr_bound_", ".sh");
+            scriptFile.deleteOnExit();
+            // 1000 'A' bytes to $OUTPUT_FILE, 1000 'B' bytes to stderr.
+            FileUtil.writeBytes(scriptFile.getAbsolutePath(),
+                    "#!/bin/bash\nprintf 'A%.0s' {1..1000} > \"$2\"\nprintf 'B%.0s' {1..1000} >&2\n".getBytes());
+        } catch (final IOException e) {
+            throw new IORuntimeException(e);
+        }
+
+        final File contentFile = createContentFile(".txt", new byte[] { 0 });
+        final CommandExtractor extractor = new CommandExtractor();
+        extractor.command = "sh " + scriptFile.getAbsolutePath() + " $INPUT_FILE $OUTPUT_FILE";
+        extractor.executionTimeout = 30_000L;
+        extractor.setIncludeStderrInOutput(true);
+        extractor.setMaxContentLength(1500L); // 1000 (file) + at most 500 (stderr)
+
+        final ExtractData data = extractor.getText(new FileInputStream(contentFile), new HashMap<>());
+        final byte[] contentBytes = data.getContent().getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        assertTrue(contentBytes.length <= 1500);
+        assertTrue(data.getContent().contains("A"));
+        assertTrue(data.getContent().contains("B")); // some stderr retained after truncation
     }
 }

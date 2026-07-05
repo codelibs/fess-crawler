@@ -51,6 +51,10 @@ import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExecutionTimeoutException;
 import org.codelibs.fess.crawler.exception.ExtractException;
+import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
+import org.codelibs.fess.crawler.helper.ContentLengthHelper;
+
+import jakarta.annotation.Resource;
 
 /**
  * Extracts text content by executing an external command.
@@ -83,10 +87,10 @@ public class CommandExtractor extends AbstractExtractor {
      * The (formerly) maximum number of lines to buffer from command output.
      *
      * @deprecated The line-count cap has been removed in favor of a byte-count cap.
-     *             This field is no longer consulted; use {@link #setMaxOutputSize(long)}
-     *             to bound how many bytes are read from stdout/stderr. The field is
-     *             retained only for source/binary compatibility with callers that set
-     *             it via {@link #setMaxOutputLine(int)} or via reflection.
+     *             This field is no longer consulted; the extracted content is bounded by
+     *             {@link ContentLengthHelper} (or {@link #maxContentLength} when no helper is
+     *             available). The field is retained only for source/binary compatibility with
+     *             callers that set it via {@link #setMaxOutputLine(int)} or via reflection.
      */
     @Deprecated
     protected int maxOutputLine = 1000;
@@ -94,11 +98,30 @@ public class CommandExtractor extends AbstractExtractor {
     /** Whether to redirect standard output to a file. */
     protected boolean standardOutput = false;
 
-    /** Maximum bytes the subprocess is allowed to write to a single drained stream (stdout/stderr). */
-    protected long maxOutputSize = 10L * 1024L * 1024L; // 10 MiB
+    /**
+     * Helper that provides the maximum content length (optionally per MIME type) used to bound the
+     * extracted text. Injected by the DI container when {@code CommandExtractor} is registered as a
+     * component; may be {@code null} when the extractor is constructed ad-hoc, in which case
+     * {@link #maxContentLength} is used as the fallback limit.
+     */
+    @Resource
+    protected ContentLengthHelper contentLengthHelper;
 
-    /** Whether {@link #setMaxOutputSize(long)} has been called explicitly, preventing {@link #setMaxOutputLine(int)} from overriding it. */
-    private boolean maxOutputSizeExplicit = false;
+    /**
+     * Fallback maximum bytes of extracted content (the command output) accepted when
+     * {@link #contentLengthHelper} is not available. When the helper is present it takes precedence.
+     * Output larger than this limit is rejected with {@link MaxLengthExceededException} so oversized
+     * documents are skipped instead of consuming unbounded heap/disk.
+     */
+    protected long maxContentLength = 10L * 1024L * 1024L; // 10 MiB
+
+    /**
+     * Maximum bytes retained in memory from a diagnostic stream (stdout/stderr used only for logging)
+     * before further bytes are drained and discarded. The stream is always drained to completion to
+     * avoid blocking the subprocess on a full pipe buffer; only the retained prefix is used for logs
+     * (and, when {@link #includeStderrInOutput} is enabled, appended to the content).
+     */
+    protected int maxDiagnosticRetainSize = 64 * 1024; // 64 KiB
 
     /** Maximum bytes copied from the input stream into the temporary input file. */
     protected long maxInputSize = 100L * 1024L * 1024L; // 100 MiB
@@ -189,25 +212,39 @@ public class CommandExtractor extends AbstractExtractor {
             }
             outputFile = createTempFile("cmdextout_" + filePrefix + "_", ext, tempDir);
 
+            // Resolve the maximum size accepted for the extracted content. Prefer the DI-managed
+            // ContentLengthHelper (optionally per MIME type); fall back to maxContentLength when the
+            // helper is not available (e.g. ad-hoc construction).
+            final long maxContentLen = resolveMaxContentLength(params);
+
             // store to a file (bounded by maxInputSize)
             copyToFileBounded(in, inputFile, maxInputSize);
 
-            final String stderrText = executeCommand(inputFile, outputFile);
+            final String stderrText = executeCommand(inputFile, outputFile, maxContentLen);
 
             // For standardOutput=false this is the only guard against the external command writing
-            // an unbounded $OUTPUT_FILE — bounded readers cover stdout/stderr only.
-            if (outputFile.length() > maxOutputSize) {
-                logger.warn("output file size exceeded limit: size={} limit={} command={}", outputFile.length(), maxOutputSize, command);
-                throw new ExtractException("output file size exceeded limit: limit=" + maxOutputSize);
+            // an unbounded $OUTPUT_FILE — the diagnostic stdout/stderr readers no longer bound content.
+            if (outputFile.length() > maxContentLen) {
+                logger.warn("output content exceeded limit: size={} limit={} command={}", outputFile.length(), maxContentLen, command);
+                throw new MaxLengthExceededException("output content exceeded limit: limit=" + maxContentLen);
             }
 
             final StringBuilder contentBuf = new StringBuilder();
             contentBuf.append(new String(FileUtil.readBytes(outputFile), outputEncoding));
             // For backward compatibility with the legacy implementation that used
-            // ProcessBuilder.redirectErrorStream(true) when standardOutput=false,
-            // append captured stderr text to the extracted content.
+            // ProcessBuilder.redirectErrorStream(true) when standardOutput=false, append captured
+            // stderr text to the extracted content — but keep the combined content within the content
+            // limit. stderr is diagnostic, so truncate the appended portion rather than failing.
             if (!standardOutput && includeStderrInOutput && StringUtil.isNotEmpty(stderrText)) {
-                contentBuf.append(stderrText);
+                final long remaining = maxContentLen - outputFile.length();
+                if (remaining > 0) {
+                    final byte[] stderrBytes = stderrText.getBytes(outputEncoding);
+                    if (stderrBytes.length <= remaining) {
+                        contentBuf.append(stderrText);
+                    } else {
+                        contentBuf.append(new String(stderrBytes, 0, (int) remaining, outputEncoding));
+                    }
+                }
             }
             final ExtractData extractData = new ExtractData(contentBuf.toString());
             if (StringUtil.isNotBlank(resourceName)) {
@@ -224,6 +261,24 @@ public class CommandExtractor extends AbstractExtractor {
     }
 
     /**
+     * Resolves the maximum number of bytes accepted for the extracted content. When a
+     * {@link ContentLengthHelper} is available it is consulted (using the {@code Content-Type} from
+     * {@code params} when present, otherwise the helper's default); otherwise {@link #maxContentLength}
+     * is used as the fallback limit.
+     *
+     * @param params the extraction parameters (may be {@code null}); an optional
+     *               {@link ExtractData#CONTENT_TYPE} entry is used to look up a per-MIME limit
+     * @return the maximum number of content bytes allowed
+     */
+    protected long resolveMaxContentLength(final Map<String, String> params) {
+        if (contentLengthHelper != null) {
+            final String mimeType = params == null ? null : params.get(ExtractData.CONTENT_TYPE);
+            return contentLengthHelper.getMaxLength(mimeType);
+        }
+        return maxContentLength;
+    }
+
+    /**
      * Copies an input stream into the destination file but stops and throws if the
      * number of bytes read exceeds {@code limit}.
      *
@@ -231,7 +286,7 @@ public class CommandExtractor extends AbstractExtractor {
      * @param dest the destination file
      * @param limit the maximum number of bytes allowed
      * @throws IOException if an I/O error occurs
-     * @throws ExtractException if the input stream exceeds {@code limit}
+     * @throws MaxLengthExceededException if the input stream exceeds {@code limit}
      */
     protected void copyToFileBounded(final InputStream in, final File dest, final long limit) throws IOException {
         long total = 0L;
@@ -242,7 +297,7 @@ public class CommandExtractor extends AbstractExtractor {
                 total += n;
                 if (total > limit) {
                     logger.warn("input size exceeded limit: limit={} command={}", limit, command);
-                    throw new ExtractException("input size exceeded limit: limit=" + limit);
+                    throw new MaxLengthExceededException("input size exceeded limit: limit=" + limit);
                 }
                 out.write(buffer, 0, n);
             }
@@ -258,7 +313,7 @@ public class CommandExtractor extends AbstractExtractor {
         return name;
     }
 
-    private String executeCommand(final File inputFile, final File outputFile) {
+    private String executeCommand(final File inputFile, final File outputFile, final long maxContentLen) {
 
         if (StringUtil.isBlank(command)) {
             throw new CrawlerSystemException("External command is empty. Please configure a valid command for CommandExtractor.");
@@ -278,8 +333,8 @@ public class CommandExtractor extends AbstractExtractor {
             pb.directory(workingDirectory);
         }
         // Do not use pb.redirectOutput(outputFile) for standardOutput=true: OS-level redirection
-        // bypasses the BoundedStreamReader, allowing unbounded writes. Instead, pipe stdout through
-        // a BoundedFileWriter that enforces maxOutputSize.
+        // bypasses the BoundedFileWriter, allowing unbounded writes. Instead, pipe stdout through
+        // a BoundedFileWriter that enforces the content-length limit.
 
         // Note: do not redirect error stream; we want stderr drained separately always.
 
@@ -301,19 +356,22 @@ public class CommandExtractor extends AbstractExtractor {
 
             final Process processRef = currentProcess;
             final Charset charset = outCharset;
-            final long limit = maxOutputSize;
             final AtomicBoolean overflowFlag = new AtomicBoolean(false);
             final Future<String> stdoutFuture;
             if (standardOutput) {
-                // Drain stdout into outputFile with a byte-count bound to honour maxOutputSize.
-                stdoutFuture = streamPool.submit(
-                        new BoundedFileWriter(processRef.getInputStream(), outputFile, limit, "stdout", overflowFlag, shuttingDown));
+                // stdout IS the extracted content: bound it by the content-length limit and kill the
+                // process tree on overflow (oversized document -> MaxLengthExceededException).
+                stdoutFuture = streamPool.submit(new BoundedFileWriter(processRef.getInputStream(), outputFile, maxContentLen, "stdout",
+                        overflowFlag, shuttingDown));
             } else {
-                stdoutFuture = streamPool
-                        .submit(new BoundedStreamReader(processRef.getInputStream(), charset, limit, "stdout", overflowFlag, shuttingDown));
+                // stdout is diagnostic only (content comes from $OUTPUT_FILE): cap-and-discard so a
+                // verbose command is not killed; the stream is still fully drained to avoid pipe block.
+                stdoutFuture = streamPool.submit(
+                        new BoundedStreamReader(processRef.getInputStream(), charset, maxDiagnosticRetainSize, "stdout", shuttingDown));
             }
+            // stderr is always diagnostic: cap-and-discard, never kills the process.
             final Future<String> stderrFuture = streamPool
-                    .submit(new BoundedStreamReader(processRef.getErrorStream(), charset, limit, "stderr", overflowFlag, shuttingDown));
+                    .submit(new BoundedStreamReader(processRef.getErrorStream(), charset, maxDiagnosticRetainSize, "stderr", shuttingDown));
 
             // Poll for process exit so that an overflow detected by a reader thread can
             // break out immediately rather than blocking for the full executionTimeout.
@@ -342,20 +400,20 @@ public class CommandExtractor extends AbstractExtractor {
                         } catch (final ExecutionException ee) {
                             final Throwable cause = ee.getCause();
                             if (cause instanceof OutputSizeExceededException) {
-                                logger.warn("command output exceeded limit: limit={} command={}", maxOutputSize, cmdList);
-                                throw new ExtractException("command output exceeded limit: limit=" + maxOutputSize, cause);
+                                logger.warn("command output exceeded content limit: limit={} command={}", maxContentLen, cmdList);
+                                throw new MaxLengthExceededException("command output exceeded content limit: limit=" + maxContentLen);
                             }
                             logger.warn("unexpected error draining stream during overflow handling: command={}", cmdList, cause);
                             throw new CrawlerSystemException("Failed to drain command output during overflow.", cause);
                         } catch (final TimeoutException te) {
-                            // overflow already detected; surface the ExtractException below
+                            // overflow already detected; surface the exception below
                         } catch (final InterruptedException ie) {
                             Thread.currentThread().interrupt();
                             break;
                         }
                     }
                     // guard: overflow flag set but no overflow exception observed
-                    throw new ExtractException("command output exceeded limit: limit=" + maxOutputSize);
+                    throw new MaxLengthExceededException("command output exceeded content limit: limit=" + maxContentLen);
                 } else {
                     // Timeout path.
                     logger.warn("command timed out: timeout={}ms command={}", executionTimeout, cmdList);
@@ -381,10 +439,10 @@ public class CommandExtractor extends AbstractExtractor {
             } catch (final ExecutionException ee) {
                 final Throwable cause = ee.getCause();
                 if (cause instanceof OutputSizeExceededException) {
-                    logger.warn("command output exceeded limit: limit={} command={}", maxOutputSize, cmdList);
+                    logger.warn("command output exceeded content limit: limit={} command={}", maxContentLen, cmdList);
                     shuttingDown.set(true);
                     destroyProcessTree(currentProcess);
-                    throw new ExtractException("command output exceeded limit: limit=" + maxOutputSize, cause);
+                    throw new MaxLengthExceededException("command output exceeded content limit: limit=" + maxContentLen);
                 }
                 if (cause instanceof IOException) {
                     throw new CrawlerSystemException("Failed to drain command output.", cause);
@@ -634,18 +692,17 @@ public class CommandExtractor extends AbstractExtractor {
     }
 
     /**
-     * Reads a stream fully (up to {@code limit} bytes) and returns it as a String.
-     * If the stream produces more than {@code limit} bytes, {@code overflowFlag} is
-     * set to {@code true} and an {@link OutputSizeExceededException} is thrown so
-     * that the main thread can detect the overflow without waiting for the full
-     * {@code executionTimeout}.
+     * Drains a diagnostic stream (stdout or stderr) to completion so the subprocess cannot block on a
+     * full pipe buffer, retaining at most {@code retainLimit} bytes in memory. Bytes beyond the retain
+     * limit are read and discarded (cap-and-discard) — this reader never throws on overflow and never
+     * kills the process; the retained prefix is returned for logging and, optionally, for inclusion in
+     * the extracted content.
      */
     protected static class BoundedStreamReader implements Callable<String> {
         private final InputStream stream;
         private final Charset charset;
-        private final long limit;
+        private final int retainLimit;
         private final String streamName;
-        private final AtomicBoolean overflowFlag;
         private final AtomicBoolean shuttingDown;
 
         /**
@@ -653,22 +710,19 @@ public class CommandExtractor extends AbstractExtractor {
          *
          * @param stream the input stream to drain
          * @param charset the charset used to decode the bytes
-         * @param limit the maximum number of bytes accepted before the process is killed
+         * @param retainLimit the maximum number of bytes retained in memory; further bytes are drained
+         *                    and discarded rather than buffered
          * @param streamName a label used in error messages and logs
-         * @param overflowFlag shared flag that is set to {@code true} just before
-         *                     {@link OutputSizeExceededException} is thrown, allowing the main
-         *                     thread's polling loop to break early and kill the process tree
          * @param shuttingDown shared flag indicating the main thread is in the process of killing
          *                     the subprocess; IOExceptions observed while this flag is set are
          *                     logged at debug level rather than surfaced as ExecutionExceptions
          */
-        public BoundedStreamReader(final InputStream stream, final Charset charset, final long limit, final String streamName,
-                final AtomicBoolean overflowFlag, final AtomicBoolean shuttingDown) {
+        public BoundedStreamReader(final InputStream stream, final Charset charset, final int retainLimit, final String streamName,
+                final AtomicBoolean shuttingDown) {
             this.stream = stream;
             this.charset = charset;
-            this.limit = limit;
+            this.retainLimit = retainLimit;
             this.streamName = streamName;
-            this.overflowFlag = overflowFlag;
             this.shuttingDown = shuttingDown;
         }
 
@@ -677,31 +731,36 @@ public class CommandExtractor extends AbstractExtractor {
             final byte[] buf = new byte[8192];
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
             long total = 0L;
+            boolean truncated = false;
             try (InputStream is = stream) {
                 int n;
                 while ((n = is.read(buf)) != -1) {
                     total += n;
-                    if (total > limit) {
-                        // Signal the main thread's polling loop before throwing so it can
-                        // break immediately and kill the process tree rather than blocking
-                        // for the remainder of executionTimeout.
-                        overflowFlag.set(true);
-                        throw new OutputSizeExceededException(
-                                "command output exceeded limit on " + streamName + ": limit=" + limit + " bytes");
+                    final int room = retainLimit - baos.size();
+                    if (room > 0) {
+                        final int toRetain = Math.min(n, room);
+                        baos.write(buf, 0, toRetain);
+                        if (toRetain < n) {
+                            truncated = true;
+                        }
+                    } else {
+                        // Retain limit reached: keep reading to drain the pipe but discard the bytes.
+                        truncated = true;
                     }
-                    baos.write(buf, 0, n);
                 }
-            } catch (final OutputSizeExceededException e) {
-                throw e;
             } catch (final IOException ioe) {
+                // Diagnostic streams must never be fatal: log and return whatever was retained so far.
                 if (shuttingDown.get()) {
                     if (logger.isDebugEnabled()) {
                         logger.debug("stream closed during shutdown: stream={}", streamName, ioe);
                     }
                 } else {
-                    logger.warn("unexpected I/O error on stream: stream={} drainedBytes={}", streamName, total, ioe);
-                    throw ioe;
+                    logger.warn("I/O error draining diagnostic stream (ignored): stream={} drainedBytes={}", streamName, total, ioe);
                 }
+            }
+            if (truncated && logger.isDebugEnabled()) {
+                logger.debug("diagnostic stream truncated for retention: stream={} totalBytes={} retained={}", streamName, total,
+                        retainLimit);
             }
             return new String(baos.toByteArray(), charset);
         }
@@ -797,8 +856,7 @@ public class CommandExtractor extends AbstractExtractor {
      * Legacy thread that used to monitor and terminate processes exceeding the
      * timeout.
      *
-     * @deprecated The timeout/kill machinery is now handled inline by
-     *             {@link CommandExtractor#executeCommand(File, File)} using
+     * @deprecated The timeout/kill machinery is now handled inline by the extractor using
      *             {@link Process#waitFor(long, TimeUnit)} and
      *             {@link CommandExtractor#destroyProcessTree(Process)}. This class is
      *             unused internally and is retained only as an empty stub so that
@@ -967,25 +1025,19 @@ public class CommandExtractor extends AbstractExtractor {
     }
 
     /**
-     * Sets the maximum number of output lines to buffer.
+     * Sets the (deprecated) maximum number of output lines.
      *
-     * <p>This setter is deprecated; use {@link #setMaxOutputSize(long)} instead.
-     * For backward compatibility, calling this method conservatively shrinks
-     * {@link #maxOutputSize} to {@code max(64 KiB, n * 1024)} bytes (1 line ≈ 1 KiB),
-     * but only when {@link #setMaxOutputSize(long)} has <em>not</em> been called
-     * explicitly on this instance. When both setters are called, the explicit
-     * {@link #setMaxOutputSize(long)} value always wins regardless of call order.
+     * <p>The line-count cap has been removed; the extracted content is now bounded by
+     * {@link ContentLengthHelper} (or {@link #maxContentLength} when no helper is available). This
+     * setter only stores the value for source/binary compatibility and has no effect on bounding.
      *
-     * @param maxOutputLine The maximum output lines to set.
-     * @deprecated Use {@link #setMaxOutputSize(long)} to set the byte-count bound directly.
+     * @param maxOutputLine The maximum output lines to set (retained for compatibility only).
+     * @deprecated Configure the byte-count bound via {@link ContentLengthHelper} or
+     *             {@link #setMaxContentLength(long)} instead.
      */
     @Deprecated
     public void setMaxOutputLine(final int maxOutputLine) {
         this.maxOutputLine = maxOutputLine;
-        final long inferred = Math.max(64L * 1024L, (long) maxOutputLine * 1024L);
-        if (!maxOutputSizeExplicit) {
-            this.maxOutputSize = Math.min(this.maxOutputSize, inferred);
-        }
     }
 
     /**
@@ -997,36 +1049,58 @@ public class CommandExtractor extends AbstractExtractor {
     }
 
     /**
-     * Sets the maximum number of bytes the subprocess may write to a single stream
-     * (stdout or stderr) before the process is killed. Calling this method marks the
-     * size as explicitly set, preventing a subsequent {@link #setMaxOutputLine(int)}
-     * call from overriding it.
+     * Sets the {@link ContentLengthHelper} used to bound the size of the extracted content. When set,
+     * it takes precedence over {@link #setMaxContentLength(long)}. This is normally injected by the DI
+     * container; the setter is provided for ad-hoc construction and tests.
      *
-     * <p>Note: the entire output may be loaded into memory during extraction
-     * (transient 2–4× heap usage). Values above 512 MiB log a warning.
-     *
-     * @param maxOutputSize the limit in bytes
+     * @param contentLengthHelper the helper providing content-length limits (may be {@code null})
      */
-    public void setMaxOutputSize(final long maxOutputSize) {
-        if (maxOutputSize > 512L * 1024L * 1024L) {
-            logger.warn("maxOutputSize is large; extraction may transiently allocate 2-4x this in heap: maxOutputSize={}", maxOutputSize);
-        }
-        this.maxOutputSize = maxOutputSize;
-        this.maxOutputSizeExplicit = true;
+    public void setContentLengthHelper(final ContentLengthHelper contentLengthHelper) {
+        this.contentLengthHelper = contentLengthHelper;
     }
 
     /**
-     * Returns the current maximum output size limit in bytes.
+     * Sets the fallback maximum number of bytes of extracted content accepted when no
+     * {@link ContentLengthHelper} is available. Output larger than this limit is rejected with
+     * {@link MaxLengthExceededException}.
      *
-     * @return the maximum number of bytes the subprocess may write to a single stream
+     * <p>Note: for {@code standardOutput=true} the captured stdout may be held on disk up to this
+     * limit; values above 512 MiB log a warning.
+     *
+     * @param maxContentLength the limit in bytes
      */
-    public long getMaxOutputSize() {
-        return maxOutputSize;
+    public void setMaxContentLength(final long maxContentLength) {
+        if (maxContentLength > 512L * 1024L * 1024L) {
+            logger.warn("maxContentLength is large; extraction may transiently allocate additional heap: maxContentLength={}",
+                    maxContentLength);
+        }
+        this.maxContentLength = maxContentLength;
+    }
+
+    /**
+     * Returns the fallback maximum content length in bytes (used when no {@link ContentLengthHelper}
+     * is available).
+     *
+     * @return the fallback maximum number of content bytes allowed
+     */
+    public long getMaxContentLength() {
+        return maxContentLength;
+    }
+
+    /**
+     * Sets the maximum number of bytes retained in memory from a diagnostic stream (stdout/stderr used
+     * only for logging). The stream is always drained to completion; bytes beyond this limit are
+     * discarded rather than buffered.
+     *
+     * @param maxDiagnosticRetainSize the retain limit in bytes
+     */
+    public void setMaxDiagnosticRetainSize(final int maxDiagnosticRetainSize) {
+        this.maxDiagnosticRetainSize = maxDiagnosticRetainSize;
     }
 
     /**
      * Sets the maximum number of bytes copied from the input stream into the
-     * temporary input file. If the input exceeds this size an {@link ExtractException}
+     * temporary input file. If the input exceeds this size a {@link MaxLengthExceededException}
      * is thrown before the command is invoked.
      *
      * @param maxInputSize the limit in bytes

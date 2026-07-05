@@ -71,12 +71,16 @@ import software.amazon.awssdk.services.s3.model.Tag;
  * A crawler client implementation for accessing and retrieving content from S3-compatible storage systems
  * using AWS SDK v2. This client supports operations on Amazon S3 and S3-compatible storage systems.
  *
- * <p>This client requires the following initialization parameters:
+ * <p>This client supports the following initialization parameters:
  * <ul>
- *   <li>endpoint - The URL of the S3-compatible server</li>
- *   <li>accessKey - The access key for authentication</li>
- *   <li>secretKey - The secret key for authentication</li>
- *   <li>region - The AWS region (default: us-east-1)</li>
+ *   <li>endpoint - The URL of the S3-compatible server (optional; when blank, the endpoint is
+ *       derived from the region for standard Amazon S3)</li>
+ *   <li>accessKey - The access key for authentication (optional; when both accessKey and secretKey
+ *       are blank, the AWS SDK default credential provider chain is used, e.g. IAM role/instance
+ *       profile/ECS task role/EKS IRSA/environment/profile)</li>
+ *   <li>secretKey - The secret key for authentication (optional; see accessKey)</li>
+ *   <li>region - The AWS region (default: us-east-1). For standard Amazon S3, set this to the
+ *       bucket's region; there is no automatic region resolution</li>
  *   <li>connectTimeout - Connection timeout in milliseconds (default: 10000)</li>
  *   <li>readTimeout - Read timeout in milliseconds (default: 10000)</li>
  * </ul>
@@ -137,46 +141,49 @@ public class S3Client extends AbstractCrawlerClient {
 
         super.init();
 
-        final String endpoint = getInitParameter("endpoint", null, String.class);
-        if (StringUtil.isBlank(endpoint)) {
-            throw new CrawlingAccessException(
-                    "S3 endpoint is blank. Please set the S3_ENDPOINT environment variable or endpoint parameter.");
-        }
         final String accessKey = getInitParameter("accessKey", null, String.class);
-        if (StringUtil.isBlank(accessKey)) {
-            throw new CrawlingAccessException(
-                    "S3 access key is blank. Please set the S3_ACCESS_KEY environment variable or accessKey parameter.");
-        }
         final String secretKey = getInitParameter("secretKey", null, String.class);
-        if (StringUtil.isBlank(secretKey)) {
-            throw new CrawlingAccessException(
-                    "S3 secret key is blank. Please set the S3_SECRET_KEY environment variable or secretKey parameter.");
+        // Require both keys together, or neither. A partially configured pair is almost
+        // always a misconfiguration, so fail fast instead of silently falling back to the
+        // default credential provider chain.
+        if (StringUtil.isBlank(accessKey) != StringUtil.isBlank(secretKey)) {
+            throw new CrawlingAccessException("S3 accessKey and secretKey must both be set, or both left blank to use the default "
+                    + "credential provider chain (IAM role/instance profile/ECS task role/EKS IRSA/environment/profile).");
         }
+        final String endpoint = getInitParameter("endpoint", null, String.class);
         final String region = getInitParameter("region", "us-east-1", String.class);
 
         try {
             final S3ClientBuilder builder = software.amazon.awssdk.services.s3.S3Client.builder();
 
-            // Set endpoint override (for MinIO/LocalStack compatibility)
-            builder.endpointOverride(URI.create(endpoint));
-
-            // Set credentials
-            builder.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)));
-
             // Set region
             builder.region(Region.of(region));
 
-            // Set path-style access (required for MinIO and other S3-compatible services)
-            builder.forcePathStyle(true);
+            // Set endpoint override for MinIO/LocalStack and other S3-compatible storage.
+            // When blank, the AWS SDK derives the endpoint from the region (standard Amazon S3)
+            // and uses virtual-hosted-style addressing.
+            if (StringUtil.isNotBlank(endpoint)) {
+                builder.endpointOverride(URI.create(endpoint));
+                // Path-style access is required for MinIO and other S3-compatible services.
+                builder.forcePathStyle(true);
+            }
+
+            // Set static credentials when provided. When both are blank, no credentials provider
+            // is set, so the AWS SDK falls back to the default provider chain
+            // (IAM role/instance profile/ECS task role/EKS IRSA/environment/profile).
+            if (StringUtil.isNotBlank(accessKey)) {
+                builder.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)));
+            }
 
             awsS3Client = builder.build();
         } catch (final Exception e) {
-            throw new CrawlingAccessException("Failed to create S3 client: endpoint=" + endpoint, e);
+            throw new CrawlingAccessException("Failed to create S3 client: endpoint=" + endpoint + ", region=" + region, e);
         }
 
         isInit = true;
         if (logger.isInfoEnabled()) {
-            logger.info("S3 client initialized successfully: endpoint={}, region={}", endpoint, region);
+            logger.info("S3 client initialized successfully: endpoint={}, region={}, credentials={}", endpoint, region,
+                    StringUtil.isNotBlank(accessKey) ? "static" : "default-chain");
         }
     }
 

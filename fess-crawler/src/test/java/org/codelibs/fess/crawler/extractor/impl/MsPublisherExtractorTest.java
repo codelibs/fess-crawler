@@ -16,7 +16,10 @@
 package org.codelibs.fess.crawler.extractor.impl;
 
 import java.io.ByteArrayInputStream;
+import java.io.FilterInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.Random;
 
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
@@ -40,7 +43,7 @@ public class MsPublisherExtractorTest extends PlainTestCase {
     }
 
     @Test
-    public void test_getText_null() {
+    public void test_nullInput_throwsCrawlerSystemException() {
         try {
             msPublisherExtractor.getText(null, null);
             fail();
@@ -50,8 +53,24 @@ public class MsPublisherExtractorTest extends PlainTestCase {
     }
 
     @Test
-    public void test_getText_invalidData() {
-        // Test with invalid (non-Publisher) data
+    public void test_corruptedInput_throwsExtractException() {
+        // Random bytes are not a valid Publisher document; the extractor
+        // must surface this as an ExtractException rather than leaking the
+        // underlying POI resources.
+        final byte[] randomBytes = new byte[4096];
+        new Random(42L).nextBytes(randomBytes);
+        final InputStream in = new ByteArrayInputStream(randomBytes);
+        try {
+            msPublisherExtractor.getText(in, null);
+            fail();
+        } catch (final ExtractException e) {
+            // Expected - random bytes are not a valid Publisher file
+        }
+    }
+
+    @Test
+    public void test_textInput_throwsExtractException() {
+        // Plain text bytes are not a valid Publisher document.
         final InputStream in = new ByteArrayInputStream("This is not a valid Publisher file".getBytes());
         try {
             msPublisherExtractor.getText(in, null);
@@ -62,7 +81,7 @@ public class MsPublisherExtractorTest extends PlainTestCase {
     }
 
     @Test
-    public void test_getText_emptyStream() {
+    public void test_emptyInput_throwsExtractException() {
         final InputStream in = new ByteArrayInputStream(new byte[0]);
         try {
             msPublisherExtractor.getText(in, null);
@@ -73,9 +92,46 @@ public class MsPublisherExtractorTest extends PlainTestCase {
     }
 
     @Test
+    public void test_corruptedInput_closesUnderlyingStream() throws IOException {
+        // Verify that even when extraction fails, the underlying input stream
+        // is closed by the try-with-resources block (no resource leak).
+        final byte[] randomBytes = new byte[4096];
+        new Random(7L).nextBytes(randomBytes);
+        final CloseTrackingInputStream tracking = new CloseTrackingInputStream(new ByteArrayInputStream(randomBytes));
+        try {
+            msPublisherExtractor.getText(tracking, null);
+            fail();
+        } catch (final ExtractException e) {
+            // Expected
+        }
+        assertTrue(tracking.isClosed());
+    }
+
+    @Test
     public void test_constructor() {
         // Verify the extractor can be instantiated
         final MsPublisherExtractor extractor = new MsPublisherExtractor();
         assertNotNull(extractor);
+    }
+
+    /**
+     * Test helper that records whether {@link #close()} has been invoked.
+     */
+    private static final class CloseTrackingInputStream extends FilterInputStream {
+        private boolean closed;
+
+        CloseTrackingInputStream(final InputStream in) {
+            super(in);
+        }
+
+        @Override
+        public void close() throws IOException {
+            closed = true;
+            super.close();
+        }
+
+        boolean isClosed() {
+            return closed;
+        }
     }
 }

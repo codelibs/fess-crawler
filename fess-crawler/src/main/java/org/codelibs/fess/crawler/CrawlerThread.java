@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.lang.StringUtil;
@@ -403,21 +402,23 @@ public class CrawlerThread implements Runnable {
         }
 
         // add url and filter
-        final Set<String> urlSet = new HashSet<>();
-        final List<UrlQueue<?>> childList = childUrlList.stream()
-                .filter(d -> StringUtil.isNotBlank(d.getUrl()) && urlSet.add(d.getUrl()) && crawlerContext.urlFilter.match(d.getUrl()))
-                .map(d -> {
-                    final UrlQueue<?> uq = crawlerContainer.getComponent("urlQueue");
-                    uq.setCreateTime(SystemUtil.currentTimeMillis());
-                    uq.setDepth(depth);
-                    uq.setMethod(Constants.GET_METHOD);
-                    uq.setParentUrl(url);
-                    uq.setSessionId(crawlerContext.sessionId);
-                    uq.setUrl(d.getUrl());
-                    uq.setWeight(d.getWeight());
-                    return uq;
-                })
-                .collect(Collectors.toList());
+        final Set<String> urlSet = HashSet.newHashSet(childUrlList.size());
+        final List<UrlQueue<?>> childList = new ArrayList<>(childUrlList.size());
+        for (final RequestData d : childUrlList) {
+            final String childUrl = d.getUrl();
+            if (StringUtil.isBlank(childUrl) || !urlSet.add(childUrl) || !crawlerContext.urlFilter.match(childUrl)) {
+                continue;
+            }
+            final UrlQueue<?> uq = crawlerContainer.getComponent("urlQueue");
+            uq.setCreateTime(SystemUtil.currentTimeMillis());
+            uq.setDepth(depth);
+            uq.setMethod(Constants.GET_METHOD);
+            uq.setParentUrl(url);
+            uq.setSessionId(crawlerContext.sessionId);
+            uq.setUrl(childUrl);
+            uq.setWeight(d.getWeight());
+            childList.add(uq);
+        }
         urlQueueService.offerAll(crawlerContext.sessionId, childList);
     }
 

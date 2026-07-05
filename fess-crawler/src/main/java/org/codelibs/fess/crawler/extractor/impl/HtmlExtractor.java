@@ -20,9 +20,11 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -131,16 +133,20 @@ public class HtmlExtractor extends AbstractXmlExtractor {
     protected static final int JSONLD_MAX_BLOCK_COUNT = 64;
 
     /**
-     * Maximum total raw JSON bytes (in characters) accepted across all JSON-LD
-     * script blocks in a single document. Processing stops with a WARN when
-     * adding the next block would exceed this limit.
+     * Maximum total raw JSON-LD size accepted across all script blocks in a
+     * single document, measured in characters (UTF-16 code units, not bytes;
+     * actual heap use may be roughly twice this value). Processing stops with a
+     * WARN when adding the next block would exceed this limit.
      */
-    protected static final int JSONLD_MAX_RAW_TOTAL_BYTES = 1 * 1024 * 1024; // 1 MiB
+    protected static final int JSONLD_MAX_RAW_TOTAL_BYTES = 1 * 1024 * 1024; // 1 MiB (characters)
 
     /**
-     * Maximum number of {@code @type} values collected from a single JSON-LD
-     * block. Recursion into {@code @graph} and nested entities stops once this
-     * limit is reached to prevent unbounded list growth.
+     * Maximum number of {@code @type} values collected per document across all
+     * JSON-LD blocks. Despite the historical name, the collected-type list is
+     * shared across every block in a document, so this bounds the per-document
+     * total rather than a per-block quota; recursion into {@code @graph} and
+     * nested entities stops once the limit is reached, preventing unbounded
+     * list growth.
      */
     protected static final int JSONLD_MAX_TYPES_PER_BLOCK = 256;
 
@@ -215,6 +221,17 @@ public class HtmlExtractor extends AbstractXmlExtractor {
      * {@link #newXPath()}.
      */
     private final ThreadLocal<XPath> threadLocalXPath = ThreadLocal.withInitial(HtmlExtractor::newXPath);
+
+    /**
+     * Per-thread set of XPath expressions already known to evaluate to a
+     * non-node-set result (e.g. {@code string(...)}, {@code count(...)},
+     * {@code boolean(...)}). The result type of an XPath expression is fixed by
+     * the expression itself and is independent of the document, so once an
+     * expression has been observed to fail node-set evaluation it is routed
+     * straight to {@link #evaluateNonNodeSet} on subsequent documents instead of
+     * throwing and catching an {@link XPathExpressionException} per page.
+     */
+    private final ThreadLocal<Set<String>> threadLocalNonNodeSetPaths = ThreadLocal.withInitial(HashSet::new);
 
     /** Lazily-initialised JSON parser for JSON-LD blocks. */
     private volatile ObjectMapper objectMapper;
@@ -301,6 +318,7 @@ public class HtmlExtractor extends AbstractXmlExtractor {
     public void destroy() {
         threadLocalXPathCache.remove();
         threadLocalXPath.remove();
+        threadLocalNonNodeSetPaths.remove();
         xpathAPI.remove();
     }
 
@@ -415,8 +433,10 @@ public class HtmlExtractor extends AbstractXmlExtractor {
     /**
      * Extracts JSON-LD blocks from the document. Each block's {@code @type}
      * value (if present) is appended to {@link #JSONLD_TYPE_KEY}, and the raw
-     * JSON content is appended to {@link #JSONLD_RAW_KEY}. Malformed JSON is
-     * logged and skipped; the rest of the extraction proceeds normally.
+     * JSON content is appended to {@link #JSONLD_RAW_KEY}. A block whose JSON is
+     * malformed is logged and skipped for {@code @type} collection only; its raw
+     * text is still retained in {@link #JSONLD_RAW_KEY} and the rest of the
+     * extraction proceeds normally.
      *
      * <p>Existing values for {@link #JSONLD_RAW_KEY} or {@link #JSONLD_TYPE_KEY}
      * (typically populated by an operator-supplied
@@ -464,8 +484,8 @@ public class HtmlExtractor extends AbstractXmlExtractor {
                     logger.warn("Skipping JSON-LD block due to DOM error.", ex);
                 }
             }
-            final boolean rawAlreadySet = extractData.getValues(JSONLD_RAW_KEY) != null;
-            final boolean typeAlreadySet = extractData.getValues(JSONLD_TYPE_KEY) != null;
+            final boolean rawAlreadySet = hasNonBlankValue(extractData.getValues(JSONLD_RAW_KEY));
+            final boolean typeAlreadySet = hasNonBlankValue(extractData.getValues(JSONLD_TYPE_KEY));
             if (!rawList.isEmpty() && !rawAlreadySet) {
                 extractData.putValues(JSONLD_RAW_KEY, rawList.toArray(new String[0]));
             } else if (rawAlreadySet && logger.isDebugEnabled()) {
@@ -635,13 +655,18 @@ public class HtmlExtractor extends AbstractXmlExtractor {
     }
 
     /**
-     * Clears the per-thread XPath compilation cache for the calling thread.
-     * Use this if {@link #defaultFieldRules}, {@link #metadataXpathMap}, or
-     * {@link #contentXpath} change after the extractor has already processed
-     * documents on this thread.
+     * Clears the per-thread XPath compilation caches for the calling thread.
+     *
+     * <p>This is a memory-reclamation hook, not a correctness requirement: the
+     * caches are keyed by the XPath expression string, so changing
+     * {@link #defaultFieldRules}, {@link #metadataXpathMap}, or
+     * {@link #contentXpath} to use different expressions compiles the new
+     * expressions automatically on first use. Call this to release the compiled
+     * expressions of rules that are no longer in use on this thread.</p>
      */
     public void clearXPathCache() {
         threadLocalXPathCache.get().clear();
+        threadLocalNonNodeSetPaths.get().clear();
     }
 
     /**
@@ -665,6 +690,11 @@ public class HtmlExtractor extends AbstractXmlExtractor {
             logger.warn("Failed to parse the content by {}", path, e.getCause() != null ? e.getCause() : e);
             return StringUtil.EMPTY_STRINGS;
         }
+        if (threadLocalNonNodeSetPaths.get().contains(path)) {
+            // Result type is fixed by the expression, not the document: an expression
+            // already seen to be non-node-set skips the throwing node-set attempt.
+            return evaluateNonNodeSet(document, path, null);
+        }
         try {
             final NodeList nodes = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
             if (nodes == null) {
@@ -687,18 +717,24 @@ public class HtmlExtractor extends AbstractXmlExtractor {
             }
             return strList.toArray(new String[0]);
         } catch (final XPathException e) {
+            // Non-node-set result (string()/count()/boolean()/...): remember the path so
+            // subsequent documents skip the failing node-set attempt instead of re-throwing.
+            threadLocalNonNodeSetPaths.get().add(path);
             return evaluateNonNodeSet(document, path, e);
         }
     }
 
     /**
      * Fallback path for XPath expressions whose result type is not a node-set.
-     * The {@code previousFailure} is added as a suppressed exception to any
-     * second failure so callers have full context.
+     * When {@code previousFailure} is non-null it is added as a suppressed
+     * exception to any second failure so callers have full context; it may be
+     * {@code null} when this path is entered directly for an expression already
+     * known to be non-node-set.
      *
      * @param document the DOM document to extract strings from
      * @param path the XPath expression to evaluate
-     * @param previousFailure the failure raised by the node-set evaluation
+     * @param previousFailure the failure raised by the node-set evaluation, or
+     *            {@code null} if the node-set attempt was skipped
      * @return an array of strings extracted from the document
      */
     private String[] evaluateNonNodeSet(final Document document, final String path, final XPathException previousFailure) {
@@ -719,15 +755,33 @@ public class HtmlExtractor extends AbstractXmlExtractor {
                 return new String[] { str.trim() };
             case NODESET:
                 final XPathNodes nodeList = (XPathNodes) xObj.value();
-                final List<String> strList = new ArrayList<>();
+                final List<String> strList = new ArrayList<>(nodeList.size());
                 for (int i = 0; i < nodeList.size(); i++) {
                     final Node node = nodeList.get(i);
-                    strList.add(node.getTextContent());
+                    if (node == null) {
+                        continue;
+                    }
+                    try {
+                        final String text = node.getTextContent();
+                        strList.add(text == null ? "" : text);
+                    } catch (final DOMException ex) {
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("Failed to read text from node {} for XPath {}", i, path, ex);
+                        }
+                    }
                 }
-                return strList.toArray(n -> new String[n]);
+                return strList.toArray(new String[0]);
             case NODE:
                 final Node node = (Node) xObj.value();
-                return new String[] { node.getTextContent() };
+                try {
+                    final String text = node.getTextContent();
+                    return new String[] { text == null ? "" : text };
+                } catch (final DOMException ex) {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Failed to read text from node for XPath {}", path, ex);
+                    }
+                    return StringUtil.EMPTY_STRINGS;
+                }
             default:
                 Object obj = xObj.value();
                 if (obj == null) {
@@ -736,7 +790,9 @@ public class HtmlExtractor extends AbstractXmlExtractor {
                 return new String[] { obj.toString() };
             }
         } catch (final XPathException e) {
-            e.addSuppressed(previousFailure);
+            if (previousFailure != null) {
+                e.addSuppressed(previousFailure);
+            }
             logger.warn("Failed to parse the content by {}", path, e);
             return StringUtil.EMPTY_STRINGS;
         }

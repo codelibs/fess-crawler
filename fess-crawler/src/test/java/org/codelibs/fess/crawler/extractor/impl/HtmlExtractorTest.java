@@ -20,11 +20,11 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -275,6 +275,59 @@ public class HtmlExtractorTest extends PlainTestCase {
         // clearXPathCache() should empty the cache.
         extractor.clearXPathCache();
         Assertions.assertTrue(cache.isEmpty(), "cache must be empty after clearXPathCache");
+    }
+
+    @Test
+    public void test_nonNodeSetXPathRoutingIsCachedAndStable() throws Exception {
+        // A non-node-set rule (string(...)) is evaluated via the fallback path. The
+        // primary node-set attempt throws once; the expression is then remembered so
+        // subsequent documents skip the throwing attempt. Output must stay correct either way.
+        final HtmlExtractor extractor = newExtractor();
+        extractor.setExtractDefaultMetadata(false);
+        extractor.setExtractJsonLd(false);
+        extractor.addMetadata("titleStr", "string(//TITLE)");
+        final String html1 = "<html><head><title>First</title></head><body>b</body></html>";
+        final String html2 = "<html><head><title>Second</title></head><body>b</body></html>";
+
+        // First call: primary NODESET attempt throws, falls back, records the path.
+        final ExtractData d1 = extractor.getText(toStream(html1), null);
+        assertEquals("First", d1.getValues("titleStr")[0]);
+
+        // The non-node-set expression must now be remembered for this thread.
+        final Field pathsField = HtmlExtractor.class.getDeclaredField("threadLocalNonNodeSetPaths");
+        pathsField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        final ThreadLocal<Set<String>> tl = (ThreadLocal<Set<String>>) pathsField.get(extractor);
+        Assertions.assertTrue(tl.get().contains("string(//TITLE)"), "non-node-set path must be cached: " + tl.get());
+
+        // Second call: takes the cached fast path (no throw) and still yields correct output.
+        final ExtractData d2 = extractor.getText(toStream(html2), null);
+        assertEquals("Second", d2.getValues("titleStr")[0]);
+
+        // clearXPathCache() also clears the non-node-set classification.
+        extractor.clearXPathCache();
+        Assertions.assertTrue(tl.get().isEmpty(), "non-node-set cache must be empty after clearXPathCache");
+    }
+
+    @Test
+    public void test_jsonLdAutoFillNotSuppressedByEmptyCustomRule() {
+        // A custom rule targeting jsonld.raw that matches nothing sets the key to an
+        // empty array. That empty value must NOT suppress JSON-LD auto-fill; the
+        // precedence check uses a non-blank test, matching the default-rule behaviour.
+        final HtmlExtractor extractor = newExtractor();
+        extractor.setExtractDefaultMetadata(false);
+        extractor.addMetadata(HtmlExtractor.JSONLD_RAW_KEY, "//NOSUCHTAG");
+        final String html = "<html><head><title>T</title>" + "<script type=\"application/ld+json\">{\"@type\":\"Article\"}</script>"
+                + "</head><body>b</body></html>";
+        final ExtractData data = extractor.getText(toStream(html), null);
+
+        final String[] raw = data.getValues(HtmlExtractor.JSONLD_RAW_KEY);
+        assertNotNull(raw);
+        Assertions.assertEquals(1, raw.length, "JSON-LD raw must be auto-filled despite the empty custom rule");
+        Assertions.assertTrue(raw[0].contains("Article"), "raw JSON-LD must be retained: " + raw[0]);
+        final String[] types = data.getValues(HtmlExtractor.JSONLD_TYPE_KEY);
+        assertNotNull(types);
+        Assertions.assertTrue(Arrays.asList(types).contains("Article"), "type must be collected: " + Arrays.toString(types));
     }
 
     @Test

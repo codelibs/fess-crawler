@@ -696,13 +696,15 @@ public class EmlExtractor extends AbstractExtractor {
 
     /**
      * Attempts to extract text from an attachment using a registered
-     * {@link Extractor} for its detected MIME type. Failures are silently
-     * swallowed unless they are {@link MaxLengthExceededException}, which is
-     * re-thrown so the caller can enforce overall message size limits.
+     * {@link Extractor} for its detected MIME type. All extraction failures —
+     * including a nested extractor's own {@link MaxLengthExceededException} — are
+     * logged and swallowed so that a single problematic attachment does not abort
+     * extraction of the message body and remaining parts. The EML-level DoS bounds
+     * ({@link #maxMessageBytes}, {@link #maxRecursionDepth}, {@link #maxParts},
+     * {@link #maxBodyBytes}) are enforced separately and remain in effect.
      *
      * @param ctx the extraction context
      * @param bodyPart the attachment body part
-     * @throws MaxLengthExceededException if the nested extractor signals a size limit violation
      */
     protected void appendAttachment(final BodyExtractionContext ctx, final BodyPart bodyPart) {
         final MimeTypeHelper mimeTypeHelper = getMimeTypeHelper();
@@ -731,7 +733,12 @@ public class EmlExtractor extends AbstractExtractor {
                             appendBody(ctx, content);
                         }
                     } catch (final MaxLengthExceededException e) {
-                        throw e;
+                        // The nested extractor hit its own content-length limit. Skip only
+                        // this attachment and keep the message body and remaining parts,
+                        // rather than aborting the whole EML extraction. The EML-level DoS
+                        // bounds (maxMessageBytes, maxRecursionDepth, maxParts, maxBodyBytes)
+                        // still apply and are unaffected.
+                        logger.warn("Attachment skipped because a nested extractor exceeded its size limit. filename={}", filename);
                     } catch (final Exception e) {
                         if (logger.isDebugEnabled()) {
                             logger.debug("Exception in an internal extractor. filename={}", filename, e);
@@ -739,8 +746,6 @@ public class EmlExtractor extends AbstractExtractor {
                     }
                 }
             }
-        } catch (final MaxLengthExceededException e) {
-            throw e;
         } catch (final MessagingException e) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Exception in parsing BodyPart.", e);

@@ -554,7 +554,7 @@ public class EmlExtractorTest extends PlainTestCase {
     }
 
     @Test
-    public void test_appendAttachment_propagatesMaxLengthExceededException() throws Exception {
+    public void test_appendAttachment_skipsAttachmentOnMaxLengthExceeded_keepsBody() throws Exception {
         // Stub extractor that always throws MaxLengthExceededException
         final Extractor stubExtractor = new Extractor() {
             @Override
@@ -590,10 +590,14 @@ public class EmlExtractorTest extends PlainTestCase {
         msg.saveChanges();
 
         try (final InputStream in = toStream(msg)) {
-            extractor.getText(in, null);
-            fail();
-        } catch (final MaxLengthExceededException e) {
-            // Expected — exception must propagate, not be swallowed
+            // The attachment's nested extractor throws MaxLengthExceededException, but that
+            // must NOT abort the whole message: the body is still extracted and the offending
+            // attachment is simply skipped (its filename is still recorded).
+            final ExtractData data = extractor.getText(in, null);
+            assertTrue(data.getContent().contains("body"));
+            final String[] names = data.getValues("attachmentNames");
+            assertNotNull(names);
+            assertEquals("big.pdf", names[0]);
         }
     }
 
@@ -1000,19 +1004,11 @@ public class EmlExtractorTest extends PlainTestCase {
 
     @Test
     public void test_getDecodeText_returnsRawOnUnsupportedEncoding() {
-        // An encoded-word with an unknown charset should return the raw input, not empty string.
-        // Use a charset that is genuinely unsupported in the JVM.
-        // Note: if the JVM happens to support the charset, this test may fall back gracefully.
-        // We use a clearly bogus encoding name to guarantee UnsupportedEncodingException.
+        // An encoded-word with an unknown charset triggers UnsupportedEncodingException
+        // inside MimeUtility.decodeText; getDecodeText must then return the raw input
+        // unchanged (never an empty string).
         final String raw = "=?bogus-cs-9?B?dGVzdA==?=";
-        // MimeUtility.decodeText will throw UnsupportedEncodingException for unknown charset;
-        // getDecodeText must return the raw value unchanged in that case.
         final String result = emlExtractor.getDecodeText(raw);
-        // Either successfully decoded (if JVM finds charset) or returns raw value
-        // The contract is: never return empty string when input is non-empty
-        assertNotNull(result);
-        assertTrue(result.length() > 0);
-        // If decoding fails, must return the raw string, not empty string
-        // (We can't force the failure path here without mocking, but we verify no empty return)
+        assertEquals(raw, result);
     }
 }

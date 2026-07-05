@@ -17,10 +17,12 @@ package org.codelibs.fess.crawler.extractor.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
+import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,6 +65,28 @@ public class AbstractExtractorTest extends PlainTestCase {
         // Expose protected method for testing
         public void testValidateInputStream(final InputStream in) {
             validateInputStream(in);
+        }
+
+        // Expose depth helpers for testing.
+        public int testGetCurrentDepth(final Map<String, String> params) {
+            return getCurrentDepth(params);
+        }
+
+        public Map<String, String> testIncrementDepth(final Map<String, String> params) {
+            return incrementDepth(params);
+        }
+
+        public void testCheckDepth(final Map<String, String> params, final int maxDepth) {
+            checkDepth(params, maxDepth);
+        }
+
+        // Expose static helpers for testing.
+        public boolean testIsPathTraversal(final String name) {
+            return isPathTraversal(name);
+        }
+
+        public long testAddOneSaturating(final long value) {
+            return addOneSaturating(value);
         }
     }
 
@@ -242,5 +266,186 @@ public class AbstractExtractorTest extends PlainTestCase {
         } catch (final Exception e) {
             fail();
         }
+    }
+
+    /** Recursion-depth helper: missing/null params return 0. */
+    @Test
+    public void test_getCurrentDepth_returnsZeroForMissing() {
+        assertEquals(0, extractor.testGetCurrentDepth(null));
+        assertEquals(0, extractor.testGetCurrentDepth(new HashMap<>()));
+        final Map<String, String> blank = new HashMap<>();
+        blank.put(AbstractExtractor.EXTRACTOR_DEPTH_KEY, "");
+        assertEquals(0, extractor.testGetCurrentDepth(blank));
+        final Map<String, String> garbage = new HashMap<>();
+        garbage.put(AbstractExtractor.EXTRACTOR_DEPTH_KEY, "not-a-number");
+        assertEquals(0, extractor.testGetCurrentDepth(garbage));
+    }
+
+    /** Recursion-depth helper: depth value is parsed and clamped to >= 0. */
+    @Test
+    public void test_getCurrentDepth_parsesValidValue() {
+        final Map<String, String> params = new HashMap<>();
+        params.put(AbstractExtractor.EXTRACTOR_DEPTH_KEY, "3");
+        assertEquals(3, extractor.testGetCurrentDepth(params));
+
+        params.put(AbstractExtractor.EXTRACTOR_DEPTH_KEY, "-5");
+        assertEquals(0, extractor.testGetCurrentDepth(params));
+    }
+
+    /** incrementDepth must return a NEW map and not mutate the input. */
+    @Test
+    public void test_incrementDepth_returnsNewMap() {
+        final Map<String, String> original = new HashMap<>();
+        original.put("foo", "bar");
+        final Map<String, String> next = extractor.testIncrementDepth(original);
+
+        assertFalse(original == next);
+        // original is unchanged
+        assertFalse(original.containsKey(AbstractExtractor.EXTRACTOR_DEPTH_KEY));
+        assertEquals("bar", next.get("foo"));
+        assertEquals("1", next.get(AbstractExtractor.EXTRACTOR_DEPTH_KEY));
+
+        final Map<String, String> after = extractor.testIncrementDepth(next);
+        assertEquals("2", after.get(AbstractExtractor.EXTRACTOR_DEPTH_KEY));
+        // first map still says "1"
+        assertEquals("1", next.get(AbstractExtractor.EXTRACTOR_DEPTH_KEY));
+    }
+
+    /** incrementDepth on null produces depth=1. */
+    @Test
+    public void test_incrementDepth_nullInput() {
+        final Map<String, String> next = extractor.testIncrementDepth(null);
+        assertNotNull(next);
+        assertEquals("1", next.get(AbstractExtractor.EXTRACTOR_DEPTH_KEY));
+    }
+
+    /** checkDepth allows depths below the limit. */
+    @Test
+    public void test_checkDepth_belowLimit_passes() {
+        final Map<String, String> params = new HashMap<>();
+        params.put(AbstractExtractor.EXTRACTOR_DEPTH_KEY, "3");
+        extractor.testCheckDepth(params, 10); // no throw
+        extractor.testCheckDepth(null, 10);
+    }
+
+    /** checkDepth rejects depths at or above the limit. */
+    @Test
+    public void test_checkDepth_atOrAboveLimit_throws() {
+        final Map<String, String> params = new HashMap<>();
+        params.put(AbstractExtractor.EXTRACTOR_DEPTH_KEY, "10");
+        try {
+            extractor.testCheckDepth(params, 10);
+            fail();
+        } catch (final MaxLengthExceededException e) {
+            assertTrue(e.getMessage().contains("recursion depth"));
+        }
+
+        params.put(AbstractExtractor.EXTRACTOR_DEPTH_KEY, "99");
+        try {
+            extractor.testCheckDepth(params, 10);
+            fail();
+        } catch (final MaxLengthExceededException e) {
+            // pass
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // isPathTraversal tests (C3 fix validation)
+    // -----------------------------------------------------------------------
+
+    /** null and empty are always traversals. */
+    @Test
+    public void test_isPathTraversal_nullAndEmpty() {
+        assertTrue(extractor.testIsPathTraversal(null));
+        assertTrue(extractor.testIsPathTraversal(""));
+    }
+
+    /** Drive letter prefix is always rejected. */
+    @Test
+    public void test_isPathTraversal_driveLetter() {
+        assertTrue(extractor.testIsPathTraversal("C:\\foo"));
+        assertTrue(extractor.testIsPathTraversal("C:foo"));
+    }
+
+    /** Leading slash (Unix absolute) is rejected. */
+    @Test
+    public void test_isPathTraversal_leadingSlash() {
+        assertTrue(extractor.testIsPathTraversal("/etc/passwd"));
+    }
+
+    /** Leading backslash is rejected. */
+    @Test
+    public void test_isPathTraversal_leadingBackslash() {
+        assertTrue(extractor.testIsPathTraversal("\\foo\\bar"));
+    }
+
+    /** Lone ".." is rejected. */
+    @Test
+    public void test_isPathTraversal_loneDotDot() {
+        assertTrue(extractor.testIsPathTraversal(".."));
+    }
+
+    /** Classic traversal sequences are rejected. */
+    @Test
+    public void test_isPathTraversal_classicTraversal() {
+        assertTrue(extractor.testIsPathTraversal("../../etc/passwd"));
+        assertTrue(extractor.testIsPathTraversal("foo/../../etc/passwd"));
+    }
+
+    /** Safe name that resolves inside the root is allowed. */
+    @Test
+    public void test_isPathTraversal_safeRelativePath() {
+        assertFalse(extractor.testIsPathTraversal("foo/bar.txt"));
+        assertFalse(extractor.testIsPathTraversal("foo/../bar.txt")); // normalises to bar.txt
+    }
+
+    /**
+     * Single-segment backslash traversal (C3 regression).
+     * On Linux the path "a\..\..\etc" is a single opaque filename when
+     * Paths.get() is called without pre-normalisation, so ".." segments are
+     * not detected.  After unifying backslash to forward-slash before
+     * Paths.get(), "a/../../etc" normalises to "../etc" which starts with
+     * ".." and is correctly rejected.
+     * Note: "a\.." unifies to "a/.." which normalises to the empty path
+     * (current dir, i.e. the archive root) — that is safe and is NOT rejected.
+     */
+    @Test
+    public void test_isPathTraversal_backslashSingleSegment() {
+        // "a\..\..\etc" must be caught — escapes the archive root.
+        assertTrue(extractor.testIsPathTraversal("a\\..\\..\\etc"));
+        // Three levels up — definitely escapes.
+        assertTrue(extractor.testIsPathTraversal("a\\..\\..\\..")); // escapes
+        // "a\.." normalises to the archive root (current dir) — safe.
+        assertFalse(extractor.testIsPathTraversal("a\\.."));
+        // A purely safe backslash path: "foo\\bar.txt" → "foo/bar.txt" — safe.
+        assertFalse(extractor.testIsPathTraversal("foo\\bar.txt"));
+    }
+
+    /** NUL character in path — should be rejected (InvalidPathException path). */
+    @Test
+    public void test_isPathTraversal_nulCharacter() {
+        assertTrue(extractor.testIsPathTraversal("a\0b"));
+    }
+
+    // -----------------------------------------------------------------------
+    // addOneSaturating (C2 fix validation)
+    // -----------------------------------------------------------------------
+
+    /** addOneSaturating returns value+1 for normal inputs. */
+    @Test
+    public void test_addOneSaturating_normalIncrement() {
+        assertEquals(1L, extractor.testAddOneSaturating(0L));
+        assertEquals(101L, extractor.testAddOneSaturating(100L));
+        assertEquals(Long.MAX_VALUE - 1L, extractor.testAddOneSaturating(Long.MAX_VALUE - 2L));
+    }
+
+    /** addOneSaturating returns Long.MAX_VALUE when already at max. */
+    @Test
+    public void test_addOneSaturating_saturatesAtMax() {
+        assertEquals(Long.MAX_VALUE, extractor.testAddOneSaturating(Long.MAX_VALUE));
+        // (MAX-1)+1 = MAX naturally — not overflow.
+        assertEquals(Long.MAX_VALUE, extractor.testAddOneSaturating(Long.MAX_VALUE - 1L));
+        // Verify the result is positive (not wrapped to negative).
+        assertTrue(extractor.testAddOneSaturating(Long.MAX_VALUE) > 0);
     }
 }

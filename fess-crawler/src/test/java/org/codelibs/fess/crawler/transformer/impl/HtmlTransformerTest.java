@@ -15,6 +15,9 @@
  */
 package org.codelibs.fess.crawler.transformer.impl;
 
+import java.io.StringReader;
+import java.net.URL;
+import java.util.List;
 import java.util.Map;
 
 import org.codelibs.fess.crawler.Constants;
@@ -23,10 +26,13 @@ import org.codelibs.fess.crawler.entity.AccessResultDataImpl;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
+import org.codelibs.nekohtml.parsers.DOMParser;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
 
 /**
  * @author shinsuke
@@ -532,5 +538,81 @@ public class HtmlTransformerTest extends PlainTestCase {
         final ResultData resultData = htmlTransformer.transform(responseData);
         assertEquals(1, resultData.getChildUrlSet().size());
         assertEquals("http://hoge/page.html?q=test", resultData.getChildUrlSet().iterator().next().getUrl());
+    }
+
+    private Document parseHtml(final String html) throws Exception {
+        final DOMParser parser = htmlTransformer.getDomParser();
+        parser.parse(new InputSource(new StringReader(html)));
+        return parser.getDocument();
+    }
+
+    // -----------------------------------------------------
+    //                                           getBaseHref
+    //                                           -----------
+    @Test
+    public void test_getBaseHref() throws Exception {
+        final Document document = parseHtml("<html><head><base href=\"http://example.com/foo/\"></head><body></body></html>");
+        assertEquals("http://example.com/foo/", htmlTransformer.getBaseHref(document));
+    }
+
+    @Test
+    public void test_getBaseHref_www() throws Exception {
+        // A bare "www." base href is completed with the http:// scheme.
+        final Document document = parseHtml("<html><head><base href=\"www.example.com/\"></head><body></body></html>");
+        assertEquals("http://www.example.com/", htmlTransformer.getBaseHref(document));
+    }
+
+    @Test
+    public void test_getBaseHref_none() throws Exception {
+        final Document document = parseHtml("<html><head></head><body></body></html>");
+        assertNull(htmlTransformer.getBaseHref(document));
+    }
+
+    @Test
+    public void test_getBaseHref_noHrefAttribute() throws Exception {
+        // A <base> element without an href attribute yields null.
+        final Document document = parseHtml("<html><head><base target=\"_blank\"></head><body></body></html>");
+        assertNull(htmlTransformer.getBaseHref(document));
+    }
+
+    // -----------------------------------------------------
+    //                                 getUrlFromTagAttribute
+    //                                 ----------------------
+    @Test
+    public void test_getUrlFromTagAttribute() throws Exception {
+        final Document document = parseHtml("<html><body><a href=\"child.html\">link</a></body></html>");
+        final List<String> urlList =
+                htmlTransformer.getUrlFromTagAttribute(new URL("http://example.com/"), document, "//A", "href", "UTF-8");
+        assertEquals(1, urlList.size());
+        assertEquals("http://example.com/child.html", urlList.get(0));
+    }
+
+    @Test
+    public void test_getUrlFromTagAttribute_multipleNodesAndInvalidPath() throws Exception {
+        // Every matching node yields a URL, but isValidPath skips invalid schemes (javascript:).
+        final Document document = parseHtml("<html><body>"//
+                + "<a href=\"a.html\">a</a>"//
+                + "<a href=\"javascript:void(0)\">js</a>"//
+                + "<a href=\"b.html\">b</a>"//
+                + "</body></html>");
+        final List<String> urlList =
+                htmlTransformer.getUrlFromTagAttribute(new URL("http://example.com/"), document, "//A", "href", "UTF-8");
+        assertEquals(2, urlList.size());
+        assertEquals("http://example.com/a.html", urlList.get(0));
+        assertEquals("http://example.com/b.html", urlList.get(1));
+    }
+
+    @Test
+    public void test_getUrlFromTagAttribute_invalidXPath() throws Exception {
+        // An invalid child-URL XPath must be caught and yield an empty list rather than fail.
+        // The same document with a valid expression yields a URL, proving the empty result is
+        // caused by the malformed expression rather than an empty/link-less document.
+        final Document document = parseHtml("<html><body><a href=\"child.html\">link</a></body></html>");
+        final URL baseUrl = new URL("http://example.com/");
+        assertEquals(1, htmlTransformer.getUrlFromTagAttribute(baseUrl, document, "//A", "href", "UTF-8").size());
+
+        final List<String> urlList = htmlTransformer.getUrlFromTagAttribute(baseUrl, document, "//A[1", "href", "UTF-8");
+        assertNotNull(urlList);
+        assertTrue(urlList.isEmpty());
     }
 }

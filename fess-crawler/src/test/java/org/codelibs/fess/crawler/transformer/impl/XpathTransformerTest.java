@@ -249,6 +249,149 @@ public class XpathTransformerTest extends PlainTestCase {
         assertEquals(list, entity.getList());
     }
 
+    /**
+     * Builds a bare {@link XpathTransformer} configured with the given field rules,
+     * mirroring the namespace/feature setup used by {@link #setUp(TestInfo)}.
+     */
+    private XpathTransformer createXpathTransformer(final Map<String, String> fieldRuleMap) {
+        final XpathTransformer transformer = new XpathTransformer();
+        transformer.setName("xpathTransformer");
+        final Map<String, String> featureMap = newHashMap();
+        featureMap.put("http://xml.org/sax/features/namespaces", "false");
+        transformer.setFeatureMap(featureMap);
+        transformer.setPropertyMap(newHashMap());
+        transformer.setChildUrlRuleMap(newHashMap());
+        transformer.setFieldRuleMap(fieldRuleMap);
+        return transformer;
+    }
+
+    private ResponseData createResponseData(final String resourcePath) {
+        final ResponseData responseData = new ResponseData();
+        responseData.setResponseBody(ResourceUtil.getResourceAsFile(resourcePath), false);
+        responseData.setCharSet(Constants.UTF_8);
+        return responseData;
+    }
+
+    // -----------------------------------------------------
+    //                            storeData: normal patterns
+    //                            --------------------------
+    @Test
+    public void test_storeData_stringType() throws Exception {
+        // The STRING result type (e.g. string(...)) trims and collapses whitespace when enabled.
+        final Map<String, String> fieldRuleMap = newLinkedHashMap();
+        fieldRuleMap.put("title", "string(//TITLE)");
+        final XpathTransformer transformer = createXpathTransformer(fieldRuleMap);
+
+        final String expected = "<?xml version=\"1.0\"?>\n"//
+                + "<doc>\n"//
+                + "<field name=\"title\">Hello World</field>\n"//
+                + "</doc>";
+
+        final ResultData resultData = new ResultData();
+        transformer.storeData(createResponseData("html/test_xpath.html"), resultData);
+        assertEquals(expected, new String(resultData.getData(), Constants.UTF_8));
+    }
+
+    @Test
+    public void test_storeData_trimSpaceDisabled() throws Exception {
+        // With trimSpace disabled the internal whitespace is preserved verbatim
+        // ("Hello  World"), whereas test_storeData_stringType collapses it to "Hello World".
+        final Map<String, String> fieldRuleMap = newLinkedHashMap();
+        fieldRuleMap.put("title", "string(//TITLE)");
+        final XpathTransformer transformer = createXpathTransformer(fieldRuleMap);
+        transformer.setTrimSpace(false);
+
+        final String expected = "<?xml version=\"1.0\"?>\n"//
+                + "<doc>\n"//
+                + "<field name=\"title\">Hello  World</field>\n"//
+                + "</doc>";
+
+        final ResultData resultData = new ResultData();
+        transformer.storeData(createResponseData("html/test_xpath.html"), resultData);
+        assertEquals(expected, new String(resultData.getData(), Constants.UTF_8));
+    }
+
+    @Test
+    public void test_storeData_emptyNodeSet() throws Exception {
+        // A NODESET that matches nothing produces an empty <list/>.
+        final Map<String, String> fieldRuleMap = newLinkedHashMap();
+        fieldRuleMap.put("missing", "//NOSUCH");
+        final XpathTransformer transformer = createXpathTransformer(fieldRuleMap);
+
+        final String expected = "<?xml version=\"1.0\"?>\n"//
+                + "<doc>\n"//
+                + "<field name=\"missing\"><list></list></field>\n"//
+                + "</doc>";
+
+        final ResultData resultData = new ResultData();
+        transformer.storeData(createResponseData("html/test_xpath.html"), resultData);
+        assertEquals(expected, new String(resultData.getData(), Constants.UTF_8));
+    }
+
+    @Test
+    public void test_storeData_emptyFieldRuleMap() throws Exception {
+        // No field rules should still emit a well-formed (empty) document.
+        final XpathTransformer transformer = createXpathTransformer(newLinkedHashMap());
+
+        final String expected = "<?xml version=\"1.0\"?>\n"//
+                + "<doc>\n"//
+                + "</doc>";
+
+        final ResultData resultData = new ResultData();
+        transformer.storeData(createResponseData("html/test_xpath.html"), resultData);
+        assertEquals(expected, new String(resultData.getData(), Constants.UTF_8));
+    }
+
+    // -----------------------------------------------------
+    //                             storeData: error patterns
+    //                             -------------------------
+    @Test
+    public void test_storeData_invalidXPath() throws Exception {
+        // An invalid XPath expression must be skipped (logged) without aborting the
+        // remaining, valid field rules.
+        final Map<String, String> fieldRuleMap = newLinkedHashMap();
+        fieldRuleMap.put("bad", "//P[1");
+        fieldRuleMap.put("title", "//TITLE");
+        final XpathTransformer transformer = createXpathTransformer(fieldRuleMap);
+
+        final String expected = "<?xml version=\"1.0\"?>\n"//
+                + "<doc>\n"//
+                + "<field name=\"title\"><list><item>Hello World</item></list></field>\n"//
+                + "</doc>";
+
+        final ResultData resultData = new ResultData();
+        transformer.storeData(createResponseData("html/test_xpath.html"), resultData);
+        assertEquals(expected, new String(resultData.getData(), Constants.UTF_8));
+    }
+
+    @Test
+    public void test_storeData_invalidCharset() throws Exception {
+        // An unsupported output charset must fall back to UTF-8 instead of failing.
+        final Map<String, String> fieldRuleMap = newLinkedHashMap();
+        fieldRuleMap.put("title", "//TITLE");
+        final XpathTransformer transformer = createXpathTransformer(fieldRuleMap);
+        transformer.setCharsetName("INVALID-CHARSET");
+
+        final String expected = "<?xml version=\"1.0\"?>\n"//
+                + "<doc>\n"//
+                + "<field name=\"title\"><list><item>Hello World</item></list></field>\n"//
+                + "</doc>";
+
+        final ResultData resultData = new ResultData();
+        transformer.storeData(createResponseData("html/test_xpath.html"), resultData);
+        assertEquals(Constants.UTF_8, resultData.getEncoding());
+        assertEquals(expected, new String(resultData.getData(), Constants.UTF_8));
+    }
+
+    @Test
+    public void test_addFieldRule() {
+        final XpathTransformer transformer = new XpathTransformer();
+        transformer.addFieldRule("title", "//TITLE");
+        transformer.addFieldRule("body", "//BODY");
+        assertEquals("//TITLE", transformer.getFieldRuleMap().get("title"));
+        assertEquals("//BODY", transformer.getFieldRuleMap().get("body"));
+    }
+
     @Test
     public void test_getData_dataMap_entity_emptyList() throws Exception {
         final String value = "<?xml version=\"1.0\"?>\n"//

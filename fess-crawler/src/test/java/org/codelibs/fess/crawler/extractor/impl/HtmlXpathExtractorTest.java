@@ -25,6 +25,7 @@ import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
+import org.codelibs.fess.crawler.exception.ExtractException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -114,6 +115,32 @@ public class HtmlXpathExtractorTest extends PlainTestCase {
             fail();
         } catch (final CrawlerSystemException e) {
             // NOP
+        }
+    }
+
+    @Test
+    public void test_getHtml_customTargetNodePath() {
+        // A custom targetNodePath narrows extraction to the selected nodes only.
+        htmlXpathExtractor.setTargetNodePath("//A");
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_attr.html");
+        final String content = htmlXpathExtractor.getText(in, null).getContent();
+        CloseableUtil.closeQuietly(in);
+        logger.info(content);
+        assertEquals("リンク1", content);
+    }
+
+    @Test
+    public void test_getHtml_invalidTargetNodePath() {
+        // An invalid targetNodePath surfaces as an ExtractException.
+        htmlXpathExtractor.setTargetNodePath("//A[1");
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_attr.html");
+        try {
+            htmlXpathExtractor.getText(in, null);
+            fail();
+        } catch (final ExtractException e) {
+            // NOP
+        } finally {
+            CloseableUtil.closeQuietly(in);
         }
     }
 }

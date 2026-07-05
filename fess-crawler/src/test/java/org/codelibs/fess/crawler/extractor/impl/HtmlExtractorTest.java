@@ -1100,4 +1100,50 @@ public class HtmlExtractorTest extends PlainTestCase {
         final List<String> typeList = Arrays.asList(types);
         Assertions.assertTrue(typeList.contains("Article"), "Article type must be present: " + typeList);
     }
+
+    @Test
+    public void test_getHtml_stringMetadata() {
+        // A STRING-typed metadata XPath (string(...)) is extracted as a single trimmed value.
+        htmlExtractor.addMetadata("titleStr", "string(//TITLE)");
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_utf8.html");
+        final ExtractData data = htmlExtractor.getText(in, null);
+        CloseableUtil.closeQuietly(in);
+        assertEquals(1, data.getValues("titleStr").length);
+        assertEquals("タイトル", data.getValues("titleStr")[0]);
+    }
+
+    @Test
+    public void test_getHtml_booleanMetadata() {
+        // A BOOLEAN-typed metadata XPath (boolean(...)) is rendered as "true"/"false".
+        htmlExtractor.addMetadata("hasBody", "boolean(//BODY)");
+        htmlExtractor.addMetadata("hasTable", "boolean(//TABLE)");
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_utf8.html");
+        final ExtractData data = htmlExtractor.getText(in, null);
+        CloseableUtil.closeQuietly(in);
+        assertEquals("true", data.getValues("hasBody")[0]);
+        assertEquals("false", data.getValues("hasTable")[0]);
+    }
+
+    @Test
+    public void test_getHtml_numberMetadata() {
+        // A NUMBER-typed metadata XPath (count(...)) is rendered as the number's string form.
+        htmlExtractor.addMetadata("divCount", "count(//DIV)");
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_utf8.html");
+        final ExtractData data = htmlExtractor.getText(in, null);
+        CloseableUtil.closeQuietly(in);
+        assertEquals("1.0", data.getValues("divCount")[0]);
+    }
+
+    @Test
+    public void test_getHtml_invalidMetadataXPath() {
+        // An invalid metadata XPath must not break content extraction; it yields no values.
+        htmlExtractor.addMetadata("bad", "//TITLE[1");
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_utf8.html");
+        final ExtractData data = htmlExtractor.getText(in, null);
+        final String content = data.getContent();
+        CloseableUtil.closeQuietly(in);
+        assertTrue(content.contains("テスト"));
+        assertEquals("タイトル", data.getValues("title")[0]);
+        assertEquals(0, data.getValues("bad").length);
+    }
 }

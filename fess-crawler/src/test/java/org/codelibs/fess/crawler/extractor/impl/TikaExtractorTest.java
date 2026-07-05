@@ -16,10 +16,22 @@
 package org.codelibs.fess.crawler.extractor.impl;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -33,6 +45,7 @@ import org.codelibs.fess.crawler.exception.ExtractException;
 import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -701,5 +714,361 @@ public class TikaExtractorTest extends PlainTestCase {
         url = null;
         resourceName = "fuga.pdf";
         assertEquals("PASSWORD", tikaExtractor.getPassword(createParams(url, resourceName)));
+    }
+
+    /**
+     * Verifies that running many concurrent extractions does not leave
+     * {@link System#out}/{@link System#err} permanently redirected. The previous
+     * implementation swapped the JVM streams without synchronization, so two
+     * threads racing through the swap could lose the original references.
+     */
+    @Test
+    public void test_concurrentExtraction_doesNotCorruptSystemStreams() throws Exception {
+        final PrintStream originalOut = System.out;
+        final PrintStream originalErr = System.err;
+
+        final int threadCount = 16;
+        final int iterations = 8;
+        final ExecutorService pool = Executors.newFixedThreadPool(threadCount);
+        final CountDownLatch start = new CountDownLatch(1);
+        final List<Throwable> failures = java.util.Collections.synchronizedList(new ArrayList<>());
+        try {
+            for (int i = 0; i < threadCount; i++) {
+                pool.submit(() -> {
+                    try {
+                        start.await();
+                        for (int j = 0; j < iterations; j++) {
+                            final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.txt");
+                            try {
+                                tikaExtractor.getText(in, null);
+                            } finally {
+                                CloseableUtil.closeQuietly(in);
+                            }
+                        }
+                    } catch (final Throwable t) {
+                        failures.add(t);
+                    }
+                });
+            }
+            start.countDown();
+            pool.shutdown();
+            assertTrue(pool.awaitTermination(60, TimeUnit.SECONDS));
+        } finally {
+            pool.shutdownNow();
+        }
+        Assertions.assertTrue(failures.isEmpty(), "concurrent extractions threw: " + failures);
+        Assertions.assertSame(originalOut, System.out, "System.out must be restored to its original reference");
+        Assertions.assertSame(originalErr, System.err, "System.err must be restored to its original reference");
+    }
+
+    /**
+     * Verifies that an exception thrown during extraction still restores
+     * {@link System#out}/{@link System#err}.
+     */
+    @Test
+    public void test_systemStreamsRestoredOnException() {
+        final PrintStream originalOut = System.out;
+        final PrintStream originalErr = System.err;
+        try {
+            tikaExtractor.getText(null, null);
+            Assertions.fail("expected CrawlerSystemException");
+        } catch (final CrawlerSystemException expected) {
+            // null input always throws synchronously, before muting; this exercises
+            // the simplest restore path.
+        }
+        Assertions.assertSame(originalOut, System.out);
+        Assertions.assertSame(originalErr, System.err);
+
+        // Also exercise the muted path: feed a non-byte stream so the muting branch
+        // runs, but force the underlying stream to throw mid-read.
+        final InputStream broken = new InputStream() {
+            @Override
+            public int read() throws IOException {
+                throw new IOException("boom");
+            }
+        };
+        try {
+            tikaExtractor.getText(broken, null);
+            Assertions.fail("expected ExtractException");
+        } catch (final ExtractException expected) {
+            // ok
+        }
+        Assertions.assertSame(originalOut, System.out, "System.out must be restored after a thrown extraction");
+        Assertions.assertSame(originalErr, System.err, "System.err must be restored after a thrown extraction");
+    }
+
+    /**
+     * When the input is large enough for the on-disk staging file to be created, the
+     * old implementation also let Tika spool the same bytes into a second temp file
+     * (apache-tika-*). With the fix only the outer staging file should appear.
+     */
+    @Test
+    public void test_dfosSpilledToDisk_noDoubleTempFile() throws Exception {
+        final Path tempDir = Files.createTempDirectory("tikaExtractor-test-");
+        final String originalTmp = System.getProperty("java.io.tmpdir");
+        System.setProperty("java.io.tmpdir", tempDir.toAbsolutePath().toString());
+        try {
+            // Build an input large enough to ensure the staging file is created. The
+            // payload is plain text repeated to about 4 MB.
+            final byte[] chunk = "Concurrent extraction stress payload テスト 1234567890\n".getBytes(StandardCharsets.UTF_8);
+            final int targetBytes = 4 * 1024 * 1024;
+            final int repeats = (targetBytes / chunk.length) + 1;
+            final byte[] data = new byte[chunk.length * repeats];
+            for (int i = 0; i < repeats; i++) {
+                System.arraycopy(chunk, 0, data, i * chunk.length, chunk.length);
+            }
+
+            // BufferedInputStream is not a ByteArrayInputStream, so the on-disk path runs.
+            final InputStream in = new java.io.BufferedInputStream(new java.io.ByteArrayInputStream(data));
+            final ExtractData result = tikaExtractor.getText(in, null);
+            assertNotNull(result);
+            CloseableUtil.closeQuietly(in);
+
+            final List<String> tikaTempFilesSeen = new ArrayList<>();
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(tempDir)) {
+                for (final Path p : stream) {
+                    final String name = p.getFileName().toString();
+                    if (name.startsWith("apache-tika-")) {
+                        tikaTempFilesSeen.add(name);
+                    }
+                }
+            }
+            Assertions.assertTrue(tikaTempFilesSeen.isEmpty(),
+                    "Tika should not have spooled a second temp file, but saw: " + tikaTempFilesSeen);
+        } finally {
+            if (originalTmp != null) {
+                System.setProperty("java.io.tmpdir", originalTmp);
+            }
+            // Clean up any leftover files (deleteInBackground may still be racing).
+            Thread.sleep(200);
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(tempDir)) {
+                for (final Path p : stream) {
+                    try {
+                        Files.deleteIfExists(p);
+                    } catch (final IOException ignore) {
+                        // best effort
+                    }
+                }
+            }
+            Files.deleteIfExists(tempDir);
+        }
+    }
+
+    /**
+     * For a small {@link ByteArrayInputStream}, neither the outer staging file nor
+     * Tika's internal spool should be created.
+     */
+    @Test
+    public void test_dfosInMemory_noTempFileCreated() throws Exception {
+        final Path tempDir = Files.createTempDirectory("tikaExtractor-test-");
+        final String originalTmp = System.getProperty("java.io.tmpdir");
+        System.setProperty("java.io.tmpdir", tempDir.toAbsolutePath().toString());
+        try {
+            final byte[] data = "Small inline payload テスト".getBytes(StandardCharsets.UTF_8);
+            final ByteArrayInputStream in = new ByteArrayInputStream(data);
+            final ExtractData result = tikaExtractor.getText(in, null);
+            assertNotNull(result);
+            CloseableUtil.closeQuietly(in);
+
+            final List<String> leftover = new ArrayList<>();
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(tempDir)) {
+                for (final Path p : stream) {
+                    final String name = p.getFileName().toString();
+                    if (name.startsWith("tikaExtractor-") || name.startsWith("apache-tika-")) {
+                        leftover.add(name);
+                    }
+                }
+            }
+            Assertions.assertTrue(leftover.isEmpty(), "In-memory path must not create temp files, but saw: " + leftover);
+        } finally {
+            if (originalTmp != null) {
+                System.setProperty("java.io.tmpdir", originalTmp);
+            }
+            Thread.sleep(100);
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(tempDir)) {
+                for (final Path p : stream) {
+                    try {
+                        Files.deleteIfExists(p);
+                    } catch (final IOException ignore) {
+                        // best effort
+                    }
+                }
+            }
+            Files.deleteIfExists(tempDir);
+        }
+    }
+
+    /**
+     * Verifies that bytes written to {@link System#out}/{@link System#err} while the
+     * streams are muted are not silently discarded. The previous fix swapped the
+     * streams to a {@code NullOutputStream}; we now buffer them and re-emit through
+     * the logger when extraction finishes so operators still see Tika parser
+     * diagnostics (PDFBox font warnings, JBIG2 warnings, legacy POI debug, ...).
+     */
+    @Test
+    public void test_systemStreamsCapturedAndReplayed() throws Exception {
+        final List<String> replayedOut = java.util.Collections.synchronizedList(new ArrayList<>());
+        final List<String> replayedErr = java.util.Collections.synchronizedList(new ArrayList<>());
+
+        // Subclass that injects writes to System.out/System.err while the muting is
+        // active and observes the replayed bytes through the test hook.
+        final TikaExtractor spy = new TikaExtractor() {
+            @Override
+            protected InputStream openMaterializedInput(final InputStream inputStream, final java.io.File tempFile,
+                    final boolean isByteStream) throws IOException {
+                System.out.println("HELLO_FROM_PARSER_OUT");
+                System.err.println("HELLO_FROM_PARSER_ERR");
+                return super.openMaterializedInput(inputStream, tempFile, isByteStream);
+            }
+
+            @Override
+            protected void onReplayCaptured(final String text, final boolean fromStderr) {
+                if (fromStderr) {
+                    replayedErr.add(text);
+                } else {
+                    replayedOut.add(text);
+                }
+            }
+        };
+        // wire up the same Tika config the regular fixture uses so detection works
+        spy.setTikaConfig(org.apache.tika.config.TikaConfig.getDefaultConfig());
+        spy.init();
+
+        final PrintStream originalOut = System.out;
+        final PrintStream originalErr = System.err;
+
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.txt");
+        try {
+            final ExtractData result = spy.getText(in, null);
+            assertNotNull(result);
+        } finally {
+            CloseableUtil.closeQuietly(in);
+        }
+
+        // streams must be restored
+        Assertions.assertSame(originalOut, System.out);
+        Assertions.assertSame(originalErr, System.err);
+
+        // captured stdout/stderr must have been replayed via the hook
+        Assertions.assertFalse(replayedOut.isEmpty(), "captured stdout was not replayed");
+        Assertions.assertFalse(replayedErr.isEmpty(), "captured stderr was not replayed");
+        Assertions.assertTrue(String.join("\n", replayedOut).contains("HELLO_FROM_PARSER_OUT"),
+                "expected captured stdout to contain the marker, got: " + replayedOut);
+        Assertions.assertTrue(String.join("\n", replayedErr).contains("HELLO_FROM_PARSER_ERR"),
+                "expected captured stderr to contain the marker, got: " + replayedErr);
+    }
+
+    /**
+     * Locks down the encoding contract for the muted-stream capture/replay path:
+     * regardless of {@link TikaExtractor#setOutputEncoding(String)}, bytes
+     * written to {@link System#out}/{@link System#err} during extraction must be
+     * decoded with {@link java.nio.charset.Charset#defaultCharset()} so that the
+     * replayed text is a lossless round-trip of what Tika/PDFBox/POI emitted
+     * (which they emit through {@link PrintStream}s the JVM wraps with the JVM
+     * default charset). A different output encoding here would risk character
+     * substitution for diagnostics containing non-ASCII text.
+     */
+    @Test
+    public void test_capturedSystemStreams_useDefaultCharsetRegardlessOfOutputEncoding() throws Exception {
+        final String marker = "Türkçe-日本語-✓";
+        // Round-trip is only meaningful when the JVM default charset can actually
+        // represent the marker. On platforms whose default is e.g. ISO-8859-1
+        // (rare on Java 21+), skip rather than report a false failure.
+        org.junit.jupiter.api.Assumptions.assumeTrue(java.nio.charset.Charset.defaultCharset().newEncoder().canEncode(marker),
+                "skipping: JVM default charset " + java.nio.charset.Charset.defaultCharset() + " cannot represent the test marker");
+        final List<String> replayedOut = java.util.Collections.synchronizedList(new ArrayList<>());
+
+        final TikaExtractor spy = new TikaExtractor() {
+            @Override
+            protected InputStream openMaterializedInput(final InputStream inputStream, final java.io.File tempFile,
+                    final boolean isByteStream) throws IOException {
+                System.out.println(marker);
+                return super.openMaterializedInput(inputStream, tempFile, isByteStream);
+            }
+
+            @Override
+            protected void onReplayCaptured(final String text, final boolean fromStderr) {
+                if (!fromStderr) {
+                    replayedOut.add(text);
+                }
+            }
+        };
+        spy.setTikaConfig(org.apache.tika.config.TikaConfig.getDefaultConfig());
+        // Pick an outputEncoding that cannot represent every code point in the
+        // marker; if the capture/replay path were (incorrectly) using
+        // outputEncoding, characters such as '日' would be substituted with '?'.
+        spy.setOutputEncoding("ISO-8859-1");
+        spy.init();
+
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.txt");
+        try {
+            spy.getText(in, null);
+        } finally {
+            CloseableUtil.closeQuietly(in);
+        }
+
+        Assertions.assertFalse(replayedOut.isEmpty(), "captured stdout was not replayed");
+        final String joined = String.join("\n", replayedOut);
+        Assertions.assertTrue(joined.contains(marker),
+                "replayed stdout must round-trip non-ASCII text via the JVM default charset, got: " + joined);
+    }
+
+    /**
+     * Verifies that the bounded capture buffer caps at its configured size and
+     * appends a truncation marker once instead of growing without bound.
+     */
+    @Test
+    public void test_boundedCaptureBuffer_truncatesAtCapacity() throws Exception {
+        final TikaExtractor.BoundedByteArrayOutputStream buf = new TikaExtractor.BoundedByteArrayOutputStream(16);
+        // Write more than the cap in a single call.
+        final byte[] payload = new byte[64];
+        java.util.Arrays.fill(payload, (byte) 'x');
+        buf.write(payload, 0, payload.length);
+        // Subsequent writes are dropped.
+        buf.write("MORE".getBytes(StandardCharsets.UTF_8));
+        buf.write('!');
+
+        final String text = new String(buf.toByteArray(), StandardCharsets.UTF_8);
+        // 16 'x' bytes + the truncation marker; "MORE" / '!' must be discarded.
+        Assertions.assertTrue(text.startsWith("xxxxxxxxxxxxxxxx"), "expected 16 bytes of payload, got: " + text);
+        Assertions.assertTrue(text.contains("truncated"), "expected truncation marker, got: " + text);
+        Assertions.assertFalse(text.contains("MORE"), "post-cap writes must be dropped");
+        Assertions.assertFalse(text.contains("!"), "post-cap byte writes must be dropped");
+    }
+
+    /**
+     * When muting is disabled, {@link System#out}/{@link System#err} must remain the
+     * caller-visible streams throughout extraction.
+     */
+    @Test
+    public void test_setMuteSystemStreams_false_doesNotMute() throws Exception {
+        final PrintStream originalOut = System.out;
+        final PrintStream originalErr = System.err;
+        tikaExtractor.setMuteSystemStreams(false);
+        try {
+            final java.io.ByteArrayOutputStream capture = new java.io.ByteArrayOutputStream();
+            final PrintStream tap = new PrintStream(capture, true);
+            System.setOut(tap);
+            System.setErr(tap);
+            try {
+                final PrintStream beforeOut = System.out;
+                final PrintStream beforeErr = System.err;
+                final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.txt");
+                try {
+                    tikaExtractor.getText(in, null);
+                } finally {
+                    CloseableUtil.closeQuietly(in);
+                }
+                Assertions.assertSame(beforeOut, System.out, "System.out must not be swapped when muting is disabled");
+                Assertions.assertSame(beforeErr, System.err, "System.err must not be swapped when muting is disabled");
+            } finally {
+                System.setOut(originalOut);
+                System.setErr(originalErr);
+            }
+        } finally {
+            tikaExtractor.setMuteSystemStreams(true);
+        }
+        Assertions.assertSame(originalOut, System.out);
+        Assertions.assertSame(originalErr, System.err);
     }
 }

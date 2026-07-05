@@ -37,6 +37,13 @@ import java.util.Date;
  */
 public class CookieConfig {
 
+    /**
+     * Creates a new CookieConfig instance.
+     */
+    public CookieConfig() {
+        // Default constructor
+    }
+
     private String name;
     private String value;
     private String domain;

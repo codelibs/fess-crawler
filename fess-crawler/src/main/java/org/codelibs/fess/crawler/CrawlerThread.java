@@ -402,7 +402,7 @@ public class CrawlerThread implements Runnable {
         }
 
         // add url and filter
-        final Set<String> urlSet = new HashSet<>(childUrlList.size());
+        final Set<String> urlSet = HashSet.newHashSet(childUrlList.size());
         final List<UrlQueue<?>> childList = new ArrayList<>(childUrlList.size());
         for (final RequestData d : childUrlList) {
             final String childUrl = d.getUrl();

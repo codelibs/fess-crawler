@@ -16,7 +16,6 @@
 package org.codelibs.fess.crawler.extractor.impl;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -103,11 +102,6 @@ public abstract class AbstractXmlExtractor extends AbstractExtractor {
     protected long maxTextLength = Long.MAX_VALUE;
 
     /**
-     * Read buffer size in characters when streaming the XML content.
-     */
-    protected static final int READ_BUFFER_SIZE = 8192;
-
-    /**
      * Constructs a new AbstractXmlExtractor.
      */
     public AbstractXmlExtractor() {
@@ -160,7 +154,7 @@ public abstract class AbstractXmlExtractor extends AbstractExtractor {
                     .setByteOrderMarks(ByteOrderMark.UTF_8, ByteOrderMark.UTF_16LE, ByteOrderMark.UTF_16BE, ByteOrderMark.UTF_32LE,
                             ByteOrderMark.UTF_32BE, BOM_UTF_7)
                     .get()) {
-                final TruncationResult result = readAsString(bomStripped, enc);
+                final TextReadResult result = readAsString(bomStripped, enc);
                 final String content = UNESCAPE_HTML4.translate(result.content);
                 final ExtractData extractData = createExtractData(content);
                 if (result.truncated) {
@@ -175,55 +169,17 @@ public abstract class AbstractXmlExtractor extends AbstractExtractor {
     }
 
     /**
-     * Holder for the result of {@link #readAsString(InputStream, String)}.
-     */
-    protected static final class TruncationResult {
-        /** The decoded content string (possibly truncated). */
-        public final String content;
-        /** Whether the content was truncated at {@code maxTextLength}. */
-        public final boolean truncated;
-
-        TruncationResult(final String content, final boolean truncated) {
-            this.content = content;
-            this.truncated = truncated;
-        }
-    }
-
-    /**
      * Streams the supplied input into a string using the given charset. The
      * total number of characters appended is bounded by {@link #maxTextLength}.
      *
      * @param in the input stream
      * @param charset the charset name
-     * @return a {@link TruncationResult} containing the decoded content and whether truncation occurred
+     * @return a {@link TextReadResult} containing the decoded content and whether truncation occurred
      * @throws IOException if reading fails
      */
-    protected TruncationResult readAsString(final InputStream in, final String charset) throws IOException {
-        try (Reader reader = new InputStreamReader(in, charset); BufferedReader br = new BufferedReader(reader)) {
-            final StringBuilder sb = new StringBuilder();
-            final char[] buf = new char[READ_BUFFER_SIZE];
-            long total = 0;
-            boolean truncated = false;
-            int n;
-            while ((n = br.read(buf)) >= 0) {
-                if (maxTextLength > 0 && total + n > maxTextLength) {
-                    final int remaining = (int) (maxTextLength - total);
-                    if (remaining > 0) {
-                        sb.append(buf, 0, remaining);
-                    }
-                    // Avoid leaving an unpaired high surrogate at the end.
-                    if (sb.length() > 0 && Character.isHighSurrogate(sb.charAt(sb.length() - 1))) {
-                        sb.setLength(sb.length() - 1);
-                    }
-                    logger.warn("Extracted content truncated: extractor={} maxTextLength={} totalChars={}", getClass().getSimpleName(),
-                            maxTextLength, total + n);
-                    truncated = true;
-                    break;
-                }
-                sb.append(buf, 0, n);
-                total += n;
-            }
-            return new TruncationResult(sb.toString(), truncated);
+    protected TextReadResult readAsString(final InputStream in, final String charset) throws IOException {
+        try (Reader reader = new InputStreamReader(in, charset)) {
+            return readWithLimit(reader, maxTextLength);
         }
     }
 

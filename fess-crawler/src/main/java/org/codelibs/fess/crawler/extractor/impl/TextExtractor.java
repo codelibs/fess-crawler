@@ -15,7 +15,6 @@
  */
 package org.codelibs.fess.crawler.extractor.impl;
 
-import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -23,8 +22,6 @@ import java.util.Map;
 
 import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.input.BOMInputStream;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.ExtractException;
@@ -40,13 +37,6 @@ import org.codelibs.fess.crawler.exception.ExtractException;
  * characters appended to the result can be capped by {@link #maxTextLength}.
  */
 public class TextExtractor extends AbstractExtractor {
-
-    private static final Logger logger = LogManager.getLogger(TextExtractor.class);
-
-    /**
-     * Default read buffer size in characters.
-     */
-    private static final int READ_BUFFER_SIZE = 8192;
 
     /**
      * The encoding for text.
@@ -100,32 +90,10 @@ public class TextExtractor extends AbstractExtractor {
                     .get()) {
                 final String detected = bomIn.getBOMCharsetName();
                 final String charset = detected != null ? detected : getEncoding();
-                try (Reader reader = new InputStreamReader(bomIn, charset); BufferedReader br = new BufferedReader(reader)) {
-                    final StringBuilder sb = new StringBuilder();
-                    final char[] buf = new char[READ_BUFFER_SIZE];
-                    long total = 0;
-                    boolean truncated = false;
-                    int n;
-                    while ((n = br.read(buf)) >= 0) {
-                        if (maxTextLength > 0 && total + n > maxTextLength) {
-                            final int remaining = (int) (maxTextLength - total);
-                            if (remaining > 0) {
-                                sb.append(buf, 0, remaining);
-                            }
-                            // Avoid leaving an unpaired high surrogate at the end.
-                            if (sb.length() > 0 && Character.isHighSurrogate(sb.charAt(sb.length() - 1))) {
-                                sb.setLength(sb.length() - 1);
-                            }
-                            logger.warn("Extracted content truncated: extractor={} maxTextLength={} totalChars={}",
-                                    getClass().getSimpleName(), maxTextLength, total + n);
-                            truncated = true;
-                            break;
-                        }
-                        sb.append(buf, 0, n);
-                        total += n;
-                    }
-                    final ExtractData extractData = new ExtractData(sb.toString());
-                    if (truncated) {
+                try (Reader reader = new InputStreamReader(bomIn, charset)) {
+                    final TextReadResult result = readWithLimit(reader, maxTextLength);
+                    final ExtractData extractData = new ExtractData(result.content);
+                    if (result.truncated) {
                         extractData.putValue("truncated", "true");
                         extractData.putValue("maxTextLength", Long.toString(maxTextLength));
                     }

@@ -15,7 +15,6 @@
  */
 package org.codelibs.fess.crawler.extractor.impl;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -61,9 +60,6 @@ import org.commonmark.renderer.text.TextContentRenderer;
 public class MarkdownExtractor extends AbstractExtractor {
     /** Logger instance for this class. */
     private static final Logger logger = LogManager.getLogger(MarkdownExtractor.class);
-
-    /** Default read buffer size in characters. */
-    private static final int READ_BUFFER_SIZE = 8192;
 
     /** Default encoding for Markdown files. */
     protected String encoding = Constants.UTF_8;
@@ -138,7 +134,7 @@ public class MarkdownExtractor extends AbstractExtractor {
         validateInputStream(in);
 
         try {
-            final ReadResult readResult = readMarkdown(in);
+            final TextReadResult readResult = readMarkdown(in);
             final Node document = parser.parse(readResult.content);
 
             // Extract plain text
@@ -173,21 +169,6 @@ public class MarkdownExtractor extends AbstractExtractor {
     }
 
     /**
-     * Holder for the result of {@link #readMarkdown(InputStream)}.
-     */
-    protected static final class ReadResult {
-        /** The decoded Markdown source (possibly truncated). */
-        public final String content;
-        /** Whether the content was truncated at {@code maxTextLength}. */
-        public final boolean truncated;
-
-        ReadResult(final String content, final boolean truncated) {
-            this.content = content;
-            this.truncated = truncated;
-        }
-    }
-
-    /**
      * Reads the entire Markdown source from the supplied input stream, honoring
      * a leading BOM when present and bounding the result by {@link #maxTextLength}.
      *
@@ -197,10 +178,10 @@ public class MarkdownExtractor extends AbstractExtractor {
      * front matter.
      *
      * @param in the input stream
-     * @return a {@link ReadResult} containing the decoded Markdown source and whether truncation occurred
+     * @return a {@link TextReadResult} containing the decoded Markdown source and whether truncation occurred
      * @throws IOException if reading fails
      */
-    protected ReadResult readMarkdown(final InputStream in) throws IOException {
+    protected TextReadResult readMarkdown(final InputStream in) throws IOException {
         try (BOMInputStream bomIn = BOMInputStream.builder()
                 .setInputStream(in)
                 .setInclude(false)
@@ -209,31 +190,8 @@ public class MarkdownExtractor extends AbstractExtractor {
                 .get()) {
             final String detected = bomIn.getBOMCharsetName();
             final String charset = detected != null ? detected : getEncoding();
-            try (Reader reader = new InputStreamReader(bomIn, charset); BufferedReader br = new BufferedReader(reader)) {
-                final StringBuilder sb = new StringBuilder();
-                final char[] buf = new char[READ_BUFFER_SIZE];
-                long total = 0;
-                boolean truncated = false;
-                int n;
-                while ((n = br.read(buf)) >= 0) {
-                    if (maxTextLength > 0 && total + n > maxTextLength) {
-                        final int remaining = (int) (maxTextLength - total);
-                        if (remaining > 0) {
-                            sb.append(buf, 0, remaining);
-                        }
-                        // Avoid leaving an unpaired high surrogate at the end.
-                        if (sb.length() > 0 && Character.isHighSurrogate(sb.charAt(sb.length() - 1))) {
-                            sb.setLength(sb.length() - 1);
-                        }
-                        logger.warn("Extracted content truncated: extractor={} maxTextLength={} totalChars={}", getClass().getSimpleName(),
-                                maxTextLength, total + n);
-                        truncated = true;
-                        break;
-                    }
-                    sb.append(buf, 0, n);
-                    total += n;
-                }
-                return new ReadResult(sb.toString(), truncated);
+            try (Reader reader = new InputStreamReader(bomIn, charset)) {
+                return readWithLimit(reader, maxTextLength);
             }
         }
     }

@@ -64,9 +64,11 @@ import jakarta.annotation.PreDestroy;
  *
  * <p>In addition to body text, this extractor populates {@link ExtractData} with a
  * default set of HTML metadata (title, description, OpenGraph, Twitter Card,
- * canonical, keywords, author) and parses {@code <script type="application/ld+json">}
- * blocks. Both subsystems can be disabled via {@link #setExtractDefaultMetadata(boolean)}
- * and {@link #setExtractJsonLd(boolean)}.</p>
+ * canonical, keywords, author); this is enabled by default and can be disabled via
+ * {@link #setExtractDefaultMetadata(boolean)}. It can also parse
+ * {@code <script type="application/ld+json">} blocks into {@code jsonld.type} and
+ * {@code jsonld.raw}; this is opt-in (disabled by default) and enabled via
+ * {@link #setExtractJsonLd(boolean)}.</p>
  *
  * <p>Compiled {@link XPathExpression} instances are cached per thread to avoid
  * re-parsing every XPath on each extraction.</p>
@@ -196,8 +198,14 @@ public class HtmlExtractor extends AbstractXmlExtractor {
      */
     protected boolean extractDefaultMetadata = true;
 
-    /** Whether to extract JSON-LD ({@code <script type="application/ld+json">}) blocks. */
-    protected boolean extractJsonLd = true;
+    /**
+     * Whether to extract JSON-LD ({@code <script type="application/ld+json">})
+     * blocks. Defaults to {@code false}: JSON-LD extraction is opt-in because the
+     * raw JSON payload can be large and, on the file-crawl path, would otherwise
+     * be folded into the indexed full-text content field. Enable it with
+     * {@link #setExtractJsonLd(boolean) setExtractJsonLd(true)}.
+     */
+    protected boolean extractJsonLd = false;
 
     /** Thread-local instance of XPathAPI for thread-safe XPath evaluation. */
     private final ThreadLocal<XPathAPI> xpathAPI = new ThreadLocal<>();

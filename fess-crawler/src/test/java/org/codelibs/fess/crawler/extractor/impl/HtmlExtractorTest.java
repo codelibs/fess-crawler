@@ -64,7 +64,12 @@ public class HtmlExtractorTest extends PlainTestCase {
 
     private HtmlExtractor newExtractor() {
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("htmlExtractor2", HtmlExtractor.class);
-        return container.getComponent("htmlExtractor2");
+        final HtmlExtractor extractor = container.getComponent("htmlExtractor2");
+        // JSON-LD extraction is opt-in in production (extractJsonLd defaults to false);
+        // the JSON-LD feature tests below exercise it, so enable it here. The
+        // production default is pinned by test_jsonLdDisabledByDefault.
+        extractor.setExtractJsonLd(true);
+        return extractor;
     }
 
     private static InputStream toStream(final String html) {
@@ -359,6 +364,23 @@ public class HtmlExtractorTest extends PlainTestCase {
 
         Assertions.assertNull(data.getValues(HtmlExtractor.JSONLD_TYPE_KEY), "jsonld.type must be absent when JSON-LD disabled");
         Assertions.assertNull(data.getValues(HtmlExtractor.JSONLD_RAW_KEY), "jsonld.raw must be absent when JSON-LD disabled");
+    }
+
+    @Test
+    public void test_jsonLdDisabledByDefault() {
+        // JSON-LD extraction is opt-in: a production-default extractor (NOT the
+        // JSON-LD-enabled newExtractor() helper) must not populate jsonld.* keys,
+        // while default HTML metadata is still extracted.
+        final StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("htmlExtractorDefault", HtmlExtractor.class);
+        final HtmlExtractor extractor = container.getComponent("htmlExtractorDefault");
+        final String html = "<html><head><title>T</title>" + "<script type=\"application/ld+json\">{\"@type\":\"Article\"}</script>"
+                + "</head><body>body</body></html>";
+        final ExtractData data = extractor.getText(toStream(html), null);
+
+        Assertions.assertNull(data.getValues(HtmlExtractor.JSONLD_TYPE_KEY), "jsonld.type must be absent by default (opt-in)");
+        Assertions.assertNull(data.getValues(HtmlExtractor.JSONLD_RAW_KEY), "jsonld.raw must be absent by default (opt-in)");
+        // Default HTML metadata extraction stays on by default.
+        assertEquals("T", data.getValues("title")[0]);
     }
 
     @Test

@@ -17,6 +17,7 @@ package org.codelibs.fess.crawler.util;
 
 import java.util.function.Consumer;
 
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathEvaluationResult;
 import javax.xml.xpath.XPathExpressionException;
@@ -85,6 +86,34 @@ public class XPathAPI {
      * @throws XPathExpressionException if an XPath expression error occurs.
      */
     public XPathNodes selectNodeList(final Node contextNode, final String expression) throws XPathExpressionException {
+        return xPath.evaluateExpression(expression, contextNode, XPathNodes.class);
+    }
+
+    /**
+     *  Use an XPath string to select a nodelist, resolving XPath namespace prefixes with the given
+     *  {@link NamespaceContext} instead of the namespace declarations visible from the contextNode.
+     *
+     *  <p>This reuses the {@link XPath} instance held by this {@code XPathAPI} (avoiding a fresh
+     *  {@link XPathFactory#newInstance()}/{@code newXPath()} call), but the namespace context is
+     *  rebound and the expression is recompiled on every call. This is required because a compiled
+     *  {@link javax.xml.xpath.XPathExpression} resolves namespace prefixes once, at compile time;
+     *  rebinding the namespace context afterwards - or evaluating the same compiled expression
+     *  against a document with different namespace declarations - does not change the namespace URIs
+     *  that were already resolved, so a compiled expression cannot be safely reused across documents
+     *  whose namespace declarations may differ.</p>
+     *
+     *  @param contextNode The node to start searching from.
+     *  @param expression A valid XPath string.
+     *  @param namespaceContext The namespace context used to resolve XPath prefixes, or {@code null} to leave the current context of this {@code XPathAPI} unchanged.
+     *  @return A XPathNodes, should never be null.
+     *
+     * @throws XPathExpressionException if an XPath expression error occurs.
+     */
+    public XPathNodes selectNodeList(final Node contextNode, final String expression, final NamespaceContext namespaceContext)
+            throws XPathExpressionException {
+        if (namespaceContext != null) {
+            xPath.setNamespaceContext(namespaceContext);
+        }
         return xPath.evaluateExpression(expression, contextNode, XPathNodes.class);
     }
 

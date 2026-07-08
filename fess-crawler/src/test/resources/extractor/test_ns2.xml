@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hoge:address xmlns:hoge="http://www.example.com/hoge2">
+	<hoge:item sex="female" custid="D45678">
+		<hoge:name>山田三郎</hoge:name>
+		<hoge:access kind="email">saburo@example.com</hoge:access>
+		<hoge:access kind="url">http://www.saburo.com/</hoge:access>
+		<hoge:image file="saburo.png" />
+	</hoge:item>
+</hoge:address>

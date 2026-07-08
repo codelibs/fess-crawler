@@ -18,6 +18,10 @@ package org.codelibs.fess.crawler.transformer.impl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.Constants;
@@ -141,6 +145,148 @@ public class XmlTransformerTest extends PlainTestCase {
         responseData.setCharSet(Constants.UTF_8);
         final ResultData resultData = xmlNsTransformer.transform(responseData);
         assertEquals(result, new String(resultData.getData(), Constants.UTF_8));
+    }
+
+    /**
+     * Runs {@link XmlTransformer#transform(ResponseData)} on two different XML documents in
+     * sequence on the same transformer instance. This locks down that the reused, per-thread
+     * {@link javax.xml.parsers.DocumentBuilderFactory} and {@link org.codelibs.fess.crawler.util.XPathAPI}
+     * do not leak configuration/state from one document to the next.
+     */
+    @Test
+    public void test_transform_sequentialDocuments() throws Exception {
+        final String result1 = "<?xml version=\"1.0\"?>\n"//
+                + "<doc>\n"//
+                + "<field name=\"name\"><list><item>鈴木太郎</item><item>佐藤二朗</item><item>田中花子</item></list></field>\n"//
+                + "<field name=\"access\"><list><item></item><item>http://www.taro.com/</item><item>jiro@hoge.foo.bar</item><item>090-xxxx-xxxx</item></list></field>\n"//
+                + "<field name=\"image\"><list><item>taro.png</item><item>jiro.png</item><item>hanako.png</item></list></field>\n"//
+                + "<field name=\"email\"><list><item></item><item>jiro@hoge.foo.bar</item></list></field>\n"//
+                + "<field name=\"url\">http://www.taro.com/</field>\n"//
+                + "<field name=\"tel\">090-xxxx-xxxx</field>\n"//
+                + "</doc>";
+        final String result2 = "<?xml version=\"1.0\"?>\n"//
+                + "<doc>\n"//
+                + "<field name=\"name\">山田三郎</field>\n"//
+                + "<field name=\"access\"><list><item>saburo@example.com</item><item>http://www.saburo.com/</item></list></field>\n"//
+                + "<field name=\"image\">saburo.png</field>\n"//
+                + "<field name=\"email\">saburo@example.com</field>\n"//
+                + "<field name=\"url\">http://www.saburo.com/</field>\n"//
+                + "</doc>";
+
+        final ResponseData responseData1 = new ResponseData();
+        responseData1.setResponseBody(ResourceUtil.getResourceAsFile("extractor/test.xml"), false);
+        responseData1.setCharSet(Constants.UTF_8);
+        final ResultData resultData1 = xmlTransformer.transform(responseData1);
+        assertEquals(result1, new String(resultData1.getData(), Constants.UTF_8));
+
+        final ResponseData responseData2 = new ResponseData();
+        responseData2.setResponseBody(ResourceUtil.getResourceAsFile("extractor/test2.xml"), false);
+        responseData2.setCharSet(Constants.UTF_8);
+        final ResultData resultData2 = xmlTransformer.transform(responseData2);
+        assertEquals(result2, new String(resultData2.getData(), Constants.UTF_8));
+
+        // run the first document again to make sure the second call did not leave state behind either
+        final ResponseData responseData3 = new ResponseData();
+        responseData3.setResponseBody(ResourceUtil.getResourceAsFile("extractor/test.xml"), false);
+        responseData3.setCharSet(Constants.UTF_8);
+        final ResultData resultData3 = xmlTransformer.transform(responseData3);
+        assertEquals(result1, new String(resultData3.getData(), Constants.UTF_8));
+    }
+
+    /**
+     * Namespaced variant of {@link #test_transform_sequentialDocuments()}. The two documents
+     * declare the SAME "hoge" prefix bound to DIFFERENT namespace URIs, which specifically
+     * exercises {@link XmlTransformer#getNodeList(org.w3c.dom.Document, String)}: a compiled
+     * {@code XPathExpression} resolves namespace prefixes once at compile time, so reusing a
+     * compiled expression - or an XPath whose namespace context was rebound after compilation -
+     * across documents with different namespace declarations would silently return no nodes for
+     * the second document.
+     */
+    @Test
+    public void test_transformNs_sequentialDocuments() throws Exception {
+        final String result1 = "<?xml version=\"1.0\"?>\n"//
+                + "<doc>\n"//
+                + "<field name=\"name\"><list><item>鈴木太郎</item><item>佐藤二朗</item><item>田中花子</item></list></field>\n"//
+                + "<field name=\"access\"><list><item></item><item>http://www.taro.com/</item><item>jiro@hoge.foo.bar</item><item>090-xxxx-xxxx</item></list></field>\n"//
+                + "<field name=\"image\"><list><item>taro.png</item><item>jiro.png</item><item>hanako.png</item></list></field>\n"//
+                + "<field name=\"email\"><list><item></item><item>jiro@hoge.foo.bar</item></list></field>\n"//
+                + "<field name=\"url\">http://www.taro.com/</field>\n"//
+                + "<field name=\"tel\">090-xxxx-xxxx</field>\n"//
+                + "</doc>";
+        final String result2 = "<?xml version=\"1.0\"?>\n"//
+                + "<doc>\n"//
+                + "<field name=\"name\">山田三郎</field>\n"//
+                + "<field name=\"access\"><list><item>saburo@example.com</item><item>http://www.saburo.com/</item></list></field>\n"//
+                + "<field name=\"image\">saburo.png</field>\n"//
+                + "<field name=\"email\">saburo@example.com</field>\n"//
+                + "<field name=\"url\">http://www.saburo.com/</field>\n"//
+                + "</doc>";
+
+        final ResponseData responseData1 = new ResponseData();
+        responseData1.setResponseBody(ResourceUtil.getResourceAsFile("extractor/test_ns.xml"), false);
+        responseData1.setCharSet(Constants.UTF_8);
+        final ResultData resultData1 = xmlNsTransformer.transform(responseData1);
+        assertEquals(result1, new String(resultData1.getData(), Constants.UTF_8));
+
+        // test_ns2.xml re-declares the "hoge" prefix against a DIFFERENT namespace URI.
+        final ResponseData responseData2 = new ResponseData();
+        responseData2.setResponseBody(ResourceUtil.getResourceAsFile("extractor/test_ns2.xml"), false);
+        responseData2.setCharSet(Constants.UTF_8);
+        final ResultData resultData2 = xmlNsTransformer.transform(responseData2);
+        assertEquals(result2, new String(resultData2.getData(), Constants.UTF_8));
+
+        final ResponseData responseData3 = new ResponseData();
+        responseData3.setResponseBody(ResourceUtil.getResourceAsFile("extractor/test_ns.xml"), false);
+        responseData3.setCharSet(Constants.UTF_8);
+        final ResultData resultData3 = xmlNsTransformer.transform(responseData3);
+        assertEquals(result1, new String(resultData3.getData(), Constants.UTF_8));
+    }
+
+    /**
+     * Concurrency smoke test: several threads share the same {@link XmlTransformer} instance and
+     * each transform their own distinct, uniquely-namespaced XML document. Asserts no exception is
+     * thrown and every thread observes its own correctly-resolved result, i.e. the per-thread
+     * DocumentBuilderFactory/XPathAPI reuse does not leak state across threads or across the
+     * repeated reuse of a pooled thread for different documents.
+     */
+    @Test
+    public void test_transformNs_concurrentDocuments() throws Exception {
+        final int taskCount = 20;
+        final ExecutorService executor = Executors.newFixedThreadPool(4);
+        try {
+            final List<Future<Void>> futures = new ArrayList<>();
+            for (int i = 0; i < taskCount; i++) {
+                final int index = i;
+                futures.add(executor.submit(() -> {
+                    final String uri = "http://www.example.com/hoge" + index;
+                    final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"//
+                            + "<hoge:address xmlns:hoge=\"" + uri + "\">\n"//
+                            + "<hoge:item><hoge:name>name-" + index + "</hoge:name>"//
+                            + "<hoge:access kind=\"email\">user" + index + "@example.com</hoge:access>"//
+                            + "<hoge:image file=\"img" + index + ".png\" /></hoge:item>\n"//
+                            + "</hoge:address>";
+                    final String expected = "<?xml version=\"1.0\"?>\n"//
+                            + "<doc>\n"//
+                            + "<field name=\"name\">name-" + index + "</field>\n"//
+                            + "<field name=\"access\">user" + index + "@example.com</field>\n"//
+                            + "<field name=\"image\">img" + index + ".png</field>\n"//
+                            + "<field name=\"email\">user" + index + "@example.com</field>\n"//
+                            + "</doc>";
+
+                    final ResponseData responseData = new ResponseData();
+                    responseData.setResponseBody(xml.getBytes(Constants.UTF_8_CHARSET));
+                    responseData.setCharSet(Constants.UTF_8);
+                    final ResultData resultData = xmlNsTransformer.transform(responseData);
+                    assertEquals(expected, new String(resultData.getData(), Constants.UTF_8));
+                    return null;
+                }));
+            }
+            for (final Future<Void> future : futures) {
+                future.get(30, TimeUnit.SECONDS);
+            }
+        } finally {
+            executor.shutdown();
+        }
     }
 
     @Test

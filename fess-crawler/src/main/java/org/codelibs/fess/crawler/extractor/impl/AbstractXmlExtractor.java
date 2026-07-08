@@ -68,6 +68,18 @@ public abstract class AbstractXmlExtractor extends AbstractExtractor {
      */
     protected static final ByteOrderMark BOM_UTF_7 = new ByteOrderMark("UTF-7", 0x2B, 0x2F, 0x76);
 
+    /** Precompiled pattern for collapsing CR/LF characters in {@link #extractString(String)}. */
+    private static final Pattern NEWLINE_PATTERN = Pattern.compile("[\\r\\n]");
+
+    /** Precompiled pattern for stripping HTML comment tags in {@link #extractString(String)} (used when {@code ignoreCommentTag} is true). */
+    private static final Pattern COMMENT_TAG_PATTERN = Pattern.compile("<!--[^>]+-->");
+
+    /** Precompiled pattern for matching a tag's attribute value in {@link #extractString(String)}. */
+    private static final Pattern ATTR_PATTERN = Pattern.compile("\\s[^ ]+=\"([^\"]*)\"");
+
+    /** Precompiled pattern for collapsing whitespace runs in {@link #extractString(String)}. */
+    private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
+
     /**
      * HTML4 unescape translator.
      */
@@ -254,18 +266,17 @@ public abstract class AbstractXmlExtractor extends AbstractExtractor {
      * @return The extracted text.
      */
     protected String extractString(final String content) {
-        String input = content.replaceAll("[\\r\\n]", " ");
+        String input = NEWLINE_PATTERN.matcher(content).replaceAll(" ");
         if (ignoreCommentTag) {
-            input = input.replaceAll("<!--[^>]+-->", "");
+            input = COMMENT_TAG_PATTERN.matcher(input).replaceAll("");
         } else {
             input = input.replace("<!--", "").replace("-->", "");
         }
         final Matcher matcher = getTagPattern().matcher(input);
-        final StringBuffer sb = new StringBuffer();
-        final Pattern attrPattern = Pattern.compile("\\s[^ ]+=\"([^\"]*)\"");
+        final StringBuilder sb = new StringBuilder();
         while (matcher.find()) {
             final String tagStr = matcher.group();
-            final Matcher attrMatcher = attrPattern.matcher(tagStr);
+            final Matcher attrMatcher = ATTR_PATTERN.matcher(tagStr);
             final StringBuilder buf = new StringBuilder(100);
             while (attrMatcher.find()) {
                 buf.append(attrMatcher.group(1)).append(' ');
@@ -273,7 +284,7 @@ public abstract class AbstractXmlExtractor extends AbstractExtractor {
             matcher.appendReplacement(sb, buf.toString().replace("\\", "\\\\").replace("$", "\\$"));
         }
         matcher.appendTail(sb);
-        return sb.toString().replaceAll("\\s+", " ").trim();
+        return WHITESPACE_PATTERN.matcher(sb.toString()).replaceAll(" ").trim();
     }
 
     /**

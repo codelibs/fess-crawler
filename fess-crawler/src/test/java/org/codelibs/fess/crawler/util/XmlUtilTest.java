@@ -64,6 +64,42 @@ public class XmlUtilTest extends PlainTestCase {
     }
 
     @Test
+    public void test_escapeXml_ampersandNotDoubleEscaped() {
+        // Regression: '&' must be escaped exactly once and other specials must not
+        // be re-escaped through the '&' produced by the ampersand entity itself.
+        assertEquals("&amp;&lt;&gt;&quot;&apos;", XmlUtil.escapeXml("&<>\"\'"));
+        assertEquals("&amp;lt;", XmlUtil.escapeXml("&lt;"));
+    }
+
+    @Test
+    public void test_escapeXml_mixedTextAndEntities() {
+        String input = "Price: 10 < 20 & \"cheap\" isn't bad > free";
+        String expected = "Price: 10 &lt; 20 &amp; &quot;cheap&quot; isn&apos;t bad &gt; free";
+        assertEquals(expected, XmlUtil.escapeXml(input));
+    }
+
+    @Test
+    public void test_escapeXml_withInvalidControlChars() {
+        // Invalid XML control chars (0x1, 0x2) interleaved with entity-triggering
+        // chars must be stripped while the entities are still produced correctly.
+        String input = "A\u0001<B>\u0002";
+        assertEquals("A&lt;B&gt;", XmlUtil.escapeXml(input));
+    }
+
+    @Test
+    public void test_escapeXml_leadingTrailingWhitespaceTrimmed() {
+        String input = "  <b>bold</b>  ";
+        assertEquals("&lt;b&gt;bold&lt;/b&gt;", XmlUtil.escapeXml(input));
+    }
+
+    @Test
+    public void test_escapeXml_needsNoChanges() {
+        // No entities, no invalid chars, no leading/trailing whitespace: identity-like result.
+        String input = "PlainAsciiTextWithNumbers123";
+        assertEquals(input, XmlUtil.escapeXml(input));
+    }
+
+    @Test
     public void test_stripInvalidXMLCharacters_null() {
         // Test null input
         assertNull(XmlUtil.stripInvalidXMLCharacters(null));
@@ -102,6 +138,29 @@ public class XmlUtilTest extends PlainTestCase {
                 + String.valueOf((char) 0xD7FF) + String.valueOf((char) 0xE000) + String.valueOf((char) 0xFFFD);
         String result = XmlUtil.stripInvalidXMLCharacters(input);
         assertNotNull(result);
+    }
+
+    @Test
+    public void test_stripInvalidXMLCharacters_noInvalidCharsStillTrims() {
+        // Regression for the short-circuit fast path: even when there is nothing
+        // to strip, leading/trailing whitespace must still be trimmed.
+        String input = "  no invalid chars here  ";
+        assertEquals("no invalid chars here", XmlUtil.stripInvalidXMLCharacters(input));
+    }
+
+    @Test
+    public void test_stripInvalidXMLCharacters_invalidCharsWithWhitespaceTrimmed() {
+        // Regression: when invalid chars ARE present, leading/trailing whitespace
+        // must still be trimmed from the filtered result exactly as before.
+        String input = "  Test  ";
+        assertEquals("Test", XmlUtil.stripInvalidXMLCharacters(input));
+    }
+
+    @Test
+    public void test_stripInvalidXMLCharacters_needsNoChanges() {
+        // A string that needs no modification at all should round-trip unchanged.
+        String input = "PlainAsciiTextWithNumbers123";
+        assertEquals(input, XmlUtil.stripInvalidXMLCharacters(input));
     }
 
     @Test

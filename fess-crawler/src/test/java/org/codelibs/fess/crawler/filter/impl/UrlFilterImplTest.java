@@ -187,6 +187,38 @@ public class UrlFilterImplTest extends PlainTestCase {
     }
 
     @Test
+    public void test_match_include_shortCircuit_matchOnLaterPattern() {
+        // Regression for the short-circuit (break) optimization: a match on a
+        // later pattern in the include list must still be honored even though
+        // earlier patterns in the list did not match.
+        urlFilter.addInclude("http://none-matching-1.com/.*");
+        urlFilter.addInclude("http://none-matching-2.com/.*");
+        urlFilter.addInclude("http://example.com/.*");
+
+        final String sessionId = "id1";
+        urlFilter.init(sessionId);
+
+        assertTrue(urlFilter.match("http://example.com/a"));
+        assertFalse(urlFilter.match("http://other.com/a"));
+    }
+
+    @Test
+    public void test_match_exclude_shortCircuit_precedenceOverInclude() {
+        // Regression for the short-circuit (break) optimization on the exclude
+        // loop: a match on a later exclude pattern must still take precedence
+        // over an otherwise-matching include list.
+        urlFilter.addInclude("http://example.com/.*");
+        urlFilter.addExclude("http://none-matching.com/.*");
+        urlFilter.addExclude("http://example.com/a.*");
+
+        final String sessionId = "id1";
+        urlFilter.init(sessionId);
+
+        assertTrue(urlFilter.match("http://example.com/"));
+        assertFalse(urlFilter.match("http://example.com/a"));
+    }
+
+    @Test
     public void test_processUrl() {
         assertEquals(0, urlFilter.cachedIncludeSet.size());
         assertEquals(0, urlFilter.cachedExcludeSet.size());

@@ -20,6 +20,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -57,6 +58,9 @@ import jakarta.annotation.Resource;
  */
 public class TextTransformer extends AbstractTransformer {
     private static final Logger logger = LogManager.getLogger(TextTransformer.class);
+
+    /** Precompiled pattern for stripping trailing slashes in {@link #getResourceName(ResponseData)}. */
+    private static final Pattern TRAILING_SLASHES_PATTERN = Pattern.compile("/+$");
 
     /**
      * The crawler container.
@@ -151,7 +155,7 @@ public class TextTransformer extends AbstractTransformer {
             return null;
         }
 
-        name = name.replaceAll("/+$", "");
+        name = TRAILING_SLASHES_PATTERN.matcher(name).replaceAll("");
         final int idx = name.lastIndexOf('/');
         if (idx >= 0) {
             name = name.substring(idx + 1);

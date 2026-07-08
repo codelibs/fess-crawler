@@ -124,6 +124,18 @@ public class HtmlTransformer extends AbstractTransformer {
     /** Header name for location redirects. */
     protected static final String LOCATION_HEADER = "Location";
 
+    /** Precompiled pattern for stripping a trailing {@code ;jsessionid=...} segment in {@link #normalizeUrl(String)}. */
+    private static final Pattern JSESSIONID_PATTERN = Pattern.compile(";jsessionid=[a-zA-Z0-9\\.]*");
+
+    /** Precompiled pattern for collapsing a single {@code /segment/../} in {@link #normalizeUrl(String)}. */
+    private static final Pattern PARENT_PATH_PATTERN = Pattern.compile("/[^/]+/\\.\\./");
+
+    /** Precompiled pattern for collapsing repeated slashes (except after a scheme colon) in {@link #normalizeUrl(String)}. */
+    private static final Pattern MULTI_SLASH_PATTERN = Pattern.compile("([^:])/+");
+
+    /** Precompiled pattern for extracting a charset value from a content string in {@link #parseCharset(String)}. */
+    private static final Pattern CHARSET_PATTERN = Pattern.compile("; *charset *= *([a-zA-Z0-9\\-_]+)", Pattern.CASE_INSENSITIVE);
+
     /** The crawler container for dependency injection. */
     @Resource
     protected CrawlerContainer crawlerContainer;
@@ -437,8 +449,7 @@ public class HtmlTransformer extends AbstractTransformer {
      * @return the parsed charset name, or null if not found
      */
     protected String parseCharset(final String content) {
-        final Pattern pattern = Pattern.compile("; *charset *= *([a-zA-Z0-9\\-_]+)", Pattern.CASE_INSENSITIVE);
-        final Matcher matcher = pattern.matcher(content);
+        final Matcher matcher = CHARSET_PATTERN.matcher(content);
         if (matcher.find()) {
             return matcher.group(1);
         }
@@ -644,7 +655,7 @@ public class HtmlTransformer extends AbstractTransformer {
 
         idx = url.indexOf(";jsessionid");
         if (idx >= 0) {
-            url = url.replaceFirst(";jsessionid=[a-zA-Z0-9\\.]*", "");
+            url = JSESSIONID_PATTERN.matcher(url).replaceFirst("");
         }
 
         if (url.indexOf(' ') >= 0) {
@@ -654,10 +665,13 @@ public class HtmlTransformer extends AbstractTransformer {
         String oldUrl = null;
         while (url.indexOf("/../") >= 0 && !url.equals(oldUrl)) {
             oldUrl = url;
-            url = url.replaceFirst("/[^/]+/\\.\\./", "/");
+            final Matcher matcher = PARENT_PATH_PATTERN.matcher(url);
+            if (matcher.find()) {
+                url = matcher.replaceFirst("/");
+            }
         }
 
-        return url.replaceAll("([^:])/+", "$1/");
+        return MULTI_SLASH_PATTERN.matcher(url).replaceAll("$1/");
     }
 
     /**

@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.output.DeferredFileOutputStream;
@@ -156,6 +157,18 @@ public class TikaExtractor extends PasswordBasedExtractor {
     public static final String STRIP_HTML_TAGS = "tika.stripHtmlTags";
 
     private static final String FILE_PASSWORD = "fess.file.password";
+
+    /** Precompiled pattern for stripping {@code <script>...</script>} blocks in {@link #stripHtmlTags(String)}. */
+    private static final Pattern SCRIPT_TAG_PATTERN = Pattern.compile("<script[^>]*>.*?</script>");
+
+    /** Precompiled pattern for stripping {@code <style>...</style>} blocks in {@link #stripHtmlTags(String)}. */
+    private static final Pattern STYLE_TAG_PATTERN = Pattern.compile("<style[^>]*>.*?</style>");
+
+    /** Precompiled pattern for stripping remaining HTML tags in {@link #stripHtmlTags(String)}. */
+    private static final Pattern HTML_TAG_PATTERN = Pattern.compile("<[^>]+>");
+
+    /** Precompiled pattern for collapsing whitespace runs in {@link #stripHtmlTags(String)}. */
+    private static final Pattern HTML_WHITESPACE_PATTERN = Pattern.compile("\\s+");
 
     /**
      * Output encoding used when materializing extracted content into a byte
@@ -1047,9 +1060,9 @@ public class TikaExtractor extends PasswordBasedExtractor {
             // Use regex to strip HTML tags
             // First, handle common HTML entities
             String result = content;
-            result = result.replaceAll("<script[^>]*>.*?</script>", " ");
-            result = result.replaceAll("<style[^>]*>.*?</style>", " ");
-            result = result.replaceAll("<[^>]+>", " ");
+            result = SCRIPT_TAG_PATTERN.matcher(result).replaceAll(" ");
+            result = STYLE_TAG_PATTERN.matcher(result).replaceAll(" ");
+            result = HTML_TAG_PATTERN.matcher(result).replaceAll(" ");
             // Decode common HTML entities
             result = result.replace("&nbsp;", " ");
             result = result.replace("&amp;", "&");
@@ -1058,7 +1071,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
             result = result.replace("&quot;", "\"");
             result = result.replace("&#39;", "'");
             // Normalize whitespace
-            result = result.replaceAll("\\s+", " ").trim();
+            result = HTML_WHITESPACE_PATTERN.matcher(result).replaceAll(" ").trim();
             return result;
         } catch (final Exception e) {
             if (logger.isDebugEnabled()) {

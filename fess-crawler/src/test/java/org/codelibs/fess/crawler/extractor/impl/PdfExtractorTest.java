@@ -15,6 +15,7 @@
  */
 package org.codelibs.fess.crawler.extractor.impl;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
@@ -362,5 +363,99 @@ public class PdfExtractorTest extends PlainTestCase {
         assertNotNull(t);
         assertTrue(t instanceof ExtractException);
         assertTrue(Boolean.TRUE.equals(interruptFlagAfter.get()));
+    }
+
+    @Test
+    public void test_getText_truncatesAtMaxTextLength() {
+        // extractor/test.pdf's full extracted text is "テスト\n" (4 chars); cap below that to
+        // force truncation deterministically.
+        pdfExtractor.setMaxTextLength(2);
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.pdf");
+        final ExtractData extractData = pdfExtractor.getText(in, null);
+        CloseableUtil.closeQuietly(in);
+
+        assertTrue(extractData.getContent().length() <= 2);
+        final String[] truncated = extractData.getValues("truncated");
+        assertNotNull(truncated);
+        assertEquals("true", truncated[0]);
+        final String[] maxLen = extractData.getValues("maxTextLength");
+        assertNotNull(maxLen);
+        assertEquals("2", maxLen[0]);
+        // Metadata extraction runs independently of the bounded text writer and must still
+        // populate normally even though the page text was truncated.
+        assertEquals("Writer", extractData.getValues("Creator")[0]);
+    }
+
+    @Test
+    public void test_getText_maxTextLengthDoesNotAffectNormalInput() {
+        // Default maxTextLength (unlimited) must not change output for the existing fixture.
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.pdf");
+        final ExtractData extractData = pdfExtractor.getText(in, null);
+        CloseableUtil.closeQuietly(in);
+        assertTrue(extractData.getContent().contains("テスト"));
+        assertNull(extractData.getValues("truncated"));
+    }
+
+    @Test
+    public void test_boundedTextWriter_capsOutputRegardlessOfWriteVolume() {
+        // Directly exercise the writer used to bound PDFTextStripper's output: even when far
+        // more than the cap is written (simulating a huge/hostile PDF), the internal buffer
+        // must never exceed maxLength, proving heap use is bounded independent of source size.
+        final PdfExtractor.BoundedTextWriter writer = new PdfExtractor.BoundedTextWriter(1000);
+        final char[] chunk = new char[8192];
+        java.util.Arrays.fill(chunk, 'x');
+        for (int i = 0; i < 2000; i++) {
+            writer.write(chunk, 0, chunk.length);
+        }
+        assertTrue(writer.isTruncated());
+        assertEquals(1000, writer.getContent().length());
+    }
+
+    @Test
+    public void test_boundedTextWriter_unlimitedByDefaultConvention() {
+        // maxLength <= 0 disables the limit, matching the maxTextLength convention used by
+        // TextExtractor/MarkdownExtractor/JsonExtractor.
+        final PdfExtractor.BoundedTextWriter writer = new PdfExtractor.BoundedTextWriter(0);
+        final String text = "Hello, world!";
+        writer.write(text.toCharArray(), 0, text.length());
+        assertFalse(writer.isTruncated());
+        assertEquals(text, writer.getContent());
+    }
+
+    @Test
+    public void test_getText_spooledTempFileIsDeletedAfterExtraction() throws Exception {
+        final java.util.Set<String> before = listPdfExtractorTempFiles();
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.pdf");
+        try {
+            final ExtractData extractData = pdfExtractor.getText(in, null);
+            assertNotNull(extractData);
+        } finally {
+            CloseableUtil.closeQuietly(in);
+        }
+
+        // FileUtil.deleteInBackground is asynchronous (TimeoutManager polls at ~1s cadence),
+        // so poll for up to ~5s for the spool file to disappear.
+        final long deadline = System.currentTimeMillis() + 5_000L;
+        java.util.Set<String> leaked = listPdfExtractorTempFiles();
+        leaked.removeAll(before);
+        while (!leaked.isEmpty() && System.currentTimeMillis() < deadline) {
+            Thread.sleep(100L);
+            leaked = listPdfExtractorTempFiles();
+            leaked.removeAll(before);
+        }
+        org.junit.jupiter.api.Assertions.assertTrue(leaked.isEmpty(),
+                "spooled temp file must be deleted after extraction, leaked=" + leaked);
+    }
+
+    private static java.util.Set<String> listPdfExtractorTempFiles() {
+        final File dir = org.apache.commons.lang3.SystemUtils.getJavaIoTmpDir();
+        final File[] files = dir.listFiles((d, name) -> name.startsWith("pdfExtractor-") && name.endsWith(".pdf"));
+        final java.util.Set<String> names = new java.util.HashSet<>();
+        if (files != null) {
+            for (final File f : files) {
+                names.add(f.getName());
+            }
+        }
+        return names;
     }
 }

@@ -15,7 +15,9 @@
  */
 package org.codelibs.fess.crawler.extractor.impl;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,6 +26,7 @@ import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
+import org.codelibs.fess.crawler.exception.ExtractException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -130,5 +133,118 @@ public class JsonExtractorTest extends PlainTestCase {
 
         // With depth 1, nested content should not be deeply processed
         assertNotNull(content);
+    }
+
+    @Test
+    public void test_getText_normalInputUnaffectedByBounds() {
+        // Default bounds (tightened StreamReadConstraints; unlimited maxTextLength) must not
+        // change output for the existing normal-sized fixture.
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/json/test.json");
+        final ExtractData extractData = jsonExtractor.getText(in, null);
+        CloseableUtil.closeQuietly(in);
+
+        assertTrue(extractData.getContent().contains("Sample Document"));
+        assertEquals("Sample Document", extractData.getValues("title")[0]);
+        assertNull(extractData.getValues("truncated"));
+    }
+
+    @Test
+    public void test_getText_truncatesAtMaxTextLength() {
+        // A JSON object with a very large number of top-level fields (unbounded by
+        // maxArrayElements, which only caps arrays) must not grow the accumulated output
+        // text without bound; maxTextLength must cap it, mirroring TextExtractor/
+        // MarkdownExtractor's truncate-not-reject convention.
+        jsonExtractor.setMaxTextLength(50);
+        final StringBuilder json = new StringBuilder("{");
+        for (int i = 0; i < 100_000; i++) {
+            if (i > 0) {
+                json.append(',');
+            }
+            json.append("\"field").append(i).append("\":\"value").append(i).append('"');
+        }
+        json.append('}');
+        final InputStream in = new ByteArrayInputStream(json.toString().getBytes(StandardCharsets.UTF_8));
+        final ExtractData extractData = jsonExtractor.getText(in, null);
+        CloseableUtil.closeQuietly(in);
+
+        assertTrue(extractData.getContent().length() <= 50);
+        final String[] truncated = extractData.getValues("truncated");
+        assertNotNull(truncated);
+        assertEquals("true", truncated[0]);
+        final String[] maxLen = extractData.getValues("maxTextLength");
+        assertNotNull(maxLen);
+        assertEquals("50", maxLen[0]);
+    }
+
+    @Test
+    public void test_getText_maxTextLength_zero_isUnlimited() {
+        // maxTextLength=0 means unlimited, matching TextExtractor's convention.
+        jsonExtractor.setMaxTextLength(0);
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/json/test.json");
+        final ExtractData extractData = jsonExtractor.getText(in, null);
+        CloseableUtil.closeQuietly(in);
+        assertNull(extractData.getValues("truncated"));
+        assertTrue(extractData.getContent().contains("Sample Document"));
+    }
+
+    @Test
+    public void test_getText_deeplyNestedJsonIsRejected() {
+        // The shared ObjectMapper is configured with StreamReadConstraints.maxNestingDepth
+        // pinned to Jackson's own default (1000), so a document with pathological nesting
+        // that exceeds even that generous ceiling must fail fast at parse time rather than
+        // risking stack/heap exhaustion by materializing an arbitrarily deep tree.
+        final int depth = 2000;
+        final StringBuilder json = new StringBuilder();
+        for (int i = 0; i < depth; i++) {
+            json.append("{\"a\":");
+        }
+        json.append('1');
+        for (int i = 0; i < depth; i++) {
+            json.append('}');
+        }
+        final InputStream in = new ByteArrayInputStream(json.toString().getBytes(StandardCharsets.UTF_8));
+        try {
+            jsonExtractor.getText(in, null);
+            fail();
+        } catch (final ExtractException e) {
+            // Expected: StreamReadConstraints.maxNestingDepth rejects the pathological input.
+        } finally {
+            CloseableUtil.closeQuietly(in);
+        }
+    }
+
+    @Test
+    public void test_getText_legitimatelyDeepJsonIsNotRejected() {
+        // A nesting depth of ~500 is well under Jackson's default maxNestingDepth (1000), so
+        // it must parse successfully just like it would with a default-configured Jackson
+        // ObjectMapper on master. This would have FAILED when MAX_NESTING_DEPTH was tightened
+        // to 64, and guards against re-tightening the parse-time constraint below Jackson's
+        // own default. Each level carries a scalar "value" field alongside the nested
+        // "nested" object so the extractor's own maxDepth=10 output traversal (a separate,
+        // intentional bound on the recursive text walk) still yields non-empty content.
+        final int depth = 500;
+        final StringBuilder json = new StringBuilder();
+        for (int i = 0; i < depth; i++) {
+            json.append("{\"value\":").append(i).append(",\"nested\":");
+        }
+        json.append("null");
+        for (int i = 0; i < depth; i++) {
+            json.append('}');
+        }
+        final InputStream in = new ByteArrayInputStream(json.toString().getBytes(StandardCharsets.UTF_8));
+        final ExtractData extractData;
+        try {
+            extractData = jsonExtractor.getText(in, null);
+        } finally {
+            CloseableUtil.closeQuietly(in);
+        }
+
+        final String content = extractData.getContent();
+        assertNotNull(content);
+        assertFalse(content.isEmpty());
+        // The output-side maxDepth=10 traversal bound (independent of parse-time
+        // StreamReadConstraints) means only the first few levels' "value" fields are walked.
+        assertTrue(content.contains("value: 0"));
+        assertNull(extractData.getValues("truncated"));
     }
 }

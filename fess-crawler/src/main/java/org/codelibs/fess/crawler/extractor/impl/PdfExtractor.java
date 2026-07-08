@@ -15,9 +15,10 @@
  */
 package org.codelibs.fess.crawler.extractor.impl;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringWriter;
+import java.io.Writer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +35,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.cos.COSInputStream;
-import org.apache.pdfbox.io.RandomAccessReadBuffer;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.PDDocumentNameDictionary;
@@ -47,6 +47,8 @@ import org.apache.pdfbox.pdmodel.common.filespecification.PDFileSpecification;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationFileAttachment;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.codelibs.core.io.CopyUtil;
+import org.codelibs.core.io.FileUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
@@ -77,6 +79,16 @@ import org.codelibs.fess.crawler.helper.MimeTypeHelper;
  *   <li>Configurable timeout for extraction process</li>
  *   <li>Configurable grace period for orderly cancellation before document close</li>
  * </ul>
+ *
+ * <p>The supplied input stream is first spooled to a temporary file and the PDF is
+ * loaded from that file (rather than buffering the whole document into a
+ * {@code byte[]} in memory), which reduces peak heap usage for large PDFs; the
+ * temp file is deleted once extraction completes. The extracted text is bounded
+ * by {@link #maxTextLength} (default unlimited), mirroring the truncate-not-reject
+ * convention used by {@link TextExtractor} and {@link MarkdownExtractor}: once the
+ * cap is reached, further writes to the output are silently dropped and the
+ * returned {@link ExtractData} carries {@code truncated=true} and
+ * {@code maxTextLength=<value>} metadata entries.</p>
  *
  * @author shinsuke
  */
@@ -119,6 +131,18 @@ public class PdfExtractor extends PasswordBasedExtractor {
     protected long cancelGracePeriodMs = 2000L;
 
     /**
+     * Maximum number of characters to accumulate in the extracted text output
+     * (page text plus embedded-document and annotation text). The default is
+     * {@link Long#MAX_VALUE}, which is effectively unlimited. Values less than
+     * or equal to zero explicitly disable the limit.
+     *
+     * <p>The limit is measured in Java {@code char} units (UTF-16 code units).
+     * At the truncation boundary, an unpaired high surrogate is dropped to avoid
+     * leaving an invalid string.
+     */
+    protected long maxTextLength = Long.MAX_VALUE;
+
+    /**
      * Creates a new PdfExtractor instance.
      */
     public PdfExtractor() {
@@ -138,57 +162,75 @@ public class PdfExtractor extends PasswordBasedExtractor {
         }
 
         final String password = getPassword(params);
-        try (PDDocument document = Loader.loadPDF(new RandomAccessReadBuffer(in), password)) {
-            final StringWriter writer = new StringWriter();
-            final PDFTextStripper stripper = createStripper();
+        File tempFile = null;
+        try {
+            // Spool the input to a temp file and load PDFBox from the file rather than
+            // buffering the whole document into memory (the previous RandomAccessReadBuffer
+            // approach). This reduces peak heap for large PDFs; see createTempFile/CopyUtil
+            // usage in JodExtractor for the same spool-to-disk convention used elsewhere in
+            // this module. The temp file is removed in the outer finally block below, after
+            // the PDDocument (and its file handle) has been closed.
+            tempFile = createTempFile("pdfExtractor-", ".pdf", null);
+            CopyUtil.copy(in, tempFile);
 
-            final ExecutorService executor = Executors.newSingleThreadExecutor(DAEMON_THREAD_FACTORY);
-            try {
-                final Future<?> future = executor.submit(() -> {
+            try (PDDocument document = Loader.loadPDF(tempFile, password)) {
+                final BoundedTextWriter writer = new BoundedTextWriter(maxTextLength);
+                final PDFTextStripper stripper = createStripper();
+
+                final ExecutorService executor = Executors.newSingleThreadExecutor(DAEMON_THREAD_FACTORY);
+                try {
+                    final Future<?> future = executor.submit(() -> {
+                        try {
+                            stripper.writeText(document, writer);
+                            extractEmbeddedDocuments(document, writer);
+                            extractAnnotations(document, writer);
+                        } catch (final IOException e) {
+                            throw new CrawlerSystemException("Failed to extract PDF text.", e);
+                        }
+                    });
                     try {
-                        stripper.writeText(document, writer);
-                        extractEmbeddedDocuments(document, writer);
-                        extractAnnotations(document, writer);
-                    } catch (final IOException e) {
-                        throw new CrawlerSystemException("Failed to extract PDF text.", e);
+                        future.get(timeout, TimeUnit.MILLISECONDS);
+                    } catch (final TimeoutException e) {
+                        future.cancel(true);
+                        throw new ExtractException("PDFBox process cannot finish in " + timeout + " ms.", e);
+                    } catch (final ExecutionException e) {
+                        final Throwable cause = e.getCause() != null ? e.getCause() : e;
+                        if (cause instanceof ExtractException) {
+                            throw (ExtractException) cause;
+                        }
+                        throw new ExtractException("PDF extraction failed.", cause);
+                    } catch (final InterruptedException e) {
+                        future.cancel(true);
+                        Thread.currentThread().interrupt();
+                        throw new ExtractException("PDF extraction was interrupted.", e);
                     }
-                });
-                try {
-                    future.get(timeout, TimeUnit.MILLISECONDS);
-                } catch (final TimeoutException e) {
-                    future.cancel(true);
-                    throw new ExtractException("PDFBox process cannot finish in " + timeout + " ms.", e);
-                } catch (final ExecutionException e) {
-                    final Throwable cause = e.getCause() != null ? e.getCause() : e;
-                    if (cause instanceof ExtractException) {
-                        throw (ExtractException) cause;
+                } finally {
+                    // Stop any laggard task and wait briefly so the worker stops touching the
+                    // PDDocument before try-with-resources closes it. This reduces (does not
+                    // eliminate) the "COSStream is closed" secondary failure on cancellation:
+                    // PDFBox does not consistently honour Thread.interrupt for native I/O, so
+                    // the race remains in worst-case scenarios.
+                    executor.shutdownNow();
+                    try {
+                        if (!executor.awaitTermination(cancelGracePeriodMs, TimeUnit.MILLISECONDS) && logger.isDebugEnabled()) {
+                            logger.debug("PdfExtractor worker did not terminate within {} ms grace period.", cancelGracePeriodMs);
+                        }
+                    } catch (final InterruptedException ignore) {
+                        Thread.currentThread().interrupt();
                     }
-                    throw new ExtractException("PDF extraction failed.", cause);
-                } catch (final InterruptedException e) {
-                    future.cancel(true);
-                    Thread.currentThread().interrupt();
-                    throw new ExtractException("PDF extraction was interrupted.", e);
                 }
-            } finally {
-                // Stop any laggard task and wait briefly so the worker stops touching the
-                // PDDocument before try-with-resources closes it. This reduces (does not
-                // eliminate) the "COSStream is closed" secondary failure on cancellation:
-                // PDFBox does not consistently honour Thread.interrupt for native I/O, so
-                // the race remains in worst-case scenarios.
-                executor.shutdownNow();
-                try {
-                    if (!executor.awaitTermination(cancelGracePeriodMs, TimeUnit.MILLISECONDS) && logger.isDebugEnabled()) {
-                        logger.debug("PdfExtractor worker did not terminate within {} ms grace period.", cancelGracePeriodMs);
-                    }
-                } catch (final InterruptedException ignore) {
-                    Thread.currentThread().interrupt();
-                }
-            }
 
-            writer.flush();
-            final ExtractData extractData = new ExtractData(writer.toString());
-            extractMetadata(document, extractData);
-            return extractData;
+                final ExtractData extractData = new ExtractData(writer.getContent());
+                if (writer.isTruncated()) {
+                    if (logger.isWarnEnabled()) {
+                        logger.warn("Extracted PDF content truncated: maxTextLength={}", maxTextLength);
+                    }
+                    extractData.putValue("truncated", "true");
+                    extractData.putValue("maxTextLength", Long.toString(maxTextLength));
+                }
+                extractMetadata(document, extractData);
+                return extractData;
+            }
         } catch (final ExtractException e) {
             throw e;
         } catch (final CrawlerSystemException e) {
@@ -197,6 +239,10 @@ public class PdfExtractor extends PasswordBasedExtractor {
             throw new ExtractException("Failed to load PDF.", e);
         } catch (final Exception e) {
             throw new ExtractException(e);
+        } finally {
+            if (tempFile != null) {
+                FileUtil.deleteInBackground(tempFile);
+            }
         }
     }
 
@@ -213,11 +259,87 @@ public class PdfExtractor extends PasswordBasedExtractor {
     }
 
     /**
+     * A {@link Writer} that accumulates into an internal buffer capped at
+     * {@code maxLength} characters. Writes beyond the cap are silently
+     * discarded (matching the truncate-not-reject {@code maxTextLength}
+     * convention used elsewhere in this module, see
+     * {@link AbstractExtractor#readWithLimit(java.io.Reader, long)}), so
+     * {@link PDFTextStripper#writeText(PDDocument, Writer)} and the
+     * embedded-document/annotation appenders below never accumulate more than
+     * {@code maxLength} characters regardless of how large the source PDF is.
+     * At the truncation boundary a trailing unpaired high surrogate is dropped
+     * so the buffered content is always a valid UTF-16 sequence.
+     */
+    protected static final class BoundedTextWriter extends Writer {
+        /** The accumulated text. */
+        private final StringBuilder sb = new StringBuilder();
+
+        /** The maximum number of characters to accumulate; {@code <= 0} means unlimited. */
+        private final long maxLength;
+
+        /** Whether truncation has occurred. */
+        private boolean truncated;
+
+        /**
+         * Creates a new bounded writer.
+         * @param maxLength the maximum number of characters to accumulate
+         */
+        BoundedTextWriter(final long maxLength) {
+            this.maxLength = maxLength;
+        }
+
+        @Override
+        public void write(final char[] cbuf, final int off, final int len) {
+            if (truncated || len <= 0) {
+                return;
+            }
+            if (maxLength > 0 && (long) sb.length() + len > maxLength) {
+                final int remaining = (int) (maxLength - sb.length());
+                if (remaining > 0) {
+                    sb.append(cbuf, off, remaining);
+                }
+                if (sb.length() > 0 && Character.isHighSurrogate(sb.charAt(sb.length() - 1))) {
+                    sb.setLength(sb.length() - 1);
+                }
+                truncated = true;
+                return;
+            }
+            sb.append(cbuf, off, len);
+        }
+
+        @Override
+        public void flush() {
+            // no-op: content is accumulated directly in the internal StringBuilder
+        }
+
+        @Override
+        public void close() {
+            // no-op: no underlying resource to release
+        }
+
+        /**
+         * Returns whether truncation has occurred.
+         * @return {@code true} if the cap was reached
+         */
+        boolean isTruncated() {
+            return truncated;
+        }
+
+        /**
+         * Returns the accumulated (possibly truncated) content.
+         * @return the accumulated content
+         */
+        String getContent() {
+            return sb.toString();
+        }
+    }
+
+    /**
      * Extracts text from file attachments in PDF annotations.
      * @param doc the PDF document
      * @param writer the writer to append extracted text to
      */
-    protected void extractAnnotations(final PDDocument doc, final StringWriter writer) {
+    protected void extractAnnotations(final PDDocument doc, final Writer writer) {
         for (final PDPage page : doc.getPages()) {
             try {
                 for (final PDAnnotation annotation : page.getAnnotations()) {
@@ -241,7 +363,7 @@ public class PdfExtractor extends PasswordBasedExtractor {
      * @param embeddedFile the embedded file to extract text from
      * @param writer the writer to append extracted text to
      */
-    protected void extractFile(final String filename, final PDEmbeddedFile embeddedFile, final StringWriter writer) {
+    protected void extractFile(final String filename, final PDEmbeddedFile embeddedFile, final Writer writer) {
         final MimeTypeHelper mimeTypeHelper = getMimeTypeHelper();
         final ExtractorFactory extractorFactory = getExtractorFactory();
         final String mimeType = mimeTypeHelper.getContentType(null, filename);
@@ -268,7 +390,7 @@ public class PdfExtractor extends PasswordBasedExtractor {
      * @param document the PDF document
      * @param writer the writer to append extracted text to
      */
-    protected void extractEmbeddedDocuments(final PDDocument document, final StringWriter writer) {
+    protected void extractEmbeddedDocuments(final PDDocument document, final Writer writer) {
         final PDDocumentNameDictionary namesDictionary = new PDDocumentNameDictionary(document.getDocumentCatalog());
         final PDEmbeddedFilesNameTreeNode efTree = namesDictionary.getEmbeddedFiles();
         if (efTree == null) {
@@ -298,7 +420,7 @@ public class PdfExtractor extends PasswordBasedExtractor {
      * @param embeddedFileNames the map of embedded file names to specifications
      * @param writer the writer to append extracted text to
      */
-    protected void processEmbeddedDocNames(final Map<String, PDComplexFileSpecification> embeddedFileNames, final StringWriter writer) {
+    protected void processEmbeddedDocNames(final Map<String, PDComplexFileSpecification> embeddedFileNames, final Writer writer) {
         if (embeddedFileNames == null || embeddedFileNames.isEmpty()) {
             return;
         }
@@ -418,5 +540,31 @@ public class PdfExtractor extends PasswordBasedExtractor {
     @Deprecated
     public void setDaemonThread(final boolean isDaemonThread) {
         // no-op: daemon worker threads are always used
+    }
+
+    /**
+     * Returns the maximum number of characters that will be accumulated in the
+     * extracted text output.
+     *
+     * @return the maximum text length
+     */
+    public long getMaxTextLength() {
+        return maxTextLength;
+    }
+
+    /**
+     * Sets the maximum number of characters that will be accumulated in the
+     * extracted text output. The default is {@link Long#MAX_VALUE}, which is
+     * effectively unlimited. Values less than or equal to zero explicitly
+     * disable the limit.
+     *
+     * <p>The limit is measured in Java {@code char} units (UTF-16 code units).
+     * At the truncation boundary, an unpaired high surrogate is dropped to avoid
+     * leaving an invalid string.
+     *
+     * @param maxTextLength the maximum text length
+     */
+    public void setMaxTextLength(final long maxTextLength) {
+        this.maxTextLength = maxTextLength;
     }
 }

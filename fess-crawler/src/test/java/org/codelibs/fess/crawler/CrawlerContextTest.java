@@ -366,7 +366,11 @@ public class CrawlerContextTest extends PlainTestCase {
     public void test_robotsTxtUrlSet() {
         Set<String> urlSet = crawlerContext.getRobotsTxtUrlSet();
         assertNotNull(urlSet);
-        assertTrue(urlSet instanceof LruHashSet);
+        // The default set is now wrapped with Collections.synchronizedSet(...) for thread safety
+        // (see CrawlerContext#robotsTxtUrlSet), so it is no longer an LruHashSet instance directly;
+        // its class name still reveals the synchronized-collection wrapper.
+        assertFalse(urlSet instanceof LruHashSet);
+        assertTrue(urlSet.getClass().getName().contains("Synchronized"));
         assertTrue(urlSet.isEmpty());
 
         // Add URLs to default set
@@ -404,6 +408,56 @@ public class CrawlerContextTest extends PlainTestCase {
         assertEquals(10000, urlSet.size());
         assertTrue(urlSet.contains("http://overflow.com/robots.txt"));
         assertFalse(urlSet.contains("http://example0.com/robots.txt")); // First one should be evicted
+    }
+
+    /**
+     * Test that concurrent robots.txt dedup checks for the SAME url only let one caller "win".
+     * <p>
+     * HTTP clients collapse the check-then-add into a single {@code getRobotsTxtUrlSet().add(url)}
+     * call (see Hc4HttpClient/Hc5HttpClient#processRobotsTxt) and rely on exactly one thread getting
+     * {@code true} back so only one thread fetches robots.txt for a given host. This exercises that
+     * contract directly, without needing an HTTP server.
+     */
+    @Test
+    public void test_robotsTxtUrlSet_concurrentAddSameUrl_onlyOneWinner() throws Exception {
+        final String url = "http://concurrent.example.com/robots.txt";
+        final int threadCount = 32;
+        final CountDownLatch startLatch = new CountDownLatch(1);
+        final CountDownLatch endLatch = new CountDownLatch(threadCount);
+        final AtomicInteger winnerCount = new AtomicInteger(0);
+        final List<Exception> exceptions = new ArrayList<>();
+
+        final ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        try {
+            for (int i = 0; i < threadCount; i++) {
+                executor.submit(() -> {
+                    try {
+                        startLatch.await();
+                        // Mirrors the atomic guard now used in Hc4HttpClient/Hc5HttpClient#processRobotsTxt.
+                        if (crawlerContext.getRobotsTxtUrlSet().add(url)) {
+                            winnerCount.incrementAndGet();
+                        }
+                    } catch (final Exception e) {
+                        synchronized (exceptions) {
+                            exceptions.add(e);
+                        }
+                    } finally {
+                        endLatch.countDown();
+                    }
+                });
+            }
+
+            startLatch.countDown();
+            assertTrue(endLatch.await(10, TimeUnit.SECONDS));
+        } finally {
+            executor.shutdown();
+        }
+
+        assertTrue(exceptions.isEmpty());
+        // Exactly one thread must have observed add()==true; the rest must see the url already present.
+        assertEquals(1, winnerCount.get());
+        assertEquals(1, crawlerContext.getRobotsTxtUrlSet().size());
+        assertTrue(crawlerContext.getRobotsTxtUrlSet().contains(url));
     }
 
     /**

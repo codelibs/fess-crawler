@@ -46,6 +46,7 @@ import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLContext;
 
+import org.apache.commons.io.input.BoundedInputStream;
 import org.apache.commons.io.output.DeferredFileOutputStream;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.hc.client5.http.DnsResolver;
@@ -805,8 +806,11 @@ public class Hc5HttpClient extends HcHttpClient {
         }
         final String robotTxtUrl = hostUrl + "/robots.txt";
 
-        // check url
-        if (crawlerContext.getRobotsTxtUrlSet().contains(robotTxtUrl)) {
+        // Atomically check-and-add: LruHashSet#add() (via the synchronized set wrapping it in
+        // CrawlerContext) returns false when robotTxtUrl was already present, so a single add()
+        // call replaces the previous contains()-then-add() pair. That avoided a race where two
+        // threads could both observe "not present" and both fetch robots.txt for the same host.
+        if (!crawlerContext.getRobotsTxtUrlSet().add(robotTxtUrl)) {
             if (logger.isDebugEnabled()) {
                 logger.debug("{} is already visited.", robotTxtUrl);
             }
@@ -816,8 +820,6 @@ public class Hc5HttpClient extends HcHttpClient {
         if (logger.isInfoEnabled()) {
             logger.info("Checking URL: {}", robotTxtUrl);
         }
-        // add url to a set
-        crawlerContext.getRobotsTxtUrlSet().add(robotTxtUrl);
 
         final HttpGet httpGet = new HttpGet(robotTxtUrl);
 
@@ -1062,13 +1064,65 @@ public class Hc5HttpClient extends HcHttpClient {
                     contentType = defaultMimeType;
                 }
             } else {
-                final InputStream responseBodyStream = httpEntity.getContent();
-                try (final DeferredFileOutputStream dfos = DeferredFileOutputStream.builder()
-                        .setThreshold((int) maxCachedContentSize)
-                        .setPrefix("crawler-Hc5HttpClient-")
-                        .setSuffix(".out")
-                        .setDirectory(SystemUtils.getJavaIoTmpDir())
-                        .get()) {
+                // Determine the effective max content length before downloading the body so an
+                // oversized response can be rejected without fully buffering it in memory or on
+                // disk. ContentLengthHelper#getMaxLength() never signals "no limit" via <= 0 --
+                // addMaxLength()/setDefaultMaxLength() both reject negative values -- so, by the
+                // convention used elsewhere in this codebase (see AbstractXmlExtractor#maxTextLength,
+                // ApiExtractor#maxResponseSize), Long.MAX_VALUE is the "effectively unlimited" value.
+                // contentLengthHelper itself may also be null (not injected, e.g. in some unit
+                // tests), which likewise means no length bound applies here. When contentType is
+                // still unknown at this point (no Content-Type header), the actual MIME type can
+                // only be determined by sniffing the body after it has been downloaded, so the
+                // per-type limit that will ultimately apply is not knowable yet either. Using just
+                // the default max here would risk bounding -- and thus truncating -- the stream
+                // below a larger per-type limit before the post-copy check ever runs; that check
+                // only compares the length already read against the limit, it cannot recover bytes
+                // the bound has already discarded. To stay safe, the overall upper bound across the
+                // default and all per-type limits (ContentLengthHelper#getMaxLength()) is used
+                // instead in that case. The post-copy check below still re-evaluates against the
+                // (possibly sniffed) final contentType for the authoritative, exact comparison.
+                final long maxLength;
+                if (contentLengthHelper == null) {
+                    maxLength = Long.MAX_VALUE;
+                } else if (contentType == null) {
+                    maxLength = contentLengthHelper.getMaxLength();
+                } else {
+                    maxLength = contentLengthHelper.getMaxLength(contentType);
+                }
+                final boolean lengthLimited = maxLength < Long.MAX_VALUE;
+
+                // Content-Length precheck: reject an oversized response before downloading
+                // anything, mirroring the robots.txt Content-Length check above. A malformed or
+                // unparseable declared length (e.g. "Content-Length: abc") must not fail the URL --
+                // it is treated as unknown so this precheck is skipped for that response, relying on
+                // the BoundedInputStream cap and the authoritative post-copy check below instead.
+                if (lengthLimited) {
+                    final Header declaredContentLengthHeader = response.getFirstHeader("Content-Length");
+                    if (declaredContentLengthHeader != null) {
+                        final long declaredContentLength = parseDeclaredContentLength(declaredContentLengthHeader.getValue());
+                        if (declaredContentLength >= 0 && declaredContentLength > maxLength) {
+                            throw new MaxLengthExceededException("The content length (" + declaredContentLength + " byte) is over "
+                                    + maxLength + " byte. The url is " + url);
+                        }
+                    }
+                }
+
+                final InputStream entityStream = httpEntity.getContent();
+                // Bound the stream so a chunked/unknown-length body that turns out to be oversized
+                // is capped mid-copy instead of being fully buffered before the size check below
+                // runs. The +1 (via incrementWithoutOverflow) lets one extra byte through so the
+                // post-copy check can still detect and report the excess; when unlimited, the
+                // stream is used as-is so no cap is ever applied.
+                try (final InputStream responseBodyStream = lengthLimited
+                        ? BoundedInputStream.builder().setInputStream(entityStream).setMaxCount(incrementWithoutOverflow(maxLength)).get()
+                        : entityStream;
+                        final DeferredFileOutputStream dfos = DeferredFileOutputStream.builder()
+                                .setThreshold((int) maxCachedContentSize)
+                                .setPrefix("crawler-Hc5HttpClient-")
+                                .setSuffix(".out")
+                                .setDirectory(SystemUtils.getJavaIoTmpDir())
+                                .get()) {
                     CopyUtil.copy(responseBodyStream, dfos);
                     dfos.flush();
 

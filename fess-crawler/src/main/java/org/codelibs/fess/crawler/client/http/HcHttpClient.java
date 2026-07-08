@@ -108,4 +108,45 @@ public abstract class HcHttpClient extends AbstractCrawlerClient {
     protected HcHttpClient() {
         // Default constructor
     }
+
+    /**
+     * Returns {@code value + 1} for use as a {@link org.apache.commons.io.input.BoundedInputStream}
+     * max-count that permits reading one byte past a configured size limit so the caller can detect
+     * an over-limit body. When {@code value} is {@link Long#MAX_VALUE}, returns {@code Long.MAX_VALUE}
+     * unchanged instead of overflowing to a negative number, which {@code BoundedInputStream} treats
+     * as "unbounded" -- silently disabling the cap.
+     *
+     * @param value the configured size limit in bytes
+     * @return {@code value + 1}, or {@code Long.MAX_VALUE} if incrementing would overflow
+     */
+    protected static long incrementWithoutOverflow(final long value) {
+        return value == Long.MAX_VALUE ? Long.MAX_VALUE : value + 1L;
+    }
+
+    /**
+     * Parses a declared {@code Content-Length} header value for the pre-download max-length
+     * precheck, tolerating a value that is missing, blank, not a valid number, or outside the
+     * range of a non-negative {@code long}.
+     * <p>
+     * A malformed or hostile {@code Content-Length} header (e.g. {@code "abc"}) must never cause
+     * the URL to fail: on {@link NumberFormatException} this method treats the declared length as
+     * "unknown" and returns {@code -1} so the caller can skip the precheck comparison for that
+     * response and fall back to the {@link org.apache.commons.io.input.BoundedInputStream} cap and
+     * the authoritative post-copy length check to enforce the limit.
+     * </p>
+     *
+     * @param value the raw {@code Content-Length} header value, may be {@code null}
+     * @return the parsed non-negative content length, or {@code -1} if the value could not be parsed
+     */
+    protected static long parseDeclaredContentLength(final String value) {
+        if (value == null) {
+            return -1L;
+        }
+        try {
+            final long parsed = Long.parseLong(value.trim());
+            return parsed >= 0L ? parsed : -1L;
+        } catch (final NumberFormatException e) {
+            return -1L;
+        }
+    }
 }

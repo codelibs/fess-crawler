@@ -15,15 +15,24 @@
  */
 package org.codelibs.fess.crawler.client.http;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.util.Date;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpVersion;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.message.BasicHttpResponse;
 import org.codelibs.fess.crawler.CrawlerContext;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
+import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.filter.UrlFilter;
 import org.codelibs.fess.crawler.filter.impl.UrlFilterImpl;
+import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.MemoryDataHelper;
 import org.codelibs.fess.crawler.helper.RobotsTxtHelper;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
@@ -34,6 +43,8 @@ import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
+
+import com.sun.net.httpserver.HttpServer;
 
 /**
  * @author shinsuke
@@ -254,6 +265,324 @@ public class Hc4HttpClientTest extends PlainTestCase {
             assertNotNull(result);
         } catch (Exception e) {
             // May fail depending on URI handling
+        }
+    }
+
+    // Tests for max content length enforcement (precheck + bounded stream)
+
+    /**
+     * A response whose Content-Length header exceeds the max must be rejected without the body
+     * ever being read. The server declares (and later, truthfully, delivers) a small body that
+     * matches its declared Content-Length, but only after an artificial delay; a full-download
+     * implementation would block waiting for that body, while a working precheck rejects based on
+     * the Content-Length header alone and returns almost immediately.
+     */
+    @Test
+    public void test_doGet_contentLengthHeaderExceedsMax_rejectedWithoutDownloading() throws Exception {
+        final SimpleHttpServer server = new SimpleHttpServer();
+        final byte[] body = new byte[1024];
+        server.setHandler(exchange -> {
+            exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=UTF-8");
+            exchange.sendResponseHeaders(200, body.length);
+            try {
+                // A full-download implementation would block here waiting for the body.
+                Thread.sleep(2000);
+            } catch (final InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            try (OutputStream out = exchange.getResponseBody()) {
+                out.write(body);
+            }
+        });
+        server.start();
+        try {
+            final ContentLengthHelper helper = new ContentLengthHelper();
+            helper.setDefaultMaxLength(64L);
+            httpClient.contentLengthHelper = helper;
+            httpClient.init();
+
+            final long start = System.currentTimeMillis();
+            try {
+                httpClient.doGet("http://127.0.0.1:" + server.port() + "/");
+                fail();
+            } catch (final MaxLengthExceededException e) {
+                final long elapsed = System.currentTimeMillis() - start;
+                assertTrue(e.getMessage().contains("over 64 byte"));
+                // The declared Content-Length (1024) must be reported verbatim, confirming the
+                // precheck (not the bounded-stream fallback) is what rejected the response.
+                assertTrue(e.getMessage().contains("(1024 byte)"));
+                // rejection should not wait for the (slow) body
+                assertTrue(elapsed < 1000);
+            }
+        } finally {
+            server.stop();
+        }
+    }
+
+    /**
+     * A response with no Content-Length header (chunked) whose body exceeds the max must be capped
+     * mid-copy and rejected, instead of being fully buffered first.
+     */
+    @Test
+    public void test_doGet_chunkedOversizeBody_cappedMidStream() throws Exception {
+        final SimpleHttpServer server = new SimpleHttpServer();
+        final byte[] body = new byte[8192];
+        for (int i = 0; i < body.length; i++) {
+            body[i] = (byte) ('a' + (i % 26));
+        }
+        server.setHandler(exchange -> {
+            exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=UTF-8");
+            // responseLength == 0 forces chunked Transfer-Encoding, i.e. no Content-Length header.
+            exchange.sendResponseHeaders(200, 0);
+            try (OutputStream out = exchange.getResponseBody()) {
+                out.write(body);
+            }
+        });
+        server.start();
+        try {
+            final ContentLengthHelper helper = new ContentLengthHelper();
+            helper.setDefaultMaxLength(64L);
+            httpClient.contentLengthHelper = helper;
+            httpClient.init();
+
+            try {
+                httpClient.doGet("http://127.0.0.1:" + server.port() + "/");
+                fail();
+            } catch (final MaxLengthExceededException e) {
+                assertTrue(e.getMessage().contains("over 64 byte"));
+                // The reported size must be capped near the limit (maxLength+1), not the true 8192
+                // byte body -- proving the copy was aborted mid-stream rather than fully buffered.
+                assertTrue(e.getMessage().contains("(65 byte)"));
+            }
+        } finally {
+            server.stop();
+        }
+    }
+
+    /**
+     * A within-limit response must be returned unchanged (same behavior as before this change).
+     */
+    @Test
+    public void test_doGet_withinLimit_unaffected() throws Exception {
+        final SimpleHttpServer server = new SimpleHttpServer();
+        final byte[] body = "Hello, crawler!".getBytes("UTF-8");
+        server.setHandler(exchange -> {
+            exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=UTF-8");
+            exchange.sendResponseHeaders(200, body.length);
+            try (OutputStream out = exchange.getResponseBody()) {
+                out.write(body);
+            }
+        });
+        server.start();
+        try {
+            final ContentLengthHelper helper = new ContentLengthHelper();
+            helper.setDefaultMaxLength(1024L * 1024L);
+            httpClient.contentLengthHelper = helper;
+            httpClient.init();
+
+            final ResponseData responseData = httpClient.doGet("http://127.0.0.1:" + server.port() + "/");
+            assertEquals(200, responseData.getHttpStatusCode());
+            assertEquals((long) body.length, responseData.getContentLength());
+        } finally {
+            server.stop();
+        }
+    }
+
+    /**
+     * When the configured max length is "unlimited" (Long.MAX_VALUE), a large body must not be
+     * rejected and must not be bounded.
+     */
+    @Test
+    public void test_doGet_unlimitedMaxLength_doesNotRejectLargeBody() throws Exception {
+        final SimpleHttpServer server = new SimpleHttpServer();
+        final byte[] body = new byte[256 * 1024];
+        for (int i = 0; i < body.length; i++) {
+            body[i] = (byte) ('a' + (i % 26));
+        }
+        server.setHandler(exchange -> {
+            exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=UTF-8");
+            exchange.sendResponseHeaders(200, body.length);
+            try (OutputStream out = exchange.getResponseBody()) {
+                out.write(body);
+            }
+        });
+        server.start();
+        try {
+            final ContentLengthHelper helper = new ContentLengthHelper();
+            helper.setDefaultMaxLength(Long.MAX_VALUE);
+            httpClient.contentLengthHelper = helper;
+            httpClient.init();
+
+            final ResponseData responseData = httpClient.doGet("http://127.0.0.1:" + server.port() + "/");
+            assertEquals(200, responseData.getHttpStatusCode());
+            assertEquals((long) body.length, responseData.getContentLength());
+        } finally {
+            server.stop();
+        }
+    }
+
+    /**
+     * When no ContentLengthHelper is configured at all (contentLengthHelper == null, e.g. a client
+     * built without DI), a large body must likewise not be rejected.
+     */
+    @Test
+    public void test_doGet_noContentLengthHelper_doesNotRejectLargeBody() throws Exception {
+        final SimpleHttpServer server = new SimpleHttpServer();
+        final byte[] body = new byte[256 * 1024];
+        for (int i = 0; i < body.length; i++) {
+            body[i] = (byte) ('a' + (i % 26));
+        }
+        server.setHandler(exchange -> {
+            exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=UTF-8");
+            exchange.sendResponseHeaders(200, body.length);
+            try (OutputStream out = exchange.getResponseBody()) {
+                out.write(body);
+            }
+        });
+        server.start();
+        try {
+            httpClient.contentLengthHelper = null;
+            httpClient.init();
+
+            final ResponseData responseData = httpClient.doGet("http://127.0.0.1:" + server.port() + "/");
+            assertEquals(200, responseData.getHttpStatusCode());
+            assertEquals((long) body.length, responseData.getContentLength());
+        } finally {
+            server.stop();
+        }
+    }
+
+    // Tests for FIX 1 (guarded Content-Length precheck parse) and FIX 2 (overall-max bound when
+    // contentType is unknown). Unlike Apache HttpClient5, HttpClient4/HttpCore4 (4.5.14/4.4.16)
+    // do NOT validate the Content-Length header at the wire-protocol level: a response with a
+    // malformed value (e.g. "not-a-number") is handed back successfully with the entity's own
+    // content length reported as -1 (unknown) and the raw header value left untouched -- so an
+    // Hc4HttpClient precheck bug here IS directly reachable from a real network response. These
+    // tests nonetheless override executeHttpClient() to avoid depending on that transport-layer
+    // leniency (which is not guaranteed across library versions), exercising the precheck/bound
+    // logic under test deterministically.
+
+    /**
+     * A response with a malformed (non-numeric) Content-Length header must not fail the URL: the
+     * declared length is treated as unknown, the precheck comparison is skipped, and a
+     * well-formed, within-limit body is still downloaded and returned normally.
+     */
+    @Test
+    public void test_doGet_malformedContentLengthHeader_withinLimitBody_succeeds() throws Exception {
+        final byte[] body = "Hello, crawler!".getBytes("UTF-8");
+        final Hc4HttpClient client = new Hc4HttpClient() {
+            @Override
+            protected HttpResponse executeHttpClient(final HttpUriRequest httpRequest) {
+                final BasicHttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+                response.setHeader("Content-Type", "text/plain; charset=UTF-8");
+                response.setHeader("Content-Length", "not-a-number");
+                response.setEntity(new ByteArrayEntity(body));
+                return response;
+            }
+        };
+        final ContentLengthHelper helper = new ContentLengthHelper();
+        helper.setDefaultMaxLength(1024L * 1024L);
+        client.contentLengthHelper = helper;
+
+        final ResponseData responseData = client.doGet("http://127.0.0.1/dummy");
+        assertEquals(200, responseData.getHttpStatusCode());
+        assertEquals((long) body.length, responseData.getContentLength());
+    }
+
+    /**
+     * A malformed Content-Length header must not itself cause a failure, but an actually oversized
+     * body must still be capped mid-copy by the BoundedInputStream and rejected by the
+     * authoritative post-copy check -- proving the malformed header only disables the precheck
+     * shortcut, not the enforcement of the limit itself.
+     */
+    @Test
+    public void test_doGet_malformedContentLengthHeader_oversizedBody_stillCappedAndRejected() throws Exception {
+        final byte[] body = new byte[8192];
+        for (int i = 0; i < body.length; i++) {
+            body[i] = (byte) ('a' + (i % 26));
+        }
+        final Hc4HttpClient client = new Hc4HttpClient() {
+            @Override
+            protected HttpResponse executeHttpClient(final HttpUriRequest httpRequest) {
+                final BasicHttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+                response.setHeader("Content-Type", "text/plain; charset=UTF-8");
+                response.setHeader("Content-Length", "not-a-number");
+                response.setEntity(new ByteArrayEntity(body));
+                return response;
+            }
+        };
+        final ContentLengthHelper helper = new ContentLengthHelper();
+        helper.setDefaultMaxLength(64L);
+        client.contentLengthHelper = helper;
+
+        try {
+            client.doGet("http://127.0.0.1/dummy");
+            fail();
+        } catch (final MaxLengthExceededException e) {
+            assertTrue(e.getMessage().contains("over 64 byte"));
+            // Capped near the limit (maxLength+1), not the true 8192 byte body.
+            assertTrue(e.getMessage().contains("(65 byte)"));
+        }
+    }
+
+    /**
+     * When the response has no Content-Type header (so the type is unknown until the body is
+     * sniffed) and a per-type limit configured for the eventually-sniffed type is larger than the
+     * default, the precheck/bound must use the overall upper bound rather than just the default --
+     * otherwise a body sized in (default, perType] would be capped at default+1 and silently
+     * accepted as truncated once the post-copy check re-evaluates against the larger, sniffed-type
+     * limit. This asserts the body is downloaded and returned in full, unmodified.
+     */
+    @Test
+    public void test_doGet_unknownContentTypeWithLargerPerTypeLimit_notTruncated() throws Exception {
+        final StringBuilder text = new StringBuilder();
+        while (text.length() < 4096) {
+            text.append("The quick brown fox jumps over the lazy dog. ");
+        }
+        final byte[] body = text.toString().getBytes("UTF-8");
+
+        final Hc4HttpClient client = new Hc4HttpClient() {
+            @Override
+            protected HttpResponse executeHttpClient(final HttpUriRequest httpRequest) {
+                final BasicHttpResponse response = new BasicHttpResponse(HttpVersion.HTTP_1_1, 200, "OK");
+                // Deliberately no Content-Type header -- the type is only knowable after sniffing.
+                response.setEntity(new ByteArrayEntity(body));
+                return response;
+            }
+        };
+        final ContentLengthHelper helper = new ContentLengthHelper();
+        helper.setDefaultMaxLength(100L);
+        helper.addMaxLength("text/plain", 1024L * 1024L);
+        client.contentLengthHelper = helper;
+        client.mimeTypeHelper = new MimeTypeHelperImpl();
+
+        final ResponseData responseData = client.doGet("http://127.0.0.1/dummy");
+        assertEquals(200, responseData.getHttpStatusCode());
+        assertEquals("text/plain", responseData.getMimeType());
+        assertEquals((long) body.length, responseData.getContentLength());
+    }
+
+    /** Lightweight HTTP server used for max-content-length tests, mirroring ApiExtractorTest's helper. */
+    private static class SimpleHttpServer {
+        private HttpServer http;
+        private int boundPort;
+
+        void setHandler(final com.sun.net.httpserver.HttpHandler handler) throws IOException {
+            http = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+            http.createContext("/", handler);
+        }
+
+        void start() {
+            http.start();
+            boundPort = http.getAddress().getPort();
+        }
+
+        void stop() {
+            http.stop(0);
+        }
+
+        int port() {
+            return boundPort;
         }
     }
 

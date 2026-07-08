@@ -19,10 +19,12 @@ import java.io.StringReader;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.builder.RequestDataBuilder;
 import org.codelibs.fess.crawler.entity.AccessResultDataImpl;
+import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
@@ -544,6 +546,58 @@ public class HtmlTransformerTest extends PlainTestCase {
         final DOMParser parser = htmlTransformer.getDomParser();
         parser.parse(new InputSource(new StringReader(html)));
         return parser.getDocument();
+    }
+
+    // -----------------------------------------------------
+    //                                        storeChildUrls
+    //                                        ---------------
+    @Test
+    public void test_storeChildUrls_withPreParsedDocument() throws Exception {
+        // The 3-arg overload, given a Document already parsed by the caller, must discover the
+        // same child URLs as the 2-arg overload that parses the response body itself.
+        final String content = "<html><body>"//
+                + "<a href=\"test2.html\">test</a>"//
+                + "<a href=\"http://fuga/other.html\">other</a>"//
+                + "<base href=\"http://hoge/base/\">"//
+                + "</body></html>";
+
+        final ResponseData responseData1 = new ResponseData();
+        responseData1.setUrl("http://hoge/test.html");
+        responseData1.setResponseBody(content.getBytes());
+        responseData1.setCharSet("UTF-8");
+        responseData1.setMimeType("text/html");
+        final ResultData expected = new ResultData();
+        htmlTransformer.storeChildUrls(responseData1, expected);
+
+        final ResponseData responseData2 = new ResponseData();
+        responseData2.setUrl("http://hoge/test.html");
+        responseData2.setResponseBody(content.getBytes());
+        responseData2.setCharSet("UTF-8");
+        responseData2.setMimeType("text/html");
+        final Document document = parseHtml(content);
+        final ResultData actual = new ResultData();
+        htmlTransformer.storeChildUrls(responseData2, actual, document);
+
+        final List<String> expectedUrls = expected.getChildUrlSet().stream().map(RequestData::getUrl).sorted().collect(Collectors.toList());
+        final List<String> actualUrls = actual.getChildUrlSet().stream().map(RequestData::getUrl).sorted().collect(Collectors.toList());
+        assertEquals(2, expectedUrls.size());
+        assertEquals(expectedUrls, actualUrls);
+    }
+
+    @Test
+    public void test_storeChildUrls_twoArgDelegatesToThreeArg() throws Exception {
+        // The 2-arg overload must still work end-to-end (parse + extract) for existing callers.
+        final String content = "<a href=\"child.html\">link</a>";
+        final ResponseData responseData = new ResponseData();
+        responseData.setUrl("http://hoge/test.html");
+        responseData.setResponseBody(content.getBytes());
+        responseData.setCharSet("UTF-8");
+        responseData.setMimeType("text/html");
+        final ResultData resultData = new ResultData();
+        htmlTransformer.storeChildUrls(responseData, resultData);
+
+        assertEquals(1, resultData.getChildUrlSet().size());
+        assertEquals("http://hoge/child.html", resultData.getChildUrlSet().iterator().next().getUrl());
     }
 
     // -----------------------------------------------------

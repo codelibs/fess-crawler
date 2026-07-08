@@ -247,6 +247,10 @@ public class HtmlTransformer extends AbstractTransformer {
 
     /**
      * Stores child URLs found in the HTML content.
+     * <p>
+     * This parses the response body into a DOM {@link Document} and delegates the
+     * actual extraction to {@link #storeChildUrls(ResponseData, ResultData, Document)}.
+     * </p>
      *
      * @param responseData the response data containing the HTML content
      * @param resultData the result data to store child URLs in
@@ -257,39 +261,58 @@ public class HtmlTransformer extends AbstractTransformer {
             final DOMParser parser = getDomParser();
             parser.parse(new InputSource(is));
             final Document document = parser.getDocument();
-            // base href
-            final String baseHref = getBaseHref(document);
-            URL url;
-            try {
-                if (baseHref == null) {
-                    url = new URL(responseData.getUrl());
-                } else {
-                    url = new URL(new URL(responseData.getUrl()), baseHref);
-                }
-            } catch (final Exception e) {
-                url = new URL(responseData.getUrl());
-            }
-            final URL baseUrl = url;
-            getChildUrlRules(responseData, resultData).forEach(entry -> {
-                List<RequestData> requestDataList = new ArrayList<>();
-                for (final String childUrl : getUrlFromTagAttribute(baseUrl, document, entry.getFirst(), entry.getSecond(),
-                        responseData.getCharSet())) {
-                    requestDataList.add(RequestDataBuilder.newRequestData().get().url(childUrl).build());
-                }
-                requestDataList = convertChildUrlList(requestDataList);
-                resultData.addAllUrl(requestDataList);
-            });
-
-            resultData.addAllUrl(responseData.getChildUrlSet());
-
-            final RequestData requestData = responseData.getRequestData();
-            resultData.removeUrl(requestData);
-            resultData.removeUrl(getDuplicateUrl(requestData));
+            storeChildUrls(responseData, resultData, document);
         } catch (final CrawlerSystemException e) {
             throw e;
         } catch (final Exception e) {
             throw new CrawlerSystemException("Could not store data.", e);
         }
+    }
+
+    /**
+     * Stores child URLs found in the given, already-parsed DOM document.
+     * <p>
+     * This overload lets a caller that has already parsed the response body into a
+     * {@link Document} (for example, to also perform XPath-based content extraction)
+     * reuse that document instead of causing {@link #storeChildUrls(ResponseData, ResultData)}
+     * to parse the same content a second time.
+     * </p>
+     *
+     * @param responseData the response data containing the HTML content
+     * @param resultData the result data to store child URLs in
+     * @param document the pre-parsed DOM document to extract child URLs from
+     * @throws MalformedURLException if the response URL or the resolved base URL is malformed
+     */
+    protected void storeChildUrls(final ResponseData responseData, final ResultData resultData, final Document document)
+            throws MalformedURLException {
+        // base href
+        final String baseHref = getBaseHref(document);
+        URL url;
+        try {
+            if (baseHref == null) {
+                url = new URL(responseData.getUrl());
+            } else {
+                url = new URL(new URL(responseData.getUrl()), baseHref);
+            }
+        } catch (final Exception e) {
+            url = new URL(responseData.getUrl());
+        }
+        final URL baseUrl = url;
+        getChildUrlRules(responseData, resultData).forEach(entry -> {
+            List<RequestData> requestDataList = new ArrayList<>();
+            for (final String childUrl : getUrlFromTagAttribute(baseUrl, document, entry.getFirst(), entry.getSecond(),
+                    responseData.getCharSet())) {
+                requestDataList.add(RequestDataBuilder.newRequestData().get().url(childUrl).build());
+            }
+            requestDataList = convertChildUrlList(requestDataList);
+            resultData.addAllUrl(requestDataList);
+        });
+
+        resultData.addAllUrl(responseData.getChildUrlSet());
+
+        final RequestData requestData = responseData.getRequestData();
+        resultData.removeUrl(requestData);
+        resultData.removeUrl(getDuplicateUrl(requestData));
     }
 
     /**

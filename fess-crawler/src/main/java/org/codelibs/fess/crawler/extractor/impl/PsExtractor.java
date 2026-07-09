@@ -16,12 +16,13 @@
 package org.codelibs.fess.crawler.extractor.impl;
 
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.codelibs.core.io.InputStreamUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.ExtractException;
@@ -43,6 +44,16 @@ import org.codelibs.fess.crawler.exception.UnsupportedExtractException;
  * via loops or procedures, font encoding redefinitions, or binary-encoded
  * PostScript files.
  * </p>
+ *
+ * <p>
+ * The input stream is decoded via a {@code BufferedReader} (not buffered into a
+ * byte array first) and the raw character count is bounded by
+ * {@link #maxTextLength}, mirroring the same cap used by {@link TextExtractor}
+ * and {@link MarkdownExtractor}. When truncation occurs, a WARN-level log
+ * message is emitted and the returned {@link ExtractData} carries
+ * {@code truncated=true} and {@code maxTextLength=<value>} metadata entries.
+ * The supplied input stream is closed by {@link #getText(InputStream, Map)}.
+ * </p>
  */
 public class PsExtractor extends AbstractExtractor {
 
@@ -55,6 +66,17 @@ public class PsExtractor extends AbstractExtractor {
     protected String encoding = Constants.UTF_8;
 
     /**
+     * Maximum number of characters to read from the input. The default is
+     * {@link Long#MAX_VALUE}, which is effectively unlimited. Values less than
+     * or equal to zero explicitly disable the limit.
+     *
+     * <p>The limit is measured in Java {@code char} units (UTF-16 code units).
+     * At the truncation boundary, an unpaired high surrogate is dropped to avoid
+     * leaving an invalid string.
+     */
+    protected long maxTextLength = Long.MAX_VALUE;
+
+    /**
      * Creates a new PsExtractor instance.
      */
     public PsExtractor() {
@@ -65,12 +87,20 @@ public class PsExtractor extends AbstractExtractor {
     public ExtractData getText(final InputStream in, final Map<String, String> params) {
         validateInputStream(in);
         try {
-            final String psContent = new String(InputStreamUtil.getBytes(in), getEncoding());
-            final String extractedText = extractText(psContent);
+            final TextReadResult readResult;
+            try (Reader reader = new InputStreamReader(in, getEncoding())) {
+                readResult = readWithLimit(reader, maxTextLength);
+            }
+            final String extractedText = extractText(readResult.content);
             if (extractedText.isEmpty()) {
                 throw new UnsupportedExtractException("No text found in PostScript content.");
             }
-            return new ExtractData(extractedText);
+            final ExtractData extractData = new ExtractData(extractedText);
+            if (readResult.truncated) {
+                extractData.putValue("truncated", "true");
+                extractData.putValue("maxTextLength", Long.toString(maxTextLength));
+            }
+            return extractData;
         } catch (final UnsupportedExtractException e) {
             throw e;
         } catch (final Exception e) {
@@ -97,6 +127,32 @@ public class PsExtractor extends AbstractExtractor {
      */
     public void setEncoding(final String encoding) {
         this.encoding = encoding;
+    }
+
+    /**
+     * Returns the maximum number of characters that will be read from the
+     * input stream before truncation.
+     *
+     * @return the maximum text length
+     */
+    public long getMaxTextLength() {
+        return maxTextLength;
+    }
+
+    /**
+     * Sets the maximum number of characters that will be read from the input
+     * stream. The default is {@link Long#MAX_VALUE}, which is effectively
+     * unlimited. Values less than or equal to zero explicitly disable the
+     * limit.
+     *
+     * <p>The limit is measured in Java {@code char} units (UTF-16 code units).
+     * At the truncation boundary, an unpaired high surrogate is dropped to avoid
+     * leaving an invalid string.
+     *
+     * @param maxTextLength the maximum text length
+     */
+    public void setMaxTextLength(final long maxTextLength) {
+        this.maxTextLength = maxTextLength;
     }
 
     /**

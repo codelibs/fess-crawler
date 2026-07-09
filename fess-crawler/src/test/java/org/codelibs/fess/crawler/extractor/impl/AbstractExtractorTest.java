@@ -88,6 +88,10 @@ public class AbstractExtractorTest extends PlainTestCase {
         public long testAddOneSaturating(final long value) {
             return addOneSaturating(value);
         }
+
+        public InputStream testLimitInputStream(final InputStream in, final long limit) {
+            return limitInputStream(in, limit);
+        }
     }
 
     private TestExtractor extractor;
@@ -447,5 +451,39 @@ public class AbstractExtractorTest extends PlainTestCase {
         assertEquals(Long.MAX_VALUE, extractor.testAddOneSaturating(Long.MAX_VALUE - 1L));
         // Verify the result is positive (not wrapped to negative).
         assertTrue(extractor.testAddOneSaturating(Long.MAX_VALUE) > 0);
+    }
+
+    // -----------------------------------------------------------------------
+    // limitInputStream (input-size bound)
+    // -----------------------------------------------------------------------
+
+    /** A stream of exactly {@code limit} bytes is fully readable and never throws. */
+    @Test
+    public void test_limitInputStream_exactlyLimit_readsAllNoThrow() throws Exception {
+        final InputStream bounded = extractor.testLimitInputStream(new ByteArrayInputStream(new byte[10]), 10);
+        final byte[] read = bounded.readAllBytes();
+        assertEquals(10, read.length);
+    }
+
+    /** One byte beyond the limit triggers MaxLengthExceededException. */
+    @Test
+    public void test_limitInputStream_limitPlusOne_throws() throws Exception {
+        final InputStream bounded = extractor.testLimitInputStream(new ByteArrayInputStream(new byte[11]), 10);
+        try {
+            bounded.readAllBytes();
+            fail();
+        } catch (final MaxLengthExceededException e) {
+            assertTrue(e.getMessage().contains("input size exceeded limit"));
+        }
+    }
+
+    /** A limit of zero or less returns the SAME instance unwrapped and never throws. */
+    @Test
+    public void test_limitInputStream_nonPositiveLimit_returnsSameInstance() throws Exception {
+        final InputStream original = new ByteArrayInputStream(new byte[100]);
+        org.junit.jupiter.api.Assertions.assertSame(original, extractor.testLimitInputStream(original, 0));
+        org.junit.jupiter.api.Assertions.assertSame(original, extractor.testLimitInputStream(original, -1L));
+        // The unwrapped stream reads all bytes without any bound.
+        assertEquals(100, original.readAllBytes().length);
     }
 }

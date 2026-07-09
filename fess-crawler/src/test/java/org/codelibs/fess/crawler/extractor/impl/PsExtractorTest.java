@@ -24,6 +24,7 @@ import org.apache.logging.log4j.Logger;
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
+import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.UnsupportedExtractException;
 import org.dbflute.utflute.core.PlainTestCase;
@@ -261,6 +262,61 @@ public class PsExtractorTest extends PlainTestCase {
     @Test
     public void test_getText_incompleteLessThan() {
         final String ps = "%!PS\n<";
+        final InputStream in = new ByteArrayInputStream(ps.getBytes(StandardCharsets.UTF_8));
+        try {
+            psExtractor.getText(in, null);
+            fail();
+        } catch (final UnsupportedExtractException e) {
+            // NOP
+        } finally {
+            CloseableUtil.closeQuietly(in);
+        }
+    }
+
+    @Test
+    public void test_getText_truncatesAtMaxTextLength() {
+        // A pathological/oversized PostScript stream must be bounded rather than read
+        // entirely into memory. Build a stream far larger than a small cap and verify the
+        // extractor stops well short of consuming/decoding the whole thing.
+        psExtractor.setMaxTextLength(200);
+        final StringBuilder ps = new StringBuilder("%!PS\n72 700 moveto\n");
+        for (int i = 0; i < 100_000; i++) {
+            ps.append("(Hello World ").append(i).append(") show\n");
+        }
+        ps.append("showpage\n");
+        final InputStream in = new ByteArrayInputStream(ps.toString().getBytes(StandardCharsets.UTF_8));
+        final ExtractData extractData = psExtractor.getText(in, null);
+        CloseableUtil.closeQuietly(in);
+
+        // The raw (pre-parse) character count fed into extractText is capped at 200 chars,
+        // so the resulting extracted text must be far smaller than the ~2MB source.
+        assertTrue(extractData.getContent().length() < 200);
+        final String[] truncated = extractData.getValues("truncated");
+        assertNotNull(truncated);
+        assertEquals("true", truncated[0]);
+        final String[] maxLen = extractData.getValues("maxTextLength");
+        assertNotNull(maxLen);
+        assertEquals("200", maxLen[0]);
+    }
+
+    @Test
+    public void test_getText_maxTextLengthDoesNotAffectNormalInput() {
+        // Default maxTextLength (unlimited) must not change output for a normal-sized file.
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.ps");
+        final ExtractData extractData = psExtractor.getText(in, null);
+        CloseableUtil.closeQuietly(in);
+        assertTrue(extractData.getContent().contains("Hello World"));
+        assertTrue(extractData.getContent().contains("test of PostScript"));
+        assertNull(extractData.getValues("truncated"));
+    }
+
+    @Test
+    public void test_getText_maxTextLength_exceedsCapButNoShowTextFound() {
+        // When truncation lands before any show-family operator, the (now-shorter) content
+        // still yields no extractable text and must throw the same exception as an empty
+        // document, not silently succeed with a different result shape.
+        psExtractor.setMaxTextLength(5);
+        final String ps = "%!PS\n72 700 moveto\n(Hello World) show\nshowpage\n";
         final InputStream in = new ByteArrayInputStream(ps.getBytes(StandardCharsets.UTF_8));
         try {
             psExtractor.getText(in, null);

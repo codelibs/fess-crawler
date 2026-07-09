@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.file.Path;
 import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
@@ -118,12 +119,20 @@ public class FileTransformer extends HtmlTransformer {
 
     /**
      * Creates a file with the specified path, handling directory creation and duplicate names.
+     * <p>
+     * The target (leaf) file is reserved atomically via {@link File#createNewFile()} so that,
+     * even when this method is invoked concurrently by multiple crawler threads for the same
+     * path, no two callers can ever be handed the same file to write into. This whole method
+     * is synchronized so that the (cheap) directory/name resolution and reservation stay a
+     * short critical section; the actual, potentially slow, content copy is performed by the
+     * caller outside of any lock.
+     * </p>
      *
      * @param path the file path to create
-     * @return the created file
-     * @throws CrawlerSystemException if directory creation fails
+     * @return the reserved, empty file
+     * @throws CrawlerSystemException if directory creation fails or a unique file could not be reserved
      */
-    protected File createFile(final String path) {
+    protected synchronized File createFile(final String path) {
         final String[] paths = path.split("/");
         File targetFile = baseDir;
         for (int i = 0; i < paths.length - 1; i++) {
@@ -149,27 +158,53 @@ public class FileTransformer extends HtmlTransformer {
             targetFile = file;
         }
 
-        File file = new File(targetFile, paths[paths.length - 1]);
-        if (file.exists()) {
+        return reserveFile(targetFile, paths[paths.length - 1]);
+    }
+
+    /**
+     * Atomically reserves a unique, empty file named {@code baseName} (or {@code baseName_N} on
+     * collision) under {@code dir}, using {@link File#createNewFile()} so the existence check and
+     * the creation happen as a single filesystem operation. This closes the check-then-act race
+     * that would otherwise allow two threads to select the same target file.
+     *
+     * @param dir the directory in which to reserve the file
+     * @param baseName the base file name, before any duplicate-avoidance suffix is appended
+     * @return the newly created, empty file
+     * @throws CrawlerSystemException if the file could not be created, or no unique name was
+     *             available within {@link #maxDuplicatedPath} attempts
+     */
+    private File reserveFile(final File dir, final String baseName) {
+        File file = new File(dir, baseName);
+        try {
+            if (file.createNewFile()) {
+                return file;
+            }
             for (int i = 0; i < maxDuplicatedPath; i++) {
-                file = new File(targetFile, paths[paths.length - 1] + "_" + i);
-                if (!file.exists()) {
-                    targetFile = file;
-                    break;
+                file = new File(dir, baseName + "_" + i);
+                if (file.createNewFile()) {
+                    return file;
                 }
             }
-        } else {
-            targetFile = file;
+        } catch (final IOException e) {
+            throw new CrawlerSystemException("Could not create " + file.getAbsolutePath(), e);
         }
-        return targetFile;
+        throw new CrawlerSystemException("Could not create a unique file for " + new File(dir, baseName).getAbsolutePath());
     }
 
     /**
      * Stores response data as a file on the file system.
+     * <p>
+     * Only the target file reservation (see {@link #createFile(String)}) is synchronized; the
+     * actual, potentially slow, content copy runs outside of any lock so that concurrent
+     * crawler threads can write their files in parallel instead of serializing on this shared
+     * transformer instance.
+     * </p>
      *
      * @param responseData the response data to store
      * @param resultData the result data to populate with file information
-     * @throws CrawlerSystemException if file storage fails
+     * @throws CrawlerSystemException if the target file cannot be reserved, or if the output file
+     *             cannot be opened or closed. I/O errors raised while copying the response body are
+     *             propagated as {@code IORuntimeException} by {@code CopyUtil}, not wrapped here.
      */
     @Override
     public void storeData(final ResponseData responseData, final ResultData resultData) {
@@ -180,26 +215,45 @@ public class FileTransformer extends HtmlTransformer {
         final String url = responseData.getUrl();
         final String path = getFilePath(url);
 
-        synchronized (this) {
+        final File file = createFile(path);
+        boolean completed = false;
 
-            final File file = createFile(path);
-
-            try (final InputStream is = responseData.getResponseBody(); final OutputStream os = new FileOutputStream(file);) {
+        try {
+            try (final InputStream is = responseData.getResponseBody(); final OutputStream os = new FileOutputStream(file)) {
                 CopyUtil.copy(is, os);
-            } catch (final IOException e) {
-                throw new CrawlerSystemException("Could not store " + file.getAbsolutePath(), e);
+            }
+            completed = true;
+        } catch (final IOException e) {
+            throw new CrawlerSystemException("Could not store " + file.getAbsolutePath(), e);
+        } finally {
+            if (!completed && file.exists() && !file.delete() && logger.isDebugEnabled()) {
+                logger.debug("Could not delete incomplete file: {}", file.getAbsolutePath());
             }
         }
+
+        final String storedPath = getRelativePath(file);
         try {
-            resultData.setData(path.getBytes(charsetName));
+            resultData.setData(storedPath.getBytes(charsetName));
         } catch (final UnsupportedEncodingException e) {
             if (logger.isInfoEnabled()) {
                 logger.info("Invalid charsetName: " + charsetName + ". Changed to " + Constants.UTF_8, e);
             }
             charsetName = Constants.UTF_8_CHARSET.name();
-            resultData.setData(path.getBytes(Constants.UTF_8_CHARSET));
+            resultData.setData(storedPath.getBytes(Constants.UTF_8_CHARSET));
         }
         resultData.setEncoding(charsetName);
+    }
+
+    /**
+     * Returns a baseDir-relative path suitable for storing in {@link ResultData}.
+     *
+     * @param file stored file
+     * @return baseDir-relative file path
+     */
+    protected String getRelativePath(final File file) {
+        final Path basePath = baseDir.toPath().toAbsolutePath().normalize();
+        final Path filePath = file.toPath().toAbsolutePath().normalize();
+        return basePath.relativize(filePath).toString().replace(File.separatorChar, '/');
     }
 
     /**

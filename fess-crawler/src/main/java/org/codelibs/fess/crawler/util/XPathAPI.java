@@ -15,8 +15,11 @@
  */
 package org.codelibs.fess.crawler.util;
 
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.function.Consumer;
 
+import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathEvaluationResult;
@@ -48,6 +51,36 @@ import org.w3c.dom.Node;
  * @see javax.xml.xpath.XPathExpressionException
  */
 public class XPathAPI {
+
+    /**
+     * An empty, document-free {@link NamespaceContext} used to reset the reused {@link XPath} after
+     * evaluating with a caller-supplied context when there was no previous context to restore.
+     * {@link XPath#setNamespaceContext(NamespaceContext)} rejects {@code null}, so this shared,
+     * immutable instance is set instead of leaving the caller's (potentially document-bound) context
+     * resting on the cached {@link XPath}, which would otherwise pin that document's DOM in memory.
+     */
+    private static final NamespaceContext EMPTY_NAMESPACE_CONTEXT = new NamespaceContext() {
+        @Override
+        public String getNamespaceURI(final String prefix) {
+            if (XMLConstants.XML_NS_PREFIX.equals(prefix)) {
+                return XMLConstants.XML_NS_URI;
+            }
+            if (XMLConstants.XMLNS_ATTRIBUTE.equals(prefix)) {
+                return XMLConstants.XMLNS_ATTRIBUTE_NS_URI;
+            }
+            return XMLConstants.NULL_NS_URI;
+        }
+
+        @Override
+        public String getPrefix(final String namespaceURI) {
+            return null;
+        }
+
+        @Override
+        public Iterator<String> getPrefixes(final String namespaceURI) {
+            return Collections.emptyIterator();
+        }
+    };
 
     private final XPath xPath;
 
@@ -117,9 +150,10 @@ public class XPathAPI {
             try {
                 return xPath.evaluateExpression(expression, contextNode, XPathNodes.class);
             } finally {
-                if (previousNamespaceContext != null) {
-                    xPath.setNamespaceContext(previousNamespaceContext);
-                }
+                // Reset the reused XPath so it does not keep referencing the caller-supplied namespace
+                // context (and, through it, the parsed document) after this call. setNamespaceContext
+                // rejects null, so fall back to an empty context when there was no previous one.
+                xPath.setNamespaceContext(previousNamespaceContext != null ? previousNamespaceContext : EMPTY_NAMESPACE_CONTEXT);
             }
         }
         return xPath.evaluateExpression(expression, contextNode, XPathNodes.class);

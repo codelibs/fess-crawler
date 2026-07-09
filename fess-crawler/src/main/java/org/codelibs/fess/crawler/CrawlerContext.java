@@ -15,6 +15,7 @@
  */
 package org.codelibs.fess.crawler;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -85,8 +86,16 @@ public class CrawlerContext {
 
     /**
      * Set of robots.txt URLs that have been processed.
+     * <p>
+     * Wrapped with {@link Collections#synchronizedSet(Set)} because {@link LruHashSet} (backed by a
+     * plain, non-thread-safe {@code LruHashMap}) is shared across all crawler threads. HTTP clients
+     * collapse their check-then-add into a single {@code add(url)} call, which under this wrapper is
+     * synchronized as one atomic operation -- avoiding both backing-map corruption from concurrent
+     * structural modification and duplicate robots.txt fetches. The 10000-entry LRU bound and
+     * eviction behavior are unchanged.
+     * </p>
      */
-    protected Set<String> robotsTxtUrlSet = new LruHashSet<>(10000);
+    protected Set<String> robotsTxtUrlSet = Collections.synchronizedSet(new LruHashSet<>(10000));
 
     /**
      * Thread-local storage for sitemaps.

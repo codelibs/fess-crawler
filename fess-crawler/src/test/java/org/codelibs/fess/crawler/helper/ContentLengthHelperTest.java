@@ -163,4 +163,36 @@ public class ContentLengthHelperTest extends PlainTestCase {
         assertNotNull(helper);
         assertEquals(DEFAULT_MAX_LENGTH, helper.getDefaultMaxLength());
     }
+
+    @Test
+    public void test_getMaxLength_noArg_noOverrides_returnsDefault() {
+        assertEquals(DEFAULT_MAX_LENGTH, contentLengthHelper.getMaxLength());
+    }
+
+    @Test
+    public void test_getMaxLength_noArg_perTypeLimitLargerThanDefault_returnsPerTypeLimit() {
+        final long largerThanDefault = DEFAULT_MAX_LENGTH * 2;
+        contentLengthHelper.addMaxLength("text/html", largerThanDefault);
+
+        assertEquals(largerThanDefault, contentLengthHelper.getMaxLength());
+        // getMaxLength(String) for the specific type is unaffected.
+        assertEquals(largerThanDefault, contentLengthHelper.getMaxLength("text/html"));
+    }
+
+    @Test
+    public void test_getMaxLength_noArg_perTypeLimitsSmallerThanDefault_returnsDefault() {
+        contentLengthHelper.addMaxLength("text/html", 1000L);
+        contentLengthHelper.addMaxLength("text/plain", 2000L);
+
+        assertEquals(DEFAULT_MAX_LENGTH, contentLengthHelper.getMaxLength());
+    }
+
+    @Test
+    public void test_getMaxLength_noArg_mixedLimits_returnsOverallMaximum() {
+        contentLengthHelper.addMaxLength("text/html", 1000L);
+        contentLengthHelper.addMaxLength("application/pdf", DEFAULT_MAX_LENGTH * 3);
+        contentLengthHelper.addMaxLength("image/jpeg", DEFAULT_MAX_LENGTH * 2);
+
+        assertEquals(DEFAULT_MAX_LENGTH * 3, contentLengthHelper.getMaxLength());
+    }
 }

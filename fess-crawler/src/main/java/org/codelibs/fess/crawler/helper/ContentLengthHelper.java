@@ -82,6 +82,33 @@ public class ContentLengthHelper {
     }
 
     /**
+     * Returns the overall maximum content length across the default limit and every
+     * MIME type-specific limit configured on this helper, i.e.
+     * {@code max(defaultMaxLength, max(maxLengthMap.values()))}.
+     * <p>
+     * Callers that must bound or precheck a response before its actual MIME type is known
+     * (e.g. before the body has been downloaded and sniffed) cannot yet call
+     * {@link #getMaxLength(String)} with the right type. Using just {@link #getDefaultMaxLength()}
+     * in that situation would risk applying a bound smaller than a per-type limit that later turns
+     * out to apply, silently truncating the response before the type is ever determined. This
+     * method returns an upper bound that is guaranteed to be at least as large as whatever
+     * {@link #getMaxLength(String)} would return for any MIME type known to this helper, so it can
+     * be used safely in place of the default in that situation without weakening the length
+     * enforcement for any configured type.
+     * </p>
+     * @return the maximum content length across the default and all MIME type-specific limits, in bytes.
+     */
+    public long getMaxLength() {
+        long max = defaultMaxLength;
+        for (final long value : maxLengthMap.values()) {
+            if (value > max) {
+                max = value;
+            }
+        }
+        return max;
+    }
+
+    /**
      * Sets the default maximum content length.
      * @param defaultMaxLength The default maximum content length to set.
      */

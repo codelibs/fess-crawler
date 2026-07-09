@@ -110,14 +110,34 @@ public final class XmlUtil {
         if (value == null) {
             return StringUtil.EMPTY;
         }
-        return stripInvalidXMLCharacters(//
-                value//
-                        .replace("&", "&amp;") //
-                        .replace("<", "&lt;")//
-                        .replace(">", "&gt;")//
-                        .replace("\"", "&quot;")//
-                        .replace("\'", "&apos;")//
-        );
+        final int length = value.length();
+        final StringBuilder buf = new StringBuilder(length + 16);
+        for (int i = 0; i < length; i++) {
+            final char c = value.charAt(i);
+            switch (c) {
+            case '&':
+                buf.append("&amp;");
+                break;
+            case '<':
+                buf.append("&lt;");
+                break;
+            case '>':
+                buf.append("&gt;");
+                break;
+            case '"':
+                buf.append("&quot;");
+                break;
+            case '\'':
+                buf.append("&apos;");
+                break;
+            default:
+                if (isValidXMLCharacter(c)) {
+                    buf.append(c);
+                }
+                break;
+            }
+        }
+        return buf.toString().trim();
     }
 
     /**
@@ -141,16 +161,49 @@ public final class XmlUtil {
             return in;
         }
 
-        final StringBuilder buf = new StringBuilder(in.length());
+        final int length = in.length();
+        boolean hasInvalidChar = false;
+        for (int i = 0; i < length; i++) {
+            if (!isValidXMLCharacter(in.charAt(i))) {
+                hasInvalidChar = true;
+                break;
+            }
+        }
+        if (!hasInvalidChar) {
+            // Nothing to strip; still honor the trim() contract below.
+            return in.trim();
+        }
+
+        final StringBuilder buf = new StringBuilder(length);
         char c;
-        for (int i = 0; i < in.length(); i++) {
+        for (int i = 0; i < length; i++) {
             c = in.charAt(i);
-            if (c == 0x9 || c == 0xA || c == 0xD || (c >= 0x20 && c <= 0xD7FF) || (c >= 0xE000 && c <= 0xFFFD)
-                    || (c >= 0x10000 && c <= 0x10FFFF)) {
+            if (isValidXMLCharacter(c)) {
                 buf.append(c);
             }
         }
         return buf.toString().trim();
+    }
+
+    /**
+     * Checks whether the given character is a valid XML 1.0 character.
+     *
+     * Valid characters are:
+     * <ul>
+     *   <li>Tab (0x9)</li>
+     *   <li>Line feed (0xA)</li>
+     *   <li>Carriage return (0xD)</li>
+     *   <li>Any character between 0x20 and 0xD7FF</li>
+     *   <li>Any character between 0xE000 and 0xFFFD</li>
+     *   <li>Any character between 0x10000 and 0x10FFFF</li>
+     * </ul>
+     *
+     * @param c the character to check
+     * @return true if the character is valid per the XML 1.0 specification
+     */
+    private static boolean isValidXMLCharacter(final char c) {
+        return c == 0x9 || c == 0xA || c == 0xD || (c >= 0x20 && c <= 0xD7FF) || (c >= 0xE000 && c <= 0xFFFD)
+                || (c >= 0x10000 && c <= 0x10FFFF);
     }
 
     /**

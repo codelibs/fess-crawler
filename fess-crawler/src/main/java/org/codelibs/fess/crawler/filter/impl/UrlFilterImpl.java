@@ -195,6 +195,7 @@ public class UrlFilterImpl implements UrlFilter {
                 final Matcher matcher = pattern.matcher(url);
                 if (matcher.matches()) {
                     match = true;
+                    break;
                 }
             }
             if (!match) {
@@ -208,6 +209,7 @@ public class UrlFilterImpl implements UrlFilter {
                 final Matcher matcher = pattern.matcher(url);
                 if (matcher.matches()) {
                     match = true;
+                    break;
                 }
             }
             if (match) {

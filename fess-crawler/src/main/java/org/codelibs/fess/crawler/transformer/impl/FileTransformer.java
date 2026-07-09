@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -64,6 +65,12 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 public class FileTransformer extends HtmlTransformer {
     /** Logger instance for this class */
     private static final Logger logger = LogManager.getLogger(FileTransformer.class);
+
+    /** Precompiled pattern for collapsing repeated slashes in {@link #getFilePath(String)}. */
+    private static final Pattern SLASH_COLLAPSE_PATTERN = Pattern.compile("/+");
+
+    /** Precompiled pattern for matching a trailing slash in {@link #getFilePath(String)}. */
+    private static final Pattern TRAILING_SLASH_PATTERN = Pattern.compile("/$");
 
     /**
      * Constructs a new FileTransformer.
@@ -221,14 +228,10 @@ public class FileTransformer extends HtmlTransformer {
      * @return path File path
      */
     protected String getFilePath(final String url) {
-        return url.replaceAll("/+", "/")
-                .replace("./", "")
-                .replace("../", "")
-                .replaceAll("/$", "/index.html")
-                .replaceAll("\\?", questionStr)
-                .replaceAll(":", colonStr)
-                .replaceAll(";", semicolonStr)
-                .replaceAll("&", ampersandStr);
+        String path = SLASH_COLLAPSE_PATTERN.matcher(url).replaceAll("/");
+        path = path.replace("./", "").replace("../", "");
+        path = TRAILING_SLASH_PATTERN.matcher(path).replaceAll("/index.html");
+        return path.replace("?", questionStr).replace(":", colonStr).replace(";", semicolonStr).replace("&", ampersandStr);
     }
 
     /**

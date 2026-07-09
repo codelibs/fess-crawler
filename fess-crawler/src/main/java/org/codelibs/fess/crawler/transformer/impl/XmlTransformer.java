@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -193,21 +192,19 @@ public class XmlTransformer extends AbstractTransformer {
      */
     protected long cacheDuration = 10; // min
 
-    protected final AtomicLong documentBuilderFactoryConfigVersion = new AtomicLong();
-
     /**
      * A per-thread cache of a fully configured {@link DocumentBuilderFactory}.
      *
      * <p>The factory configuration is derived only from fields that are set once during bean wiring
      * (the {@link #attributeMap}/{@link #featureMap} entries plus the fixed security features/attributes
      * and the boolean parser options such as {@link #namespaceAware}), so it never changes while this
-     * transformer is in use. Building it once per thread and reusing it for every document parsed by
-     * that thread avoids repeating JAXP service discovery ({@link DocumentBuilderFactory#newInstance()})
-     * and reapplying every feature/attribute on every {@link #transform(ResponseData)} call. A
-     * {@link DocumentBuilder} is still created per document via {@link DocumentBuilderFactory#newDocumentBuilder()}
-     * since a builder is stateful.</p>
+     * transformer is in use. The factory is therefore built once per thread and reused for every
+     * document parsed by that thread, which avoids repeating JAXP service discovery
+     * ({@link DocumentBuilderFactory#newInstance()}) and reapplying every feature/attribute on every
+     * {@link #transform(ResponseData)} call. A {@link DocumentBuilder} is still created per document
+     * via {@link DocumentBuilderFactory#newDocumentBuilder()} since a builder is stateful.</p>
      */
-    protected ThreadLocal<DocumentBuilderFactoryHolder> documentBuilderFactoryThreadLocal;
+    protected ThreadLocal<DocumentBuilderFactory> documentBuilderFactoryThreadLocal;
 
     /**
      * Constructs a new instance of {@code XmlTransformer}.
@@ -232,28 +229,11 @@ public class XmlTransformer extends AbstractTransformer {
                         return new XPathAPI();
                     }
                 });
-        documentBuilderFactoryThreadLocal = ThreadLocal.withInitial(this::createDocumentBuilderFactoryHolder);
-    }
-
-    protected DocumentBuilderFactoryHolder createDocumentBuilderFactoryHolder() {
-        return new DocumentBuilderFactoryHolder(documentBuilderFactoryConfigVersion.get(), createDocumentBuilderFactory());
+        documentBuilderFactoryThreadLocal = ThreadLocal.withInitial(this::createDocumentBuilderFactory);
     }
 
     protected DocumentBuilderFactory getDocumentBuilderFactory() {
-        DocumentBuilderFactoryHolder holder = documentBuilderFactoryThreadLocal.get();
-        final long configVersion = documentBuilderFactoryConfigVersion.get();
-        if (holder.configVersion != configVersion) {
-            holder = createDocumentBuilderFactoryHolder();
-            documentBuilderFactoryThreadLocal.set(holder);
-        }
-        return holder.factory;
-    }
-
-    protected void invalidateDocumentBuilderFactory() {
-        documentBuilderFactoryConfigVersion.incrementAndGet();
-        if (documentBuilderFactoryThreadLocal != null) {
-            documentBuilderFactoryThreadLocal.remove();
-        }
+        return documentBuilderFactoryThreadLocal.get();
     }
 
     /**
@@ -512,7 +492,6 @@ public class XmlTransformer extends AbstractTransformer {
      */
     public void addAttribute(final String name, final Object value) {
         attributeMap.put(name, value);
-        invalidateDocumentBuilderFactory();
     }
 
     /**
@@ -522,7 +501,6 @@ public class XmlTransformer extends AbstractTransformer {
      */
     public void addFeature(final String key, final String value) {
         featureMap.put(key, value);
-        invalidateDocumentBuilderFactory();
     }
 
     /**
@@ -622,7 +600,6 @@ public class XmlTransformer extends AbstractTransformer {
      */
     public void setNamespaceAware(final boolean namespaceAware) {
         this.namespaceAware = namespaceAware;
-        invalidateDocumentBuilderFactory();
     }
 
     /**
@@ -641,7 +618,6 @@ public class XmlTransformer extends AbstractTransformer {
      */
     public void setCoalescing(final boolean coalescing) {
         this.coalescing = coalescing;
-        invalidateDocumentBuilderFactory();
     }
 
     /**
@@ -660,7 +636,6 @@ public class XmlTransformer extends AbstractTransformer {
      */
     public void setExpandEntityRef(final boolean expandEntityRef) {
         this.expandEntityRef = expandEntityRef;
-        invalidateDocumentBuilderFactory();
     }
 
     /**
@@ -679,7 +654,6 @@ public class XmlTransformer extends AbstractTransformer {
      */
     public void setIgnoringComments(final boolean ignoringComments) {
         this.ignoringComments = ignoringComments;
-        invalidateDocumentBuilderFactory();
     }
 
     /**
@@ -698,7 +672,6 @@ public class XmlTransformer extends AbstractTransformer {
      */
     public void setIgnoringElementContentWhitespace(final boolean ignoringElementContentWhitespace) {
         this.ignoringElementContentWhitespace = ignoringElementContentWhitespace;
-        invalidateDocumentBuilderFactory();
     }
 
     /**
@@ -717,7 +690,6 @@ public class XmlTransformer extends AbstractTransformer {
      */
     public void setValidating(final boolean validating) {
         this.validating = validating;
-        invalidateDocumentBuilderFactory();
     }
 
     /**
@@ -736,7 +708,6 @@ public class XmlTransformer extends AbstractTransformer {
      */
     public void setIncludeAware(final boolean includeAware) {
         this.includeAware = includeAware;
-        invalidateDocumentBuilderFactory();
     }
 
     /**
@@ -745,17 +716,6 @@ public class XmlTransformer extends AbstractTransformer {
      */
     public void setCacheDuration(final long cacheDuration) {
         this.cacheDuration = cacheDuration;
-    }
-
-    protected static class DocumentBuilderFactoryHolder {
-        protected final long configVersion;
-
-        protected final DocumentBuilderFactory factory;
-
-        protected DocumentBuilderFactoryHolder(final long configVersion, final DocumentBuilderFactory factory) {
-            this.configVersion = configVersion;
-            this.factory = factory;
-        }
     }
 
     /**

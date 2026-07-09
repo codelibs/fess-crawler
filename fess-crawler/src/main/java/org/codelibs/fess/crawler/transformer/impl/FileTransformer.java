@@ -202,7 +202,9 @@ public class FileTransformer extends HtmlTransformer {
      *
      * @param responseData the response data to store
      * @param resultData the result data to populate with file information
-     * @throws CrawlerSystemException if file storage fails
+     * @throws CrawlerSystemException if the target file cannot be reserved, or if the output file
+     *             cannot be opened or closed. I/O errors raised while copying the response body are
+     *             propagated as {@code IORuntimeException} by {@code CopyUtil}, not wrapped here.
      */
     @Override
     public void storeData(final ResponseData responseData, final ResultData resultData) {

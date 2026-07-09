@@ -317,6 +317,39 @@ public class FileTransformerTest extends PlainTestCase {
     }
 
     @Test
+    public void test_storeData_maxDuplicatedPathExhausted_throwsException() throws Exception {
+        setBaseDir();
+
+        // With maxDuplicatedPath == 0 there are no "_N" fallback slots: the reserveFile loop is
+        // skipped, so the first store reserves the nominal leaf and a second store of the same URL
+        // collides with no alternative name available and must fail fast with CrawlerSystemException.
+        fileTransformer.maxDuplicatedPath = 0;
+
+        final String url = "http://www.example.com/exhausted";
+        final String path = fileTransformer.getFilePath(url);
+
+        final ResponseData firstResponseData = new ResponseData();
+        firstResponseData.setUrl(url);
+        firstResponseData.setResponseBody("first".getBytes("UTF-8"));
+        firstResponseData.setCharSet("UTF-8");
+        fileTransformer.storeData(firstResponseData, new ResultData());
+
+        final ResponseData secondResponseData = new ResponseData();
+        secondResponseData.setUrl(url);
+        secondResponseData.setResponseBody("second".getBytes("UTF-8"));
+        secondResponseData.setCharSet("UTF-8");
+        try {
+            fileTransformer.storeData(secondResponseData, new ResultData());
+            fail();
+        } catch (final CrawlerSystemException e) {}
+
+        // the original file is left intact and no duplicate-avoidance file was created
+        final File nominalFile = new File(fileTransformer.baseDir, path);
+        assertEquals("first", new String(FileUtil.readBytes(nominalFile), "UTF-8"));
+        assertFalse(new File(nominalFile.getParentFile(), nominalFile.getName() + "_0").exists());
+    }
+
+    @Test
     public void test_storeData_concurrent_copyRunsOutsideLock() throws Exception {
         setBaseDir();
 

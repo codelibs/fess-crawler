@@ -466,4 +466,5 @@ public class S3ClientTest extends PlainTestCase {
         // This test verifies the createTempFile parameters indirectly
         // The actual verification happens in the overridden method above
     }
+
 }

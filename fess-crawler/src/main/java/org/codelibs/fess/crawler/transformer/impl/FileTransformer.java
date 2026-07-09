@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.file.Path;
 import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
@@ -213,23 +214,44 @@ public class FileTransformer extends HtmlTransformer {
         final String path = getFilePath(url);
 
         final File file = createFile(path);
-
-        try (final InputStream is = responseData.getResponseBody(); final OutputStream os = new FileOutputStream(file)) {
-            CopyUtil.copy(is, os);
-        } catch (final IOException e) {
-            throw new CrawlerSystemException("Could not store " + file.getAbsolutePath(), e);
-        }
+        boolean completed = false;
 
         try {
-            resultData.setData(path.getBytes(charsetName));
+            try (final InputStream is = responseData.getResponseBody(); final OutputStream os = new FileOutputStream(file)) {
+                CopyUtil.copy(is, os);
+            }
+            completed = true;
+        } catch (final IOException e) {
+            throw new CrawlerSystemException("Could not store " + file.getAbsolutePath(), e);
+        } finally {
+            if (!completed && file.exists() && !file.delete() && logger.isDebugEnabled()) {
+                logger.debug("Could not delete incomplete file: {}", file.getAbsolutePath());
+            }
+        }
+
+        final String storedPath = getRelativePath(file);
+        try {
+            resultData.setData(storedPath.getBytes(charsetName));
         } catch (final UnsupportedEncodingException e) {
             if (logger.isInfoEnabled()) {
                 logger.info("Invalid charsetName: " + charsetName + ". Changed to " + Constants.UTF_8, e);
             }
             charsetName = Constants.UTF_8_CHARSET.name();
-            resultData.setData(path.getBytes(Constants.UTF_8_CHARSET));
+            resultData.setData(storedPath.getBytes(Constants.UTF_8_CHARSET));
         }
         resultData.setEncoding(charsetName);
+    }
+
+    /**
+     * Returns a baseDir-relative path suitable for storing in {@link ResultData}.
+     *
+     * @param file stored file
+     * @return baseDir-relative file path
+     */
+    protected String getRelativePath(final File file) {
+        final Path basePath = baseDir.toPath().toAbsolutePath().normalize();
+        final Path filePath = file.toPath().toAbsolutePath().normalize();
+        return basePath.relativize(filePath).toString().replace(File.separatorChar, '/');
     }
 
     /**

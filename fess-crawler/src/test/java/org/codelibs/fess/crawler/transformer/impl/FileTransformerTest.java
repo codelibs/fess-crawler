@@ -31,6 +31,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.codelibs.core.exception.IORuntimeException;
 import org.codelibs.core.io.FileUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.entity.AccessResultDataImpl;
@@ -125,6 +126,7 @@ public class FileTransformerTest extends PlainTestCase {
         final CountDownLatch startLatch = new CountDownLatch(1);
         final CountDownLatch doneLatch = new CountDownLatch(threadCount);
         final List<Throwable> failures = new CopyOnWriteArrayList<>();
+        final List<StoredResult> results = new CopyOnWriteArrayList<>();
 
         try {
             for (int i = 0; i < threadCount; i++) {
@@ -140,6 +142,7 @@ public class FileTransformerTest extends PlainTestCase {
                         responseData.setCharSet("UTF-8");
                         final ResultData resultData = new ResultData();
                         fileTransformer.storeData(responseData, resultData);
+                        results.add(new StoredResult(content, resultData));
                     } catch (final Throwable t) {
                         failures.add(t);
                     } finally {
@@ -149,14 +152,15 @@ public class FileTransformerTest extends PlainTestCase {
             }
 
             // wait until all threads are ready, then release them all at once
-            readyLatch.await();
+            assertTrue(readyLatch.await(10, TimeUnit.SECONDS));
             startLatch.countDown();
             assertTrue(doneLatch.await(30, TimeUnit.SECONDS));
         } finally {
-            executorService.shutdown();
+            executorService.shutdownNow();
         }
 
         assertTrue(failures.isEmpty());
+        assertEquals(threadCount, results.size());
 
         // the reserved target files are the nominal path plus "_0".."_(threadCount-2)" suffixes;
         // every one of them must exist and hold content produced by exactly one thread.
@@ -181,8 +185,135 @@ public class FileTransformerTest extends PlainTestCase {
         assertEquals(threadCount, existingCount);
         assertEquals(threadCount, seenContents.size());
 
+        final Set<String> seenStoredPaths = new HashSet<>();
+        for (final StoredResult result : results) {
+            final String storedPath = new String(result.resultData.getData(), result.resultData.getEncoding());
+            assertTrue(seenStoredPaths.add(storedPath));
+            final File file = new File(fileTransformer.baseDir, storedPath);
+            assertTrue(file.exists());
+            assertEquals(result.content, new String(FileUtil.readBytes(file), result.resultData.getEncoding()));
+        }
+        assertEquals(threadCount, seenStoredPaths.size());
+
         // no unexpected extra file (e.g. "_<threadCount-1>") was created beyond what threadCount threads need
         assertFalse(new File(nominalFile.getParentFile(), nominalFile.getName() + "_" + (threadCount - 1)).exists());
+    }
+
+    @Test
+    public void test_storeData_getResponseBodyFailure_removesReservedFile() throws Exception {
+        setBaseDir();
+
+        final String url = "http://www.example.com/failure";
+        final String path = fileTransformer.getFilePath(url);
+        final ResponseData failedResponseData = new ResponseData() {
+            @Override
+            public InputStream getResponseBody() {
+                throw new IORuntimeException(new IOException("missing body"));
+            }
+        };
+        failedResponseData.setUrl(url);
+        failedResponseData.setCharSet("UTF-8");
+
+        try {
+            fileTransformer.storeData(failedResponseData, new ResultData());
+            fail();
+        } catch (final IORuntimeException e) {}
+
+        final File nominalFile = new File(fileTransformer.baseDir, path);
+        assertFalse(nominalFile.exists());
+
+        final ResponseData responseData = new ResponseData();
+        responseData.setUrl(url);
+        responseData.setResponseBody("success".getBytes("UTF-8"));
+        responseData.setCharSet("UTF-8");
+        final ResultData resultData = new ResultData();
+        fileTransformer.storeData(responseData, resultData);
+
+        assertEquals(path, new String(resultData.getData(), resultData.getEncoding()));
+        assertEquals("success", new String(FileUtil.readBytes(nominalFile), resultData.getEncoding()));
+        assertFalse(new File(nominalFile.getParentFile(), nominalFile.getName() + "_0").exists());
+    }
+
+    @Test
+    public void test_storeData_copyFailure_removesReservedFile() throws Exception {
+        setBaseDir();
+
+        final String url = "http://www.example.com/copy-failure";
+        final String path = fileTransformer.getFilePath(url);
+        final ResponseData failedResponseData = new ResponseData() {
+            @Override
+            public InputStream getResponseBody() {
+                return new InputStream() {
+                    private boolean first = true;
+
+                    @Override
+                    public int read() throws IOException {
+                        if (first) {
+                            first = false;
+                            return 'x';
+                        }
+                        throw new IOException("copy failed");
+                    }
+
+                    @Override
+                    public int read(final byte[] b, final int off, final int len) throws IOException {
+                        if (first) {
+                            first = false;
+                            b[off] = 'x';
+                            return 1;
+                        }
+                        throw new IOException("copy failed");
+                    }
+                };
+            }
+        };
+        failedResponseData.setUrl(url);
+        failedResponseData.setCharSet("UTF-8");
+
+        try {
+            fileTransformer.storeData(failedResponseData, new ResultData());
+            fail();
+        } catch (final IORuntimeException e) {}
+
+        final File nominalFile = new File(fileTransformer.baseDir, path);
+        assertFalse(nominalFile.exists());
+
+        final ResponseData responseData = new ResponseData();
+        responseData.setUrl(url);
+        responseData.setResponseBody("success".getBytes("UTF-8"));
+        responseData.setCharSet("UTF-8");
+        final ResultData resultData = new ResultData();
+        fileTransformer.storeData(responseData, resultData);
+
+        assertEquals(path, new String(resultData.getData(), resultData.getEncoding()));
+        assertEquals("success", new String(FileUtil.readBytes(nominalFile), resultData.getEncoding()));
+        assertFalse(new File(nominalFile.getParentFile(), nominalFile.getName() + "_0").exists());
+    }
+
+    @Test
+    public void test_storeData_directoryCollision_storesReservedPath() throws Exception {
+        setBaseDir();
+
+        final String fileUrl = "http://www.example.com/hoge.html";
+        final ResponseData fileResponseData = new ResponseData();
+        fileResponseData.setUrl(fileUrl);
+        fileResponseData.setResponseBody("file".getBytes("UTF-8"));
+        fileResponseData.setCharSet("UTF-8");
+        fileTransformer.storeData(fileResponseData, new ResultData());
+
+        final String childUrl = "http://www.example.com/hoge.html/hoge2.html";
+        final ResponseData childResponseData = new ResponseData();
+        childResponseData.setUrl(childUrl);
+        childResponseData.setResponseBody("child".getBytes("UTF-8"));
+        childResponseData.setCharSet("UTF-8");
+        final ResultData resultData = new ResultData();
+        fileTransformer.storeData(childResponseData, resultData);
+
+        final String storedPath = new String(resultData.getData(), resultData.getEncoding());
+        assertEquals(fileTransformer.getFilePath(fileUrl) + "_0/hoge2.html", storedPath);
+        final File file = new File(fileTransformer.baseDir, storedPath);
+        assertTrue(file.exists());
+        assertEquals("child", new String(FileUtil.readBytes(file), resultData.getEncoding()));
     }
 
     @Test
@@ -269,6 +400,16 @@ public class FileTransformerTest extends PlainTestCase {
                     throw new IOException(e);
                 }
             }
+        }
+    }
+
+    private static final class StoredResult {
+        private final String content;
+        private final ResultData resultData;
+
+        private StoredResult(final String content, final ResultData resultData) {
+            this.content = content;
+            this.resultData = resultData;
         }
     }
 

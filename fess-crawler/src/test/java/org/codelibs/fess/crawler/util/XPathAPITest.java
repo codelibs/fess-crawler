@@ -15,9 +15,16 @@
  */
 package org.codelibs.fess.crawler.util;
 
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 
+import java.io.ByteArrayInputStream;
+import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.Iterator;
+
+import javax.xml.XMLConstants;
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
@@ -47,6 +54,7 @@ public class XPathAPITest extends PlainTestCase {
 
     private Document toDocument(final String xml) throws Exception {
         final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
         final DocumentBuilder builder = factory.newDocumentBuilder();
         return builder.parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
     }
@@ -149,6 +157,92 @@ public class XPathAPITest extends PlainTestCase {
         } catch (final XPathExpressionException e) {
             // NOP
         }
+    }
+
+    @Test
+    public void test_selectNodeList_namespaceContextDoesNotLeak() throws Exception {
+        final Document document = toDocument("<root xmlns:hoge=\"http://example.com/hoge\"><hoge:item>value</hoge:item></root>");
+        final XPathAPI xPathAPI = new XPathAPI();
+        final Field xPathField = XPathAPI.class.getDeclaredField("xPath");
+        xPathField.setAccessible(true);
+        final XPath xPath = (XPath) xPathField.get(xPathAPI);
+        final NamespaceContext correctNamespaceContext = new NamespaceContext() {
+            @Override
+            public String getNamespaceURI(final String prefix) {
+                return "hoge".equals(prefix) ? "http://example.com/hoge" : XMLConstants.NULL_NS_URI;
+            }
+
+            @Override
+            public String getPrefix(final String namespaceURI) {
+                return null;
+            }
+
+            @Override
+            public Iterator<String> getPrefixes(final String namespaceURI) {
+                return null;
+            }
+        };
+        xPath.setNamespaceContext(correctNamespaceContext);
+
+        final XPathNodes nodes = xPathAPI.selectNodeList(document, "//hoge:item", new NamespaceContext() {
+            @Override
+            public String getNamespaceURI(final String prefix) {
+                return "hoge".equals(prefix) ? "http://example.com/other" : XMLConstants.NULL_NS_URI;
+            }
+
+            @Override
+            public String getPrefix(final String namespaceURI) {
+                return null;
+            }
+
+            @Override
+            public Iterator<String> getPrefixes(final String namespaceURI) {
+                return null;
+            }
+        });
+        assertEquals(0, nodes.size());
+
+        final XPathNodes restoredNodes = xPathAPI.selectNodeList(document, "//hoge:item");
+        assertEquals(1, restoredNodes.size());
+        assertEquals("value", restoredNodes.get(0).getTextContent());
+    }
+
+    @Test
+    public void test_selectNodeList_doesNotRetainNamespaceContext() throws Exception {
+        final Document document = toDocument("<root><child/></root>");
+        final XPathAPI xPathAPI = new XPathAPI();
+
+        // A distinct, document-free namespace context supplied by the caller. Before the fix, the
+        // reused XPath kept this exact instance resting on it after the first call (previous == null),
+        // pinning any document referenced by the context for the life of the cached XPathAPI.
+        final NamespaceContext ctx = new NamespaceContext() {
+            @Override
+            public String getNamespaceURI(final String prefix) {
+                return XMLConstants.NULL_NS_URI;
+            }
+
+            @Override
+            public String getPrefix(final String namespaceURI) {
+                return null;
+            }
+
+            @Override
+            public Iterator<String> getPrefixes(final String namespaceURI) {
+                return Collections.emptyIterator();
+            }
+        };
+
+        final XPathNodes nodes = xPathAPI.selectNodeList(document, "//child", ctx);
+        assertEquals(1, nodes.size());
+
+        final Field xPathField = XPathAPI.class.getDeclaredField("xPath");
+        xPathField.setAccessible(true);
+        final XPath xPath = (XPath) xPathField.get(xPathAPI);
+
+        // After the fix the reused XPath must no longer hold the caller's context; it holds the
+        // shared empty sentinel instead (and never null, which setNamespaceContext rejects).
+        assertNotSame(ctx, xPath.getNamespaceContext());
+        assertNotNull(xPath.getNamespaceContext());
     }
 
     // -----------------------------------------------------

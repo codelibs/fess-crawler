@@ -32,7 +32,7 @@ import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.xpath.XPath;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathNodes;
 
@@ -185,12 +185,26 @@ public class XmlTransformer extends AbstractTransformer {
     /**
      * The XPathAPI cache.
      */
-    protected LoadingCache<String, XPathAPI> xpathAPICache;
+    protected LoadingCache<Thread, XPathAPI> xpathAPICache;
 
     /**
      * The cache duration in minutes.
      */
     protected long cacheDuration = 10; // min
+
+    /**
+     * A per-thread cache of a fully configured {@link DocumentBuilderFactory}.
+     *
+     * <p>The factory configuration is derived only from fields that are set once during bean wiring
+     * (the {@link #attributeMap}/{@link #featureMap} entries plus the fixed security features/attributes
+     * and the boolean parser options such as {@link #namespaceAware}), so it never changes while this
+     * transformer is in use. The factory is therefore built once per thread and reused for every
+     * document parsed by that thread, which avoids repeating JAXP service discovery
+     * ({@link DocumentBuilderFactory#newInstance()}) and reapplying every feature/attribute on every
+     * {@link #transform(ResponseData)} call. A {@link DocumentBuilder} is still created per document
+     * via {@link DocumentBuilderFactory#newDocumentBuilder()} since a builder is stateful.</p>
+     */
+    protected ThreadLocal<DocumentBuilderFactory> documentBuilderFactoryThreadLocal;
 
     /**
      * Constructs a new instance of {@code XmlTransformer}.
@@ -206,15 +220,56 @@ public class XmlTransformer extends AbstractTransformer {
     @Resource
     public void init() {
         xpathAPICache =
-                CacheBuilder.newBuilder().expireAfterAccess(cacheDuration, TimeUnit.MINUTES).build(new CacheLoader<String, XPathAPI>() {
+                CacheBuilder.newBuilder().expireAfterAccess(cacheDuration, TimeUnit.MINUTES).build(new CacheLoader<Thread, XPathAPI>() {
                     @Override
-                    public XPathAPI load(final String key) {
+                    public XPathAPI load(final Thread key) {
                         if (logger.isDebugEnabled()) {
-                            logger.debug("created XPathAPI by {}", key);
+                            logger.debug("created XPathAPI by {}", key.getName());
                         }
                         return new XPathAPI();
                     }
                 });
+        documentBuilderFactoryThreadLocal = ThreadLocal.withInitial(this::createDocumentBuilderFactory);
+    }
+
+    protected DocumentBuilderFactory getDocumentBuilderFactory() {
+        return documentBuilderFactoryThreadLocal.get();
+    }
+
+    /**
+     * Creates and configures a new {@link DocumentBuilderFactory} using the security features/attributes
+     * and parser options configured on this transformer. See {@link #documentBuilderFactoryThreadLocal}.
+     *
+     * @return a newly configured {@link DocumentBuilderFactory}.
+     */
+    protected DocumentBuilderFactory createDocumentBuilderFactory() {
+        final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        try {
+            factory.setFeature(Constants.FEATURE_SECURE_PROCESSING, true);
+            factory.setFeature(Constants.FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
+            factory.setFeature(Constants.FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
+            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, StringUtil.EMPTY);
+            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, StringUtil.EMPTY);
+
+            for (final Map.Entry<String, Object> entry : attributeMap.entrySet()) {
+                factory.setAttribute(entry.getKey(), entry.getValue());
+            }
+
+            for (final Map.Entry<String, String> entry : featureMap.entrySet()) {
+                factory.setFeature(entry.getKey(), "true".equalsIgnoreCase(entry.getValue()));
+            }
+
+            factory.setCoalescing(coalescing);
+            factory.setExpandEntityReferences(expandEntityRef);
+            factory.setIgnoringComments(ignoringComments);
+            factory.setIgnoringElementContentWhitespace(ignoringElementContentWhitespace);
+            factory.setNamespaceAware(namespaceAware);
+            factory.setValidating(validating);
+            factory.setXIncludeAware(includeAware);
+        } catch (final ParserConfigurationException e) {
+            throw new CrawlerSystemException("Failed to configure a DocumentBuilderFactory.", e);
+        }
+        return factory;
     }
 
     /**
@@ -272,28 +327,7 @@ public class XmlTransformer extends AbstractTransformer {
         }
 
         try (final InputStream is = responseData.getResponseBody()) {
-            final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setFeature(Constants.FEATURE_SECURE_PROCESSING, true);
-            factory.setFeature(Constants.FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
-            factory.setFeature(Constants.FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
-            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, StringUtil.EMPTY);
-            factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, StringUtil.EMPTY);
-
-            for (final Map.Entry<String, Object> entry : attributeMap.entrySet()) {
-                factory.setAttribute(entry.getKey(), entry.getValue());
-            }
-
-            for (final Map.Entry<String, String> entry : featureMap.entrySet()) {
-                factory.setFeature(entry.getKey(), "true".equalsIgnoreCase(entry.getValue()));
-            }
-
-            factory.setCoalescing(coalescing);
-            factory.setExpandEntityReferences(expandEntityRef);
-            factory.setIgnoringComments(ignoringComments);
-            factory.setIgnoringElementContentWhitespace(ignoringElementContentWhitespace);
-            factory.setNamespaceAware(namespaceAware);
-            factory.setValidating(validating);
-            factory.setXIncludeAware(includeAware);
+            final DocumentBuilderFactory factory = getDocumentBuilderFactory();
 
             final DocumentBuilder builder = factory.newDocumentBuilder();
 
@@ -353,9 +387,9 @@ public class XmlTransformer extends AbstractTransformer {
      * @throws XPathExpressionException if an XPath expression error occurs.
      */
     protected XPathNodes getNodeList(final Document doc, final String xpath) throws XPathExpressionException {
-        final XPath xPathApi = getXPathAPI().createXPath(f -> {});
-        xPathApi.setNamespaceContext(new DefaultNamespaceContext(doc.getNodeType() == Node.DOCUMENT_NODE ? doc.getDocumentElement() : doc));
-        return xPathApi.evaluateExpression(xpath, doc, XPathNodes.class);
+        final NamespaceContext namespaceContext =
+                new DefaultNamespaceContext(doc.getNodeType() == Node.DOCUMENT_NODE ? doc.getDocumentElement() : doc);
+        return getXPathAPI().selectNodeList(doc, xpath, namespaceContext);
     }
 
     /**
@@ -363,8 +397,11 @@ public class XmlTransformer extends AbstractTransformer {
      * @return An XPathAPI instance.
      */
     protected XPathAPI getXPathAPI() {
+        if (xpathAPICache == null) {
+            return new XPathAPI();
+        }
         try {
-            return xpathAPICache.get(Thread.currentThread().getName());
+            return xpathAPICache.get(Thread.currentThread());
         } catch (final ExecutionException e) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Failed to retrieval a cache.", e);

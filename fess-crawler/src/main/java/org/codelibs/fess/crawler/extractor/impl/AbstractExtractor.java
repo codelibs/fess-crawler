@@ -17,6 +17,7 @@ package org.codelibs.fess.crawler.extractor.impl;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -411,5 +412,72 @@ public abstract class AbstractExtractor implements Extractor {
             total += read;
         }
         return total;
+    }
+
+    /**
+     * Wraps {@code in} so that no more than {@code limit} bytes can be read from
+     * it, throwing {@link MaxLengthExceededException} as soon as the cumulative
+     * number of bytes read <em>exceeds</em> {@code limit}. Used by extractors
+     * that must bound the size of the input they spool to disk or materialize in
+     * memory (for example when copying to a temporary file or building an
+     * in-memory document tree) so that a hostile or accidentally huge stream
+     * cannot exhaust disk or heap.
+     *
+     * <p>A {@code limit} of zero or less disables the bound: the supplied stream
+     * is returned unchanged (never wrapped), so the default unlimited path is
+     * byte-for-byte identical to reading the stream directly.
+     *
+     * <p>The count is maintained across both {@link InputStream#read()} and
+     * {@link InputStream#read(byte[], int, int)} (and therefore
+     * {@link InputStream#read(byte[])}, which delegates to the latter), and the
+     * exception is thrown only after the delegate read returns, so the caller
+     * never receives the overflowing bytes. Matching
+     * {@link CommandExtractor}'s bounded-copy convention, the byte count is
+     * incremented first and then compared with {@code >}, so a stream of exactly
+     * {@code limit} bytes is accepted while a stream of {@code limit + 1} bytes
+     * is rejected.
+     *
+     * <p>The wrapper does not take ownership of {@code in}: the caller is still
+     * responsible for closing the original stream.
+     *
+     * @param in the stream to bound (must not be {@code null} when
+     *            {@code limit > 0})
+     * @param limit the maximum number of bytes that may be read; a value less
+     *              than or equal to zero disables the bound
+     * @return {@code in} unchanged when {@code limit <= 0}, otherwise a
+     *         size-bounded wrapper around {@code in}
+     */
+    protected static InputStream limitInputStream(final InputStream in, final long limit) {
+        if (limit <= 0) {
+            return in;
+        }
+        return new FilterInputStream(in) {
+            /** Cumulative number of bytes read through this wrapper. */
+            private long count;
+
+            @Override
+            public int read() throws IOException {
+                final int b = super.read();
+                if (b != -1) {
+                    count++;
+                    if (count > limit) {
+                        throw new MaxLengthExceededException("input size exceeded limit: limit=" + limit);
+                    }
+                }
+                return b;
+            }
+
+            @Override
+            public int read(final byte[] b, final int off, final int len) throws IOException {
+                final int n = super.read(b, off, len);
+                if (n > 0) {
+                    count += n;
+                    if (count > limit) {
+                        throw new MaxLengthExceededException("input size exceeded limit: limit=" + limit);
+                    }
+                }
+                return n;
+            }
+        };
     }
 }

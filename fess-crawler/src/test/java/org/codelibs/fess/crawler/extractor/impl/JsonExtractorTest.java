@@ -27,6 +27,7 @@ import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
+import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -246,5 +247,45 @@ public class JsonExtractorTest extends PlainTestCase {
         // StreamReadConstraints) means only the first few levels' "value" fields are walked.
         assertTrue(content.contains("value: 0"));
         assertNull(extractData.getValues("truncated"));
+    }
+
+    @Test
+    public void test_getText_maxContentLength_rejectsOversizedInput() {
+        // Input clearly larger than the 10-byte cap must be rejected (with
+        // MaxLengthExceededException) before the JsonNode tree is materialized.
+        jsonExtractor.setMaxContentLength(10);
+        final InputStream in = new ByteArrayInputStream("{\"key\":\"aaaaaaaaaaaaaaaaaaaa\"}".getBytes(StandardCharsets.UTF_8));
+        try {
+            jsonExtractor.getText(in, null);
+            fail();
+        } catch (final MaxLengthExceededException e) {
+            assertTrue(e.getMessage().contains("input size exceeded limit"));
+        } finally {
+            CloseableUtil.closeQuietly(in);
+        }
+    }
+
+    @Test
+    public void test_getText_maxContentLength_underCapExtractsNormally() {
+        // A cap well above the fixture size must not change extraction.
+        jsonExtractor.setMaxContentLength(1_000_000);
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/json/test.json");
+        final ExtractData extractData = jsonExtractor.getText(in, null);
+        CloseableUtil.closeQuietly(in);
+
+        assertFalse(extractData.getContent().isEmpty());
+        assertTrue(extractData.getContent().contains("Sample Document"));
+        assertNull(extractData.getValues("truncated"));
+    }
+
+    @Test
+    public void test_getText_maxContentLength_defaultUnlimited() {
+        // Default (unset, 0) preserves the previous unbounded behavior for a normal fixture.
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/json/test.json");
+        final ExtractData extractData = jsonExtractor.getText(in, null);
+        CloseableUtil.closeQuietly(in);
+
+        assertTrue(extractData.getContent().contains("Sample Document"));
+        assertEquals("Sample Document", extractData.getValues("title")[0]);
     }
 }

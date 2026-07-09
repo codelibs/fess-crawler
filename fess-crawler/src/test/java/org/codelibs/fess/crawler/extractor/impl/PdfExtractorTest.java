@@ -33,6 +33,7 @@ import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
+import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
@@ -389,6 +390,33 @@ public class PdfExtractorTest extends PlainTestCase {
     @Test
     public void test_getText_maxTextLengthDoesNotAffectNormalInput() {
         // Default maxTextLength (unlimited) must not change output for the existing fixture.
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.pdf");
+        final ExtractData extractData = pdfExtractor.getText(in, null);
+        CloseableUtil.closeQuietly(in);
+        assertTrue(extractData.getContent().contains("テスト"));
+        assertNull(extractData.getValues("truncated"));
+    }
+
+    @Test
+    public void test_getText_maxContentLength_rejectsOversizedInput() {
+        // extractor/test.pdf is ~3.5KB, far larger than the 10-byte cap, so the spool to the
+        // temp file must be rejected with MaxLengthExceededException before it grows unbounded.
+        pdfExtractor.setMaxContentLength(10);
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.pdf");
+        try {
+            pdfExtractor.getText(in, null);
+            fail();
+        } catch (final MaxLengthExceededException e) {
+            assertTrue(e.getMessage().contains("input size exceeded limit"));
+        } finally {
+            CloseableUtil.closeQuietly(in);
+        }
+    }
+
+    @Test
+    public void test_getText_maxContentLength_underCapExtractsNormally() {
+        // A cap larger than test.pdf's size must not change extraction.
+        pdfExtractor.setMaxContentLength(10_000_000);
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.pdf");
         final ExtractData extractData = pdfExtractor.getText(in, null);
         CloseableUtil.closeQuietly(in);

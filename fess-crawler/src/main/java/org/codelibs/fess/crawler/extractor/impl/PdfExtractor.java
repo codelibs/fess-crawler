@@ -52,6 +52,7 @@ import org.codelibs.core.io.FileUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
+import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.extractor.Extractor;
 import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
@@ -83,7 +84,11 @@ import org.codelibs.fess.crawler.helper.MimeTypeHelper;
  * <p>The supplied input stream is first spooled to a temporary file and the PDF is
  * loaded from that file (rather than buffering the whole document into a
  * {@code byte[]} in memory), which reduces peak heap usage for large PDFs; the
- * temp file is deleted once extraction completes. The extracted text is bounded
+ * temp file is deleted once extraction completes. The number of bytes spooled is
+ * bounded by {@link #maxContentLength} (opt-in; default unlimited): oversized
+ * input is rejected with {@link MaxLengthExceededException} before the temp file
+ * can grow without bound, so a hostile stream cannot fill the temp filesystem.
+ * The extracted text is bounded
  * by {@link #maxTextLength} (default unlimited), mirroring the truncate-not-reject
  * convention used by {@link TextExtractor} and {@link MarkdownExtractor}: once the
  * cap is reached, further writes to the output are silently dropped and the
@@ -143,6 +148,15 @@ public class PdfExtractor extends PasswordBasedExtractor {
     protected long maxTextLength = Long.MAX_VALUE;
 
     /**
+     * Maximum number of input bytes spooled to the temporary file before
+     * rejecting oversized PDFs with {@link MaxLengthExceededException}. Values
+     * less than or equal to zero (the default) disable the limit, preserving the
+     * previous unbounded spool. Bounds temp-file (disk) usage for hostile or
+     * huge streams.
+     */
+    protected long maxContentLength = 0;
+
+    /**
      * Creates a new PdfExtractor instance.
      */
     public PdfExtractor() {
@@ -171,7 +185,7 @@ public class PdfExtractor extends PasswordBasedExtractor {
             // this module. The temp file is removed in the outer finally block below, after
             // the PDDocument (and its file handle) has been closed.
             tempFile = createTempFile("pdfExtractor-", ".pdf", null);
-            CopyUtil.copy(in, tempFile);
+            CopyUtil.copy(limitInputStream(in, maxContentLength), tempFile);
 
             try (PDDocument document = Loader.loadPDF(tempFile, password)) {
                 final BoundedTextWriter writer = new BoundedTextWriter(maxTextLength);
@@ -566,5 +580,30 @@ public class PdfExtractor extends PasswordBasedExtractor {
      */
     public void setMaxTextLength(final long maxTextLength) {
         this.maxTextLength = maxTextLength;
+    }
+
+    /**
+     * Returns the maximum number of input bytes that will be spooled to the
+     * temporary file before oversized PDFs are rejected with
+     * {@link MaxLengthExceededException}.
+     *
+     * @return the maximum input content length in bytes
+     */
+    public long getMaxContentLength() {
+        return maxContentLength;
+    }
+
+    /**
+     * Sets the maximum number of input bytes spooled to the temporary file before
+     * oversized PDFs are rejected with {@link MaxLengthExceededException}. Values
+     * less than or equal to zero (the default) disable the limit, preserving the
+     * previous unbounded spool. Bounding the spooled size bounds temp-file (disk)
+     * usage, so a hostile or accidentally huge stream cannot fill the temp
+     * filesystem.
+     *
+     * @param maxContentLength the maximum input content length in bytes
+     */
+    public void setMaxContentLength(final long maxContentLength) {
+        this.maxContentLength = maxContentLength;
     }
 }

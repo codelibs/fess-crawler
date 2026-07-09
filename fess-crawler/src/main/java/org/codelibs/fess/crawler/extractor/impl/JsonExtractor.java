@@ -28,6 +28,7 @@ import org.apache.logging.log4j.Logger;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.ExtractException;
+import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 
 import com.fasterxml.jackson.core.StreamReadConstraints;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -51,21 +52,25 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * <p>
  * The shared {@link #objectMapper} is configured with explicit
  * {@link StreamReadConstraints} (max nesting depth, max string length, max
- * number length) pinned to Jackson's own out-of-the-box defaults, so
- * out-of-the-box parsing behaves exactly as it would with a default-configured
- * {@link ObjectMapper} (no legitimate JSON that Jackson would otherwise accept
- * is rejected) while still giving callers an explicit, tunable ceiling to
- * tighten if desired rather than relying on Jackson's implicit defaults.
- * Independently, the accumulated output text is bounded by
- * {@link #maxTextLength} (default unlimited), mirroring the truncate-not-reject
- * convention used by {@link TextExtractor} and {@link MarkdownExtractor}: once
- * the cap is reached, the recursive walk stops early and the returned
- * {@link ExtractData} carries {@code truncated=true} and
- * {@code maxTextLength=<value>} metadata entries. The real protection against
- * pathological memory/CPU use comes from this output-side {@code maxTextLength}
- * cap together with the {@link TextAccumulator} bound, not from tightening the
- * parse-time constraints below Jackson's defaults.
+ * number length) pinned to Jackson's own out-of-the-box defaults purely to make
+ * that ceiling explicit and tunable; they do <em>not</em> reject anything a
+ * default-configured {@link ObjectMapper} would otherwise accept and are not the
+ * memory guard. The actual protection against pathological memory/CPU use comes
+ * from two independent, opt-in bounds (both default to unlimited, so the
+ * out-of-the-box behavior is unchanged):
  * </p>
+ * <ul>
+ *   <li>Input size is bounded by {@link #maxContentLength}: oversized input is
+ *       <em>rejected</em> with {@link MaxLengthExceededException} before the
+ *       {@link JsonNode} tree is fully materialized, which bounds the dominant
+ *       {@code readTree()} allocation.</li>
+ *   <li>Accumulated <em>output</em> text is bounded by {@link #maxTextLength}
+ *       using the truncate-not-reject convention shared with
+ *       {@link TextExtractor} and {@link MarkdownExtractor}: once the cap is
+ *       reached, the recursive walk stops early and the returned
+ *       {@link ExtractData} carries {@code truncated=true} and
+ *       {@code maxTextLength=<value>} metadata entries.</li>
+ * </ul>
  */
 public class JsonExtractor extends AbstractExtractor {
     /** Logger instance for this class. */
@@ -130,6 +135,15 @@ public class JsonExtractor extends AbstractExtractor {
     protected long maxTextLength = Long.MAX_VALUE;
 
     /**
+     * Maximum number of input bytes to read before rejecting oversized JSON with
+     * {@link MaxLengthExceededException}. Values less than or equal to zero (the
+     * default) disable the limit, preserving the previous unbounded behavior.
+     * Bounds the dominant {@code readTree()} allocation by capping the input the
+     * tree is built from.
+     */
+    protected long maxContentLength = 0;
+
+    /**
      * Constructs a new JsonExtractor.
      */
     public JsonExtractor() {
@@ -152,7 +166,7 @@ public class JsonExtractor extends AbstractExtractor {
         validateInputStream(in);
 
         try {
-            final JsonNode rootNode = objectMapper.readTree(in);
+            final JsonNode rootNode = objectMapper.readTree(limitInputStream(in, maxContentLength));
             final TextAccumulator textAccumulator = new TextAccumulator(maxTextLength);
             final Map<String, List<String>> metadataMap = new LinkedHashMap<>();
 
@@ -432,5 +446,28 @@ public class JsonExtractor extends AbstractExtractor {
      */
     public void setMaxTextLength(final long maxTextLength) {
         this.maxTextLength = maxTextLength;
+    }
+
+    /**
+     * Returns the maximum number of input bytes that will be read before
+     * oversized JSON is rejected with {@link MaxLengthExceededException}.
+     *
+     * @return the maximum input content length in bytes
+     */
+    public long getMaxContentLength() {
+        return maxContentLength;
+    }
+
+    /**
+     * Sets the maximum number of input bytes to read before oversized JSON is
+     * rejected with {@link MaxLengthExceededException}. Values less than or equal
+     * to zero (the default) disable the limit, preserving the previous unbounded
+     * behavior. Bounding the input size bounds the dominant {@code readTree()}
+     * allocation, so a hostile or accidentally huge stream cannot exhaust heap.
+     *
+     * @param maxContentLength the maximum input content length in bytes
+     */
+    public void setMaxContentLength(final long maxContentLength) {
+        this.maxContentLength = maxContentLength;
     }
 }

@@ -30,6 +30,7 @@ import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.entity.TestEntity;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
+import org.codelibs.fess.crawler.util.XPathAPI;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -290,6 +291,102 @@ public class XmlTransformerTest extends PlainTestCase {
     }
 
     @Test
+    public void test_getXPathAPI_sameThreadNameUsesDifferentInstances() throws Exception {
+        final TestXmlTransformer transformer = new TestXmlTransformer();
+        transformer.setName("testXmlTransformer");
+        transformer.init();
+
+        final XPathAPI[] xPathAPIs = new XPathAPI[2];
+        final Thread thread1 = new Thread(() -> xPathAPIs[0] = transformer.getXPathAPI(), "same-crawler-thread");
+        final Thread thread2 = new Thread(() -> xPathAPIs[1] = transformer.getXPathAPI(), "same-crawler-thread");
+        thread1.start();
+        thread2.start();
+        thread1.join();
+        thread2.join();
+
+        assertNotNull(xPathAPIs[0]);
+        assertNotNull(xPathAPIs[1]);
+        assertFalse(xPathAPIs[0] == xPathAPIs[1]);
+    }
+
+    @Test
+    public void test_transform_reflectsParserConfigChangeAfterFirstUse() throws Exception {
+        final String result = "<?xml version=\"1.0\"?>\n"//
+                + "<doc>\n"//
+                + "<field name=\"name\"><list><item>鈴木太郎</item><item>佐藤二朗</item><item>田中花子</item></list></field>\n"//
+                + "<field name=\"access\"><list><item></item><item>http://www.taro.com/</item><item>jiro@hoge.foo.bar</item><item>090-xxxx-xxxx</item></list></field>\n"//
+                + "<field name=\"image\"><list><item>taro.png</item><item>jiro.png</item><item>hanako.png</item></list></field>\n"//
+                + "<field name=\"email\"><list><item></item><item>jiro@hoge.foo.bar</item></list></field>\n"//
+                + "<field name=\"url\">http://www.taro.com/</field>\n"//
+                + "<field name=\"tel\">090-xxxx-xxxx</field>\n"//
+                + "</doc>";
+
+        final ResponseData responseData1 = new ResponseData();
+        responseData1.setResponseBody(ResourceUtil.getResourceAsFile("extractor/test.xml"), false);
+        responseData1.setCharSet(Constants.UTF_8);
+        xmlTransformer.transform(responseData1);
+
+        final Map<String, String> fieldRuleMap = newLinkedHashMap();
+        fieldRuleMap.put("name", "//hoge:address/hoge:item/hoge:name");
+        fieldRuleMap.put("access", "//hoge:address/hoge:item/hoge:access");
+        fieldRuleMap.put("image", "//hoge:address/hoge:item/hoge:image/@file");
+        fieldRuleMap.put("email", "//hoge:address/hoge:item/hoge:access[@kind='email']");
+        fieldRuleMap.put("url", "//hoge:address/hoge:item/hoge:access[@kind='url']");
+        fieldRuleMap.put("tel", "//hoge:address/hoge:item/hoge:access[@kind='tel']");
+        xmlTransformer.setFieldRuleMap(fieldRuleMap);
+        xmlTransformer.setNamespaceAware(true);
+
+        final ResponseData responseData2 = new ResponseData();
+        responseData2.setResponseBody(ResourceUtil.getResourceAsFile("extractor/test_ns.xml"), false);
+        responseData2.setCharSet(Constants.UTF_8);
+        final ResultData resultData = xmlTransformer.transform(responseData2);
+        assertEquals(result, new String(resultData.getData(), Constants.UTF_8));
+    }
+
+    @Test
+    public void test_transform_reflectsParserConfigChangeOnWorkerThreadAfterFirstUse() throws Exception {
+        final String result = "<?xml version=\"1.0\"?>\n"//
+                + "<doc>\n"//
+                + "<field name=\"name\"><list><item>鈴木太郎</item><item>佐藤二朗</item><item>田中花子</item></list></field>\n"//
+                + "<field name=\"access\"><list><item></item><item>http://www.taro.com/</item><item>jiro@hoge.foo.bar</item><item>090-xxxx-xxxx</item></list></field>\n"//
+                + "<field name=\"image\"><list><item>taro.png</item><item>jiro.png</item><item>hanako.png</item></list></field>\n"//
+                + "<field name=\"email\"><list><item></item><item>jiro@hoge.foo.bar</item></list></field>\n"//
+                + "<field name=\"url\">http://www.taro.com/</field>\n"//
+                + "<field name=\"tel\">090-xxxx-xxxx</field>\n"//
+                + "</doc>";
+        final ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            executor.submit(() -> {
+                final ResponseData responseData = new ResponseData();
+                responseData.setResponseBody(ResourceUtil.getResourceAsFile("extractor/test.xml"), false);
+                responseData.setCharSet(Constants.UTF_8);
+                xmlTransformer.transform(responseData);
+                return null;
+            }).get(30, TimeUnit.SECONDS);
+
+            final Map<String, String> fieldRuleMap = newLinkedHashMap();
+            fieldRuleMap.put("name", "//hoge:address/hoge:item/hoge:name");
+            fieldRuleMap.put("access", "//hoge:address/hoge:item/hoge:access");
+            fieldRuleMap.put("image", "//hoge:address/hoge:item/hoge:image/@file");
+            fieldRuleMap.put("email", "//hoge:address/hoge:item/hoge:access[@kind='email']");
+            fieldRuleMap.put("url", "//hoge:address/hoge:item/hoge:access[@kind='url']");
+            fieldRuleMap.put("tel", "//hoge:address/hoge:item/hoge:access[@kind='tel']");
+            xmlTransformer.setFieldRuleMap(fieldRuleMap);
+            xmlTransformer.setNamespaceAware(true);
+
+            final ResultData resultData = executor.submit(() -> {
+                final ResponseData responseData = new ResponseData();
+                responseData.setResponseBody(ResourceUtil.getResourceAsFile("extractor/test_ns.xml"), false);
+                responseData.setCharSet(Constants.UTF_8);
+                return xmlTransformer.transform(responseData);
+            }).get(30, TimeUnit.SECONDS);
+            assertEquals(result, new String(resultData.getData(), Constants.UTF_8));
+        } finally {
+            executor.shutdown();
+        }
+    }
+
+    @Test
     public void test_getData() throws Exception {
         final String value = "<?xml version=\"1.0\"?>\n"//
                 + "<doc>\n"//
@@ -422,5 +519,12 @@ public class XmlTransformerTest extends PlainTestCase {
         assertEquals("第一章 第一節 ほげほげふがふが LINK 第2章 第2節", entity.getBody());
         final List<String> list = new ArrayList<String>();
         assertEquals(list, entity.getList());
+    }
+
+    private static class TestXmlTransformer extends XmlTransformer {
+        @Override
+        protected XPathAPI getXPathAPI() {
+            return super.getXPathAPI();
+        }
     }
 }

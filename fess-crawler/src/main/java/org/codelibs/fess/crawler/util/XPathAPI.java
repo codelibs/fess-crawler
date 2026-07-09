@@ -112,7 +112,15 @@ public class XPathAPI {
     public XPathNodes selectNodeList(final Node contextNode, final String expression, final NamespaceContext namespaceContext)
             throws XPathExpressionException {
         if (namespaceContext != null) {
+            final NamespaceContext previousNamespaceContext = xPath.getNamespaceContext();
             xPath.setNamespaceContext(namespaceContext);
+            try {
+                return xPath.evaluateExpression(expression, contextNode, XPathNodes.class);
+            } finally {
+                if (previousNamespaceContext != null) {
+                    xPath.setNamespaceContext(previousNamespaceContext);
+                }
+            }
         }
         return xPath.evaluateExpression(expression, contextNode, XPathNodes.class);
     }

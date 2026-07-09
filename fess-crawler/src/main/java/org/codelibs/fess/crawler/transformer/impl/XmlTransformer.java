@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -185,12 +186,14 @@ public class XmlTransformer extends AbstractTransformer {
     /**
      * The XPathAPI cache.
      */
-    protected LoadingCache<String, XPathAPI> xpathAPICache;
+    protected LoadingCache<Thread, XPathAPI> xpathAPICache;
 
     /**
      * The cache duration in minutes.
      */
     protected long cacheDuration = 10; // min
+
+    protected final AtomicLong documentBuilderFactoryConfigVersion = new AtomicLong();
 
     /**
      * A per-thread cache of a fully configured {@link DocumentBuilderFactory}.
@@ -204,7 +207,7 @@ public class XmlTransformer extends AbstractTransformer {
      * {@link DocumentBuilder} is still created per document via {@link DocumentBuilderFactory#newDocumentBuilder()}
      * since a builder is stateful.</p>
      */
-    protected ThreadLocal<DocumentBuilderFactory> documentBuilderFactoryThreadLocal;
+    protected ThreadLocal<DocumentBuilderFactoryHolder> documentBuilderFactoryThreadLocal;
 
     /**
      * Constructs a new instance of {@code XmlTransformer}.
@@ -220,16 +223,37 @@ public class XmlTransformer extends AbstractTransformer {
     @Resource
     public void init() {
         xpathAPICache =
-                CacheBuilder.newBuilder().expireAfterAccess(cacheDuration, TimeUnit.MINUTES).build(new CacheLoader<String, XPathAPI>() {
+                CacheBuilder.newBuilder().expireAfterAccess(cacheDuration, TimeUnit.MINUTES).build(new CacheLoader<Thread, XPathAPI>() {
                     @Override
-                    public XPathAPI load(final String key) {
+                    public XPathAPI load(final Thread key) {
                         if (logger.isDebugEnabled()) {
-                            logger.debug("created XPathAPI by {}", key);
+                            logger.debug("created XPathAPI by {}", key.getName());
                         }
                         return new XPathAPI();
                     }
                 });
-        documentBuilderFactoryThreadLocal = ThreadLocal.withInitial(this::createDocumentBuilderFactory);
+        documentBuilderFactoryThreadLocal = ThreadLocal.withInitial(this::createDocumentBuilderFactoryHolder);
+    }
+
+    protected DocumentBuilderFactoryHolder createDocumentBuilderFactoryHolder() {
+        return new DocumentBuilderFactoryHolder(documentBuilderFactoryConfigVersion.get(), createDocumentBuilderFactory());
+    }
+
+    protected DocumentBuilderFactory getDocumentBuilderFactory() {
+        DocumentBuilderFactoryHolder holder = documentBuilderFactoryThreadLocal.get();
+        final long configVersion = documentBuilderFactoryConfigVersion.get();
+        if (holder.configVersion != configVersion) {
+            holder = createDocumentBuilderFactoryHolder();
+            documentBuilderFactoryThreadLocal.set(holder);
+        }
+        return holder.factory;
+    }
+
+    protected void invalidateDocumentBuilderFactory() {
+        documentBuilderFactoryConfigVersion.incrementAndGet();
+        if (documentBuilderFactoryThreadLocal != null) {
+            documentBuilderFactoryThreadLocal.remove();
+        }
     }
 
     /**
@@ -323,7 +347,7 @@ public class XmlTransformer extends AbstractTransformer {
         }
 
         try (final InputStream is = responseData.getResponseBody()) {
-            final DocumentBuilderFactory factory = documentBuilderFactoryThreadLocal.get();
+            final DocumentBuilderFactory factory = getDocumentBuilderFactory();
 
             final DocumentBuilder builder = factory.newDocumentBuilder();
 
@@ -393,8 +417,11 @@ public class XmlTransformer extends AbstractTransformer {
      * @return An XPathAPI instance.
      */
     protected XPathAPI getXPathAPI() {
+        if (xpathAPICache == null) {
+            return new XPathAPI();
+        }
         try {
-            return xpathAPICache.get(Thread.currentThread().getName());
+            return xpathAPICache.get(Thread.currentThread());
         } catch (final ExecutionException e) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Failed to retrieval a cache.", e);
@@ -485,6 +512,7 @@ public class XmlTransformer extends AbstractTransformer {
      */
     public void addAttribute(final String name, final Object value) {
         attributeMap.put(name, value);
+        invalidateDocumentBuilderFactory();
     }
 
     /**
@@ -494,6 +522,7 @@ public class XmlTransformer extends AbstractTransformer {
      */
     public void addFeature(final String key, final String value) {
         featureMap.put(key, value);
+        invalidateDocumentBuilderFactory();
     }
 
     /**
@@ -593,6 +622,7 @@ public class XmlTransformer extends AbstractTransformer {
      */
     public void setNamespaceAware(final boolean namespaceAware) {
         this.namespaceAware = namespaceAware;
+        invalidateDocumentBuilderFactory();
     }
 
     /**
@@ -611,6 +641,7 @@ public class XmlTransformer extends AbstractTransformer {
      */
     public void setCoalescing(final boolean coalescing) {
         this.coalescing = coalescing;
+        invalidateDocumentBuilderFactory();
     }
 
     /**
@@ -629,6 +660,7 @@ public class XmlTransformer extends AbstractTransformer {
      */
     public void setExpandEntityRef(final boolean expandEntityRef) {
         this.expandEntityRef = expandEntityRef;
+        invalidateDocumentBuilderFactory();
     }
 
     /**
@@ -647,6 +679,7 @@ public class XmlTransformer extends AbstractTransformer {
      */
     public void setIgnoringComments(final boolean ignoringComments) {
         this.ignoringComments = ignoringComments;
+        invalidateDocumentBuilderFactory();
     }
 
     /**
@@ -665,6 +698,7 @@ public class XmlTransformer extends AbstractTransformer {
      */
     public void setIgnoringElementContentWhitespace(final boolean ignoringElementContentWhitespace) {
         this.ignoringElementContentWhitespace = ignoringElementContentWhitespace;
+        invalidateDocumentBuilderFactory();
     }
 
     /**
@@ -683,6 +717,7 @@ public class XmlTransformer extends AbstractTransformer {
      */
     public void setValidating(final boolean validating) {
         this.validating = validating;
+        invalidateDocumentBuilderFactory();
     }
 
     /**
@@ -701,6 +736,7 @@ public class XmlTransformer extends AbstractTransformer {
      */
     public void setIncludeAware(final boolean includeAware) {
         this.includeAware = includeAware;
+        invalidateDocumentBuilderFactory();
     }
 
     /**
@@ -709,6 +745,17 @@ public class XmlTransformer extends AbstractTransformer {
      */
     public void setCacheDuration(final long cacheDuration) {
         this.cacheDuration = cacheDuration;
+    }
+
+    protected static class DocumentBuilderFactoryHolder {
+        protected final long configVersion;
+
+        protected final DocumentBuilderFactory factory;
+
+        protected DocumentBuilderFactoryHolder(final long configVersion, final DocumentBuilderFactory factory) {
+            this.configVersion = configVersion;
+            this.factory = factory;
+        }
     }
 
     /**

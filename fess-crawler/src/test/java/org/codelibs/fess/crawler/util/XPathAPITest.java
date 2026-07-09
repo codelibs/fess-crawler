@@ -16,8 +16,12 @@
 package org.codelibs.fess.crawler.util;
 
 import java.io.ByteArrayInputStream;
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
 
+import javax.xml.XMLConstants;
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
@@ -47,6 +51,7 @@ public class XPathAPITest extends PlainTestCase {
 
     private Document toDocument(final String xml) throws Exception {
         final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setNamespaceAware(true);
         final DocumentBuilder builder = factory.newDocumentBuilder();
         return builder.parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
     }
@@ -149,6 +154,54 @@ public class XPathAPITest extends PlainTestCase {
         } catch (final XPathExpressionException e) {
             // NOP
         }
+    }
+
+    @Test
+    public void test_selectNodeList_namespaceContextDoesNotLeak() throws Exception {
+        final Document document = toDocument("<root xmlns:hoge=\"http://example.com/hoge\"><hoge:item>value</hoge:item></root>");
+        final XPathAPI xPathAPI = new XPathAPI();
+        final Field xPathField = XPathAPI.class.getDeclaredField("xPath");
+        xPathField.setAccessible(true);
+        final XPath xPath = (XPath) xPathField.get(xPathAPI);
+        final NamespaceContext correctNamespaceContext = new NamespaceContext() {
+            @Override
+            public String getNamespaceURI(final String prefix) {
+                return "hoge".equals(prefix) ? "http://example.com/hoge" : XMLConstants.NULL_NS_URI;
+            }
+
+            @Override
+            public String getPrefix(final String namespaceURI) {
+                return null;
+            }
+
+            @Override
+            public Iterator<String> getPrefixes(final String namespaceURI) {
+                return null;
+            }
+        };
+        xPath.setNamespaceContext(correctNamespaceContext);
+
+        final XPathNodes nodes = xPathAPI.selectNodeList(document, "//hoge:item", new NamespaceContext() {
+            @Override
+            public String getNamespaceURI(final String prefix) {
+                return "hoge".equals(prefix) ? "http://example.com/other" : XMLConstants.NULL_NS_URI;
+            }
+
+            @Override
+            public String getPrefix(final String namespaceURI) {
+                return null;
+            }
+
+            @Override
+            public Iterator<String> getPrefixes(final String namespaceURI) {
+                return null;
+            }
+        });
+        assertEquals(0, nodes.size());
+
+        final XPathNodes restoredNodes = xPathAPI.selectNodeList(document, "//hoge:item");
+        assertEquals(1, restoredNodes.size());
+        assertEquals("value", restoredNodes.get(0).getTextContent());
     }
 
     // -----------------------------------------------------

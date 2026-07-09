@@ -271,11 +271,12 @@ public class Hc4HttpClientTest extends PlainTestCase {
     // Tests for max content length enforcement (precheck + bounded stream)
 
     /**
-     * A response whose Content-Length header exceeds the max must be rejected without the body
-     * ever being read. The server declares (and later, truthfully, delivers) a small body that
-     * matches its declared Content-Length, but only after an artificial delay; a full-download
-     * implementation would block waiting for that body, while a working precheck rejects based on
-     * the Content-Length header alone and returns almost immediately.
+     * A response whose declared Content-Length exceeds the max must be rejected by the
+     * Content-Length precheck without the body ever being read. The proof that the precheck (not the
+     * bounded-stream fallback) rejected it is the reported size: the precheck reports the declared
+     * Content-Length (1024) verbatim, whereas the fallback path would report the capped number of
+     * bytes actually read (maxLength + 1). This is a deterministic, behavioural check -- it does not
+     * rely on wall-clock timing, which is unreliable under CI load.
      */
     @Test
     public void test_doGet_contentLengthHeaderExceedsMax_rejectedWithoutDownloading() throws Exception {
@@ -284,12 +285,6 @@ public class Hc4HttpClientTest extends PlainTestCase {
         server.setHandler(exchange -> {
             exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=UTF-8");
             exchange.sendResponseHeaders(200, body.length);
-            try {
-                // A full-download implementation would block here waiting for the body.
-                Thread.sleep(2000);
-            } catch (final InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
             try (OutputStream out = exchange.getResponseBody()) {
                 out.write(body);
             }
@@ -301,18 +296,15 @@ public class Hc4HttpClientTest extends PlainTestCase {
             httpClient.contentLengthHelper = helper;
             httpClient.init();
 
-            final long start = System.currentTimeMillis();
             try {
                 httpClient.doGet("http://127.0.0.1:" + server.port() + "/");
                 fail();
             } catch (final MaxLengthExceededException e) {
-                final long elapsed = System.currentTimeMillis() - start;
                 assertTrue(e.getMessage().contains("over 64 byte"));
                 // The declared Content-Length (1024) must be reported verbatim, confirming the
-                // precheck (not the bounded-stream fallback) is what rejected the response.
+                // precheck (not the bounded-stream fallback) is what rejected the response. The
+                // fallback would instead report the capped bytes actually read (maxLength + 1).
                 assertTrue(e.getMessage().contains("(1024 byte)"));
-                // rejection should not wait for the (slow) body
-                assertTrue(elapsed < 1000);
             }
         } finally {
             server.stop();

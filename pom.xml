@@ -98,6 +98,16 @@
 				</plugin>
 			</plugins>
 		</pluginManagement>
+		<plugins>
+			<!-- This project publishes to Maven Central. fess-parent only manages this
+			     plugin in pluginManagement, because the Fess plugins deploy to
+			     maven.codelibs.org instead. -->
+			<plugin>
+				<groupId>org.sonatype.central</groupId>
+				<artifactId>central-publishing-maven-plugin</artifactId>
+				<extensions>true</extensions>
+			</plugin>
+		</plugins>
 	</build>
 	<repositories>
 		<repository>

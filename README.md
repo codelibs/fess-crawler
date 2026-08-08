@@ -1,7 +1,7 @@
 # Fess Crawler
 
 [![Java CI with Maven](https://github.com/codelibs/fess-crawler/actions/workflows/maven.yml/badge.svg)](https://github.com/codelibs/fess-crawler/actions/workflows/maven.yml)
-[![Maven Central](https://img.shields.io/maven-central/v/org.codelibs.fess/fess-crawler.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/org.codelibs.fess/fess-crawler)
+[![Maven Repository](https://img.shields.io/badge/Maven-maven.codelibs.org-blue)](https://maven.codelibs.org/release/org/codelibs/fess/fess-crawler/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Javadoc](https://javadoc.io/badge2/org.codelibs.fess/fess-crawler/javadoc.svg)](https://javadoc.io/doc/org.codelibs.fess/fess-crawler)
 
@@ -31,7 +31,21 @@ embedded in any JVM application on its own.
 
 ## Installation
 
-Add the modules you need. Check the Maven Central badge above for the current release.
+Releases are published to the CodeLibs Maven repository rather than Maven Central, so declare it
+first. Browse [the artifact directory](https://maven.codelibs.org/release/org/codelibs/fess/fess-crawler/)
+for the current release.
+
+```xml
+<repositories>
+    <repository>
+        <id>codelibs.org</id>
+        <name>CodeLibs Repository</name>
+        <url>https://maven.codelibs.org/release/</url>
+    </repository>
+</repositories>
+```
+
+Then add the modules you need.
 
 ```xml
 <properties>

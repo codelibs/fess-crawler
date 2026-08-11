@@ -133,8 +133,23 @@ public class HtmlTransformer extends AbstractTransformer {
     /** Precompiled pattern for collapsing repeated slashes (except after a scheme colon) in {@link #normalizeUrl(String)}. */
     private static final Pattern MULTI_SLASH_PATTERN = Pattern.compile("([^:])/+");
 
-    /** Precompiled pattern for extracting a charset value from a content string in {@link #parseCharset(String)}. */
-    private static final Pattern CHARSET_PATTERN = Pattern.compile("; *charset *= *([a-zA-Z0-9\\-_]+)", Pattern.CASE_INSENSITIVE);
+    /**
+     * Precompiled pattern for extracting a charset value from a content string in {@link #parseCharset(String)}.
+     * <p>
+     * The {@code ; charset=} part is deliberately anchored to an opening {@code <meta} tag. The string it is
+     * matched against is the first {@link #preloadSizeForCharset} bytes of the raw response body, which is neither
+     * parsed nor guaranteed to be well-formed HTML, so without that anchor any occurrence of {@code ; charset=}
+     * in ordinary body text (an article about character encodings, a code sample, ...) would be picked up as the
+     * declared encoding of the whole document.
+     * <p>
+     * The tag is delimited with {@code [^<>]*} rather than by matching a complete {@code <meta ...>} element on
+     * purpose: {@code >} keeps the match from running past the end of the tag into the body, {@code <} stops it at
+     * the next tag when the {@code <meta>} tag itself is malformed, and requiring neither a closing quote nor a
+     * closing {@code >} still detects a declaration in a tag that the preload window cut in half. A negated
+     * character class also matches line terminators, so attributes spread over several lines are handled.
+     */
+    private static final Pattern CHARSET_PATTERN =
+            Pattern.compile("<meta\\s[^<>]*; *charset *= *([a-zA-Z0-9\\-_]+)", Pattern.CASE_INSENSITIVE);
 
     /** The crawler container for dependency injection. */
     @Resource
@@ -467,6 +482,11 @@ public class HtmlTransformer extends AbstractTransformer {
 
     /**
      * Parses the charset from the content string.
+     * <p>
+     * Only a {@code charset} parameter declared inside a {@code <meta>} tag, such as
+     * {@code <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">}, is recognized. An occurrence
+     * elsewhere in the content, for example in body text, is ignored. The HTML5 short form
+     * {@code <meta charset="...">} is not recognized because it carries no {@code ;} separator.
      *
      * @param content the content to parse
      * @return the parsed charset name, or null if not found

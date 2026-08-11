@@ -137,27 +137,109 @@ public class HtmlTransformerTest extends PlainTestCase {
     public void test_parseCharset() {
         String content;
 
-        content = "...;charset=UTF-8\"...";
+        content = "<meta http-equiv=\"Content-Type\" content=\"text/html;charset=UTF-8\">";
         assertEquals("UTF-8", htmlTransformer.parseCharset(content));
 
-        content = "...; charset=UTF-8\"...";
+        content = "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">";
         assertEquals("UTF-8", htmlTransformer.parseCharset(content));
 
-        content = "...;charset = UTF-8\"...";
+        content = "<meta http-equiv=\"Content-Type\" content=\"text/html;charset = UTF-8\">";
         assertEquals("UTF-8", htmlTransformer.parseCharset(content));
 
-        content = "...;charset=UTF-8 \"...";
+        content = "<meta http-equiv=\"Content-Type\" content=\"text/html;charset=UTF-8 \">";
         assertEquals("UTF-8", htmlTransformer.parseCharset(content));
 
-        content = "...;charset=Shift_JIS\"...";
+        content = "<meta http-equiv=\"Content-Type\" content=\"text/html;charset=Shift_JIS\">";
         assertEquals("Shift_JIS", htmlTransformer.parseCharset(content));
 
-        content = "...;Charset=Shift_JIS\"...";
+        content = "<meta http-equiv=\"Content-Type\" content=\"text/html;Charset=Shift_JIS\">";
         assertEquals("Shift_JIS", htmlTransformer.parseCharset(content));
 
-        content = "...;charset=EUC-JP\"...";
+        content = "<meta http-equiv=\"Content-Type\" content=\"text/html;charset=EUC-JP\">";
         assertEquals("EUC-JP", htmlTransformer.parseCharset(content));
 
+    }
+
+    @Test
+    public void test_parseCharset_metaTagVariations() {
+        String content;
+
+        // upper case tag and attribute names
+        content = "<META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset=EUC-JP\">";
+        assertEquals("EUC-JP", htmlTransformer.parseCharset(content));
+
+        // unquoted attribute values
+        content = "<meta http-equiv=Content-Type content=text/html; charset=Shift_JIS>";
+        assertEquals("Shift_JIS", htmlTransformer.parseCharset(content));
+
+        // attributes split over several lines
+        content = "<meta http-equiv=\"Content-Type\"\n      content=\"text/html; charset=Shift_JIS\">";
+        assertEquals("Shift_JIS", htmlTransformer.parseCharset(content));
+
+        // XHTML style self-closing tag
+        content = "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=Shift_JIS\" />";
+        assertEquals("Shift_JIS", htmlTransformer.parseCharset(content));
+
+        // the preloaded window cuts the tag before its closing quote and bracket
+        content = "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=Shift_JIS";
+        assertEquals("Shift_JIS", htmlTransformer.parseCharset(content));
+
+        // the declaration is preceded by other meta tags
+        content = "<html><head><meta name=\"viewport\" content=\"width=device-width\">"
+                + "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=Shift_JIS\"></head>";
+        assertEquals("Shift_JIS", htmlTransformer.parseCharset(content));
+    }
+
+    @Test
+    public void test_parseCharset_outsideMetaTag() {
+        String content;
+
+        // body text merely mentioning a content type must not be treated as a declaration
+        content = "<html><head><title>test</title></head>" + "<body><p>Content-Type: text/html; charset=Shift_JIS</p></body></html>";
+        assertNull(htmlTransformer.parseCharset(content));
+
+        // a meta tag without a charset must not let the following text match
+        content = "<html><head><meta name=\"viewport\" content=\"width=device-width\"></head>"
+                + "<body>text/html; charset=EUC-JP</body></html>";
+        assertNull(htmlTransformer.parseCharset(content));
+
+        // an attribute of a non-meta tag must not match either
+        content = "<html><body><span data-type=\"text/html; charset=EUC-JP\">x</span></body></html>";
+        assertNull(htmlTransformer.parseCharset(content));
+
+        // no declaration at all
+        content = "<html><head><title>test</title></head><body>hello</body></html>";
+        assertNull(htmlTransformer.parseCharset(content));
+    }
+
+    @Test
+    public void test_transform_charsetInBodyText() throws Exception {
+        // a UTF-8 page whose body only mentions a charset must keep its own encoding
+        final String content = "<html><head><title>文字コード</title></head>" + "<body><p>Content-Type: text/html; charset=Shift_JIS</p>" //
+                + "<p>こんにちは</p></body></html>";
+        final ResponseData responseData = new ResponseData();
+        responseData.setUrl("http://hoge/test.html");
+        responseData.setResponseBody(content.getBytes(Constants.UTF_8));
+        responseData.setMimeType("text/html");
+        final ResultData resultData = htmlTransformer.transform(responseData);
+        assertEquals(Constants.UTF_8, responseData.getCharSet());
+        assertEquals(Constants.UTF_8, resultData.getEncoding());
+        assertEquals(content, new String(resultData.getData(), resultData.getEncoding()));
+    }
+
+    @Test
+    public void test_transform_charsetInMetaTag() throws Exception {
+        // a declared charset is still honoured
+        final String content = "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=Shift_JIS\">"
+                + "</head><body><p>こんにちは</p></body></html>";
+        final ResponseData responseData = new ResponseData();
+        responseData.setUrl("http://hoge/test.html");
+        responseData.setResponseBody(content.getBytes("Shift_JIS"));
+        responseData.setMimeType("text/html");
+        final ResultData resultData = htmlTransformer.transform(responseData);
+        assertEquals("Shift_JIS", responseData.getCharSet());
+        assertEquals("Shift_JIS", resultData.getEncoding());
+        assertEquals(content, new String(resultData.getData(), resultData.getEncoding()));
     }
 
     @Test

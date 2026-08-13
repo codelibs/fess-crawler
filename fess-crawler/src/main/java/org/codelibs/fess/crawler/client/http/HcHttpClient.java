@@ -29,7 +29,7 @@ import org.codelibs.fess.crawler.client.AbstractCrawlerClient;
  *   <li>PROXY_HOST_PROPERTY: Proxy host setting.</li>
  *   <li>PROXY_PORT_PROPERTY: Proxy port setting.</li>
  *   <li>PROXY_AUTH_SCHEME_PROPERTY: Proxy authentication scheme.</li>
- *   <li>PROXY_CREDENTIALS_PROPERTY: Proxy credentials.</li>
+ *   <li>PROXY_CREDENTIALS_PROPERTY: Proxy credentials, as a WebAuthenticationConfig.</li>
  *   <li>USER_AGENT_PROPERTY: User agent string.</li>
  *   <li>ROBOTS_TXT_ENABLED_PROPERTY: Enable or disable robots.txt parsing.</li>
  *   <li>AUTHENTICATIONS_PROPERTY: Web authentications.</li>
@@ -63,7 +63,11 @@ public abstract class HcHttpClient extends AbstractCrawlerClient {
     /** Property name for proxy authentication scheme setting */
     public static final String PROXY_AUTH_SCHEME_PROPERTY = "proxyAuthScheme";
 
-    /** Property name for proxy credentials setting */
+    /**
+     * Property name for proxy credentials setting.
+     * The value is a {@code WebAuthenticationConfig} carrying the credentials to authenticate with the
+     * proxy; credentials of the underlying HTTP library are accepted as well.
+     */
     public static final String PROXY_CREDENTIALS_PROPERTY = "proxyCredentials";
 
     /** Property name for user agent setting */

@@ -595,6 +595,56 @@ public class Hc5HttpClient extends HcHttpClient {
     }
 
     /**
+     * Resolves the credentials to authenticate with the configured proxy.
+     *
+     * <p>{@link WebAuthenticationConfig} is the library-independent shape a crawl config configures a
+     * proxy authentication in. Credentials set on this client directly are still accepted, as is the
+     * HC4 shape earlier callers handed over.</p>
+     *
+     * <p>The value is matched with {@code instanceof} rather than read through
+     * {@code getInitParameter}, which casts unchecked: a value of a shape the cast does not name threw
+     * {@link ClassCastException} instead of being ignored, which failed the crawl rather than the proxy
+     * authentication.</p>
+     *
+     * @return The proxy credentials, or null when none are configured.
+     */
+    protected Credentials getProxyCredentials() {
+        final Object value = initParamMap != null ? initParamMap.get(PROXY_CREDENTIALS_PROPERTY) : null;
+        if (value == null) {
+            return proxyCredentials;
+        }
+        if (value instanceof final WebAuthenticationConfig config) {
+            return convertCredentials(config.getCredentials());
+        }
+        if (value instanceof final Credentials credentials) {
+            return credentials;
+        }
+        if (value instanceof final org.apache.http.auth.Credentials hc4Credentials) {
+            return convertFromHc4Credentials(hc4Credentials);
+        }
+        logger.warn("Unknown proxy credentials type: type={}", value.getClass().getName());
+        return proxyCredentials;
+    }
+
+    /**
+     * Converts HC4 credentials to HC5 credentials.
+     * This provides backward compatibility for existing configurations.
+     *
+     * @param hc4Credentials the HC4 credentials
+     * @return the HC5 credentials, or null if the credentials are null or of an unknown type
+     */
+    protected Credentials convertFromHc4Credentials(final org.apache.http.auth.Credentials hc4Credentials) {
+        if (hc4Credentials instanceof final org.apache.http.auth.NTCredentials nt) {
+            return new NTCredentials(nt.getUserName(), nt.getPassword() != null ? nt.getPassword().toCharArray() : null,
+                    nt.getWorkstation(), nt.getDomain());
+        }
+        if (hc4Credentials instanceof final org.apache.http.auth.UsernamePasswordCredentials up) {
+            return new UsernamePasswordCredentials(up.getUserName(), up.getPassword() != null ? up.getPassword().toCharArray() : null);
+        }
+        return null;
+    }
+
+    /**
      * Converts HC4 Hc4Authentication array to HC5 Hc5Authentication array.
      * This provides backward compatibility for existing configurations.
      *
@@ -609,17 +659,7 @@ public class Hc5HttpClient extends HcHttpClient {
                 final AuthScope hc5Scope =
                         new AuthScope(hc4Scope.getScheme(), hc4Scope.getHost(), hc4Scope.getPort(), hc4Scope.getRealm(), null);
 
-                final org.apache.http.auth.Credentials hc4Creds = hc4Auth.getCredentials();
-                Credentials hc5Creds = null;
-                if (hc4Creds instanceof org.apache.http.auth.UsernamePasswordCredentials) {
-                    final org.apache.http.auth.UsernamePasswordCredentials up = (org.apache.http.auth.UsernamePasswordCredentials) hc4Creds;
-                    hc5Creds = new UsernamePasswordCredentials(up.getUserName(),
-                            up.getPassword() != null ? up.getPassword().toCharArray() : null);
-                } else if (hc4Creds instanceof org.apache.http.auth.NTCredentials) {
-                    final org.apache.http.auth.NTCredentials nt = (org.apache.http.auth.NTCredentials) hc4Creds;
-                    hc5Creds = new NTCredentials(nt.getUserName(), nt.getPassword() != null ? nt.getPassword().toCharArray() : null,
-                            nt.getWorkstation(), nt.getDomain());
-                }
+                final Credentials hc5Creds = convertFromHc4Credentials(hc4Auth.getCredentials());
 
                 AuthScheme hc5AuthScheme = null;
                 final org.apache.http.auth.AuthScheme hc4AuthScheme = hc4Auth.getAuthScheme();
@@ -1322,7 +1362,7 @@ public class Hc5HttpClient extends HcHttpClient {
             final HttpHost proxy = new HttpHost(proxyHost, proxyPort);
             final DefaultProxyRoutePlanner defaultRoutePlanner = new DefaultProxyRoutePlanner(proxy);
 
-            final Credentials credentials = getInitParameter(PROXY_CREDENTIALS_PROPERTY, proxyCredentials, Credentials.class);
+            final Credentials credentials = getProxyCredentials();
             if (credentials != null) {
                 credentialsProvider.setCredentials(new AuthScope(proxyHost, proxyPort), credentials);
                 final AuthScheme authScheme = getInitParameter(PROXY_AUTH_SCHEME_PROPERTY, proxyAuthScheme, AuthScheme.class);

@@ -15,7 +15,6 @@
  */
 package org.codelibs.fess.crawler.client.s3;
 
-import java.io.ByteArrayInputStream;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,19 +37,24 @@ import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 
-import io.minio.MakeBucketArgs;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
-import io.minio.SetObjectTagsArgs;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectTaggingRequest;
+import software.amazon.awssdk.services.s3.model.Tag;
+import software.amazon.awssdk.services.s3.model.Tagging;
 
 /**
- * Test class for S3Client using MinIO Docker container.
+ * Test class for S3Client using a LocalStack Docker container.
  */
 public class S3ClientTest extends PlainTestCase {
 
     private static final Logger logger = LogManager.getLogger(S3ClientTest.class);
 
-    private static final String IMAGE_NAME = "minio/minio:RELEASE.2022-06-02T02-11-04Z";
+    private static final String IMAGE_NAME = "localstack/localstack:4.14.0";
 
     private static final String SECRET_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY";
 
@@ -58,31 +62,29 @@ public class S3ClientTest extends PlainTestCase {
 
     public S3Client s3Client;
 
-    private GenericContainer minioServer;
+    private GenericContainer localstackServer;
 
     @Override
     protected void setUp(final TestInfo testInfo) throws Exception {
         super.setUp(testInfo);
 
-        final int port = 9000;
+        final int port = 4566;
         logger.info("Creating {}", IMAGE_NAME);
-        minioServer = new GenericContainer<>(IMAGE_NAME)//
-                .withEnv("MINIO_ACCESS_KEY", ACCESS_KEY)//
-                .withEnv("MINIO_SECRET_KEY", SECRET_KEY)//
+        localstackServer = new GenericContainer<>(IMAGE_NAME)//
+                .withEnv("SERVICES", "s3")//
                 .withExposedPorts(port)//
-                .withCommand("server /data")//
                 .waitingFor(new HttpWaitStrategy()//
-                        .forPath("/minio/health/ready")//
+                        .forPath("/_localstack/health")//
                         .forPort(port)//
-                        .withStartupTimeout(Duration.ofSeconds(30)));
+                        .withStartupTimeout(Duration.ofSeconds(120)));
         logger.info("Starting {}", IMAGE_NAME);
-        minioServer.start();
+        localstackServer.start();
         logger.info("Started {}", IMAGE_NAME);
 
         String bucketName = "fess";
-        Integer mappedPort = minioServer.getFirstMappedPort();
+        Integer mappedPort = localstackServer.getFirstMappedPort();
         Testcontainers.exposeHostPorts(mappedPort);
-        String endpoint = String.format("http://%s:%s", minioServer.getContainerIpAddress(), mappedPort);
+        String endpoint = String.format("http://%s:%s", localstackServer.getHost(), mappedPort);
         logger.info("endpoint: {}", endpoint);
 
         StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("mimeTypeHelper", MimeTypeHelperImpl.class)//
@@ -97,7 +99,7 @@ public class S3ClientTest extends PlainTestCase {
 
         for (int i = 0; i < 10; i++) {
             try {
-                setupMinioClient(bucketName, endpoint);
+                setupS3Fixture(bucketName, endpoint);
                 break;
             } catch (final Exception e) {
                 logger.warn("[{}] {}", i + 1, e.getMessage());
@@ -106,47 +108,35 @@ public class S3ClientTest extends PlainTestCase {
         }
     }
 
-    private void setupMinioClient(String bucketName, String endpoint) throws Exception {
-        MinioClient minioClient = MinioClient.builder().endpoint(endpoint).credentials(ACCESS_KEY, SECRET_KEY).build();
-        minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
-        minioClient.putObject(PutObjectArgs.builder()
-                .bucket(bucketName)
-                .object("file1.txt")
-                .stream(new ByteArrayInputStream("file1".getBytes()), 5, -1)
-                .contentType("application/octet-stream")
-                .build());
-        minioClient.putObject(PutObjectArgs.builder()
-                .bucket(bucketName)
-                .object("dir1/file2.txt")
-                .stream(new ByteArrayInputStream("file2".getBytes()), 5, -1)
-                .contentType("application/octet-stream")
-                .build());
-        minioClient.putObject(PutObjectArgs.builder()
-                .bucket(bucketName)
-                .object("dir1/dir2/file3.txt")
-                .stream(new ByteArrayInputStream("file3".getBytes()), 5, -1)
-                .contentType("application/octet-stream")
-                .build());
-        minioClient.putObject(PutObjectArgs.builder()
-                .bucket(bucketName)
-                .object("dir3/file4.txt")
-                .stream(new ByteArrayInputStream("file4".getBytes()), 5, -1)
-                .contentType("application/octet-stream")
-                .build());
+    private void setupS3Fixture(String bucketName, String endpoint) throws Exception {
+        try (software.amazon.awssdk.services.s3.S3Client client = software.amazon.awssdk.services.s3.S3Client.builder()
+                .endpointOverride(java.net.URI.create(endpoint))
+                .forcePathStyle(true)
+                .region(Region.US_EAST_1)
+                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(ACCESS_KEY, SECRET_KEY)))
+                .build()) {
+            client.createBucket(CreateBucketRequest.builder().bucket(bucketName).build());
+            putObject(client, bucketName, "file1.txt", "file1", "label1");
+            putObject(client, bucketName, "dir1/file2.txt", "file2", "label2");
+            putObject(client, bucketName, "dir1/dir2/file3.txt", "file3", "label3");
+            putObject(client, bucketName, "dir3/file4.txt", "file4", "label4");
+        }
+    }
 
-        minioClient
-                .setObjectTags(SetObjectTagsArgs.builder().bucket(bucketName).object("file1.txt").tags(Map.of("label", "label1")).build());
-        minioClient.setObjectTags(
-                SetObjectTagsArgs.builder().bucket(bucketName).object("dir1/file2.txt").tags(Map.of("label", "label2")).build());
-        minioClient.setObjectTags(
-                SetObjectTagsArgs.builder().bucket(bucketName).object("dir1/dir2/file3.txt").tags(Map.of("label", "label3")).build());
-        minioClient.setObjectTags(
-                SetObjectTagsArgs.builder().bucket(bucketName).object("dir3/file4.txt").tags(Map.of("label", "label4")).build());
+    private void putObject(final software.amazon.awssdk.services.s3.S3Client client, final String bucketName, final String key,
+            final String content, final String label) {
+        client.putObject(PutObjectRequest.builder().bucket(bucketName).key(key).contentType("application/octet-stream").build(),
+                RequestBody.fromBytes(content.getBytes()));
+        client.putObjectTagging(PutObjectTaggingRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .tagging(Tagging.builder().tagSet(Tag.builder().key("label").value(label).build()).build())
+                .build());
     }
 
     @Override
     protected void tearDown(final TestInfo testInfo) throws Exception {
-        minioServer.stop();
+        localstackServer.stop();
         super.tearDown(testInfo);
     }
 

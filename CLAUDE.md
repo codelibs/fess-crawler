@@ -22,12 +22,12 @@ crawling engine behind [Fess](https://github.com/codelibs/fess) and is also usab
 - **Extraction**: Apache Tika, POI, PDFBox, commonmark, commons-csv, jlha, jhighlight, JODConverter
 - **Testing**: **JUnit 5 (Jupiter)**, UTFlute, Mockito, Testcontainers
 - **Storage**: In-memory (default), OpenSearch (optional, via fesen-httpclient)
-- **Cloud**: AWS SDK v2 (S3), Google Cloud Storage, MinIO
+- **Cloud**: AWS SDK v2 (S3, incl. S3-compatible servers), Google Cloud Storage
 
 ### Protocols
 
-HTTP/HTTPS, File, FTP/FTPS, SMB/CIFS (SMB2+ via SMBJ, SMB1 via JCIFS), Storage (MinIO,
-`storage://`), S3 (`s3://`), GCS (`gcs://`)
+HTTP/HTTPS, File, FTP/FTPS, SMB/CIFS (SMB2+ via SMBJ, SMB1 via JCIFS), S3 (`s3://`),
+GCS (`gcs://`)
 
 ### Content Formats
 
@@ -118,7 +118,7 @@ Pattern-based client selection (from `crawler/client.xml`):
 - `file:.*` → `FileSystemClient`
 - `smb:.*` → `smb.SmbClient` (SMB2+), `smb1:.*` → `smb1.SmbClient` (SMB1)
 - `ftp:.*`, `ftps:.*` → `FtpClient` (one shared component)
-- `storage:.*` → `StorageClient`, `s3:.*` → `S3Client`, `gcs:.*` → `GcsClient`
+- `s3:.*` → `S3Client`, `gcs:.*` → `GcsClient`
 
 ### Cloud Storage Clients
 
@@ -128,7 +128,9 @@ Pattern-based client selection (from `crawler/client.xml`):
   instance profile, IRSA, env vars, shared profile)
 - **GcsClient**: Google Cloud SDK, `gcs://bucket/path`, init params: `projectId`, `credentialsFile`,
   `endpoint`. No `credentialsFile` → Application Default Credentials
-- **StorageClient**: MinIO SDK, `storage://bucket/path`
+- **S3Client**: AWS SDK v2, `s3://bucket/path`, init params: `endpoint`, `accessKey`, `secretKey`,
+  `region`, `crossRegionAccessEnabled`. Blank `accessKey`/`secretKey` → default credential chain.
+  Setting `endpoint` enables path-style access for S3-compatible servers (MinIO, LocalStack)
 
 ### Services
 

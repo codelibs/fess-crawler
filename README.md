@@ -12,7 +12,7 @@ embedded in any JVM application on its own.
 ## Key Features
 
 - **Multi-protocol**: HTTP/HTTPS, local/network file systems, FTP/FTPS, SMB/CIFS (SMB1 and SMB2+),
-  MinIO-compatible object storage, Amazon S3, Google Cloud Storage
+  Amazon S3 and S3-compatible object storage (MinIO, LocalStack), Google Cloud Storage
 - **Broad text extraction**: Office documents, PDF, HTML, XML, JSON, CSV, Markdown, e-mail, archives,
   PostScript, and media/image metadata — via Apache Tika, POI, PDFBox and format-specific extractors
 - **Multi-threaded** crawling with configurable thread pools, depth limits and access-count limits
@@ -193,8 +193,7 @@ Clients are selected by URL pattern (see `crawler/client.xml` in `fess-crawler-l
 | `smb:.*` | `smb.SmbClient` | SMB2+ (SMBJ) |
 | `smb1:.*` | `smb1.SmbClient` | legacy SMB1 (JCIFS) |
 | `ftp:.*`, `ftps:.*` | `FtpClient` | shared component for both schemes |
-| `storage:.*` | `StorageClient` | MinIO / S3-compatible object storage |
-| `s3:.*` | `S3Client` | AWS SDK v2 |
+| `s3:.*` | `S3Client` | AWS SDK v2; S3-compatible servers via `endpoint` |
 | `gcs:.*` | `GcsClient` | Google Cloud Storage |
 
 ### Content Formats

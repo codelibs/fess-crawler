@@ -22,7 +22,7 @@ import org.codelibs.fess.crawler.client.fs.FileSystemClient;
 import org.codelibs.fess.crawler.client.ftp.FtpClient;
 import org.codelibs.fess.crawler.client.http.Hc5HttpClient;
 import org.codelibs.fess.crawler.client.smb.SmbClient;
-import org.codelibs.fess.crawler.client.storage.StorageClient;
+import org.codelibs.fess.crawler.client.s3.S3Client;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
@@ -48,7 +48,7 @@ public class CrawlerClientFactoryTest extends PlainTestCase {
                 .singleton("smbClient", SmbClient.class)//
                 .singleton("smb1Client", org.codelibs.fess.crawler.client.smb1.SmbClient.class)//
                 .singleton("ftpClient", FtpClient.class)//
-                .singleton("storageClient", StorageClient.class)//
+                .singleton("s3Client", S3Client.class)//
                 .singleton("clientFactory", CrawlerClientFactory.class);
         clientFactory = container.getComponent("clientFactory");
         FaultTolerantClient httpClient = container.getComponent("httpClient");
@@ -59,7 +59,7 @@ public class CrawlerClientFactoryTest extends PlainTestCase {
         clientFactory.addClient("smb:.*", container.getComponent("smbClient"));
         clientFactory.addClient("smb1:.*", container.getComponent("smb1Client"));
         clientFactory.addClient("ftp:.*", container.getComponent("ftpClient"));
-        clientFactory.addClient("storage:.*", container.getComponent("storageClient"));
+        clientFactory.addClient("s3:.*", container.getComponent("s3Client"));
     }
 
     @Test
@@ -99,10 +99,10 @@ public class CrawlerClientFactoryTest extends PlainTestCase {
         assertNotNull(client);
         assertTrue(client instanceof FtpClient);
 
-        url = "storage:/home/hoge";
+        url = "s3:/home/hoge";
         client = clientFactory.getClient(url);
         assertNotNull(client);
-        assertTrue(client instanceof StorageClient);
+        assertTrue(client instanceof S3Client);
 
     }
 

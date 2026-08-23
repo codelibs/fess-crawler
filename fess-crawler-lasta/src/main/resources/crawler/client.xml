@@ -51,11 +51,6 @@
 		<property name="charset">"UTF-8"</property>
 	</component>
 
-	<component name="storageClient"
-		class="org.codelibs.fess.crawler.client.storage.StorageClient" instance="prototype">
-		<property name="charset">"UTF-8"</property>
-	</component>
-
 	<component name="s3Client"
 		class="org.codelibs.fess.crawler.client.s3.S3Client" instance="prototype">
 		<property name="charset">"UTF-8"</property>
@@ -95,10 +90,6 @@
 		<postConstruct name="addClient">
 			<arg>"ftps:.*"</arg>
 			<arg>ftpClient</arg>
-		</postConstruct>
-		<postConstruct name="addClient">
-			<arg>"storage:.*"</arg>
-			<arg>storageClient</arg>
 		</postConstruct>
 		<postConstruct name="addClient">
 			<arg>"s3:.*"</arg>

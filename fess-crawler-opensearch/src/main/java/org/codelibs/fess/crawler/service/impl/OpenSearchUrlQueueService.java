@@ -36,7 +36,7 @@ import org.codelibs.fess.crawler.util.OpenSearchCrawlerConfig;
 import org.opensearch.action.DocWriteRequest.OpType;
 import org.opensearch.action.bulk.BulkRequestBuilder;
 import org.opensearch.action.bulk.BulkResponse;
-import org.opensearch.action.search.SearchResponse;
+import org.opensearch.action.search.SearchRequestBuilder;
 import org.opensearch.action.support.WriteRequest.RefreshPolicy;
 import org.opensearch.action.update.UpdateRequestBuilder;
 import org.opensearch.common.unit.TimeValue;
@@ -139,43 +139,29 @@ public class OpenSearchUrlQueueService extends AbstractCrawlerService implements
      */
     @Override
     public void updateSessionId(final String oldSessionId, final String newSessionId) {
-        SearchResponse response = getClient().get(c -> c.prepareSearch(index)
-                .setScroll(new TimeValue(scrollTimeout))
+        // The index is carried by the point in time, so the search itself must not name it. The point in
+        // time also freezes the view of the queue, so rewriting the very field the query filters on cannot
+        // make the walk skip or revisit a document.
+        final SearchRequestBuilder builder = getClient().prepareSearch()
                 .setQuery(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, oldSessionId)))
-                .setSize(scrollSize)
-                .execute());
-        String scrollId = response.getScrollId();
-        try {
-            while (scrollId != null) {
-                final SearchHits searchHits = response.getHits();
-                if (searchHits.getHits().length == 0) {
-                    break;
+                .setSize(scrollSize);
+        getClient().pitSearch(index, new TimeValue(scrollTimeout), builder, response -> {
+            final SearchHits searchHits = response.getHits();
+            final BulkResponse bulkResponse = getClient().get(c -> {
+                final BulkRequestBuilder bulkBuilder = c.prepareBulk();
+                for (final SearchHit searchHit : searchHits) {
+                    final UpdateRequestBuilder updateRequest =
+                            c.prepareUpdate().setIndex(index).setId(searchHit.getId()).setDoc(SESSION_ID, newSessionId);
+                    bulkBuilder.add(updateRequest);
                 }
 
-                final BulkResponse bulkResponse = getClient().get(c -> {
-                    final BulkRequestBuilder builder = c.prepareBulk();
-                    for (final SearchHit searchHit : searchHits) {
-                        final UpdateRequestBuilder updateRequest =
-                                c.prepareUpdate().setIndex(index).setId(searchHit.getId()).setDoc(SESSION_ID, newSessionId);
-                        builder.add(updateRequest);
-                    }
-
-                    return builder.execute();
-                });
-                if (bulkResponse.hasFailures()) {
-                    throw new OpenSearchAccessException(bulkResponse.buildFailureMessage());
-                }
-
-                final String sid = scrollId;
-                response = getClient().get(c -> c.prepareSearchScroll(sid).setScroll(new TimeValue(scrollTimeout)).execute());
-                if (!scrollId.equals(response.getScrollId())) {
-                    getClient().clearScroll(scrollId);
-                }
-                scrollId = response.getScrollId();
+                return bulkBuilder.execute();
+            });
+            if (bulkResponse.hasFailures()) {
+                throw new OpenSearchAccessException(bulkResponse.buildFailureMessage());
             }
-        } finally {
-            getClient().clearScroll(scrollId);
-        }
+            return true;
+        });
     }
 
     /**

@@ -157,12 +157,12 @@ public abstract class AbstractCrawlerService {
     protected String index;
 
     /**
-     * Scroll timeout in milliseconds.
+     * Keep alive of the point in time used to walk search results, in milliseconds.
      */
     protected int scrollTimeout = 60000;
 
     /**
-     * Scroll size for search requests.
+     * Number of hits fetched per page when walking search results.
      */
     protected int scrollSize = 100;
 
@@ -648,47 +648,31 @@ public abstract class AbstractCrawlerService {
 
     /**
      * Deletes documents from the OpenSearch index based on the specified search criteria.
-     * Uses scroll and bulk delete operations for efficient deletion of large result sets.
+     * Walks the matching documents over a point in time and deletes them in bulk, which keeps the
+     * deletion efficient for large result sets.
      *
      * @param callback The callback to configure the search request for identifying documents to delete.
      * @throws OpenSearchAccessException if the deletion fails.
      */
     public void delete(final Consumer<SearchRequestBuilder> callback) {
-        SearchResponse response = getClient().get(c -> {
-            final SearchRequestBuilder builder = c.prepareSearch(index).setScroll(new TimeValue(scrollTimeout)).setSize(scrollSize);
-            callback.accept(builder);
-            return builder.execute();
-        });
-        String scrollId = response.getScrollId();
-        try {
-            while (scrollId != null) {
-                final SearchHits searchHits = response.getHits();
-                if (searchHits.getHits().length == 0) {
-                    break;
+        // The index is carried by the point in time, so the search itself must not name it.
+        final SearchRequestBuilder builder = getClient().prepareSearch().setSize(scrollSize);
+        callback.accept(builder);
+        getClient().pitSearch(index, new TimeValue(scrollTimeout), builder, response -> {
+            final SearchHits searchHits = response.getHits();
+            final BulkResponse bulkResponse = getClient().get(c -> {
+                final BulkRequestBuilder bulkBuilder = c.prepareBulk();
+                for (final SearchHit searchHit : searchHits) {
+                    bulkBuilder.add(c.prepareDelete().setIndex(index).setId(searchHit.getId()));
                 }
 
-                final BulkResponse bulkResponse = getClient().get(c -> {
-                    final BulkRequestBuilder bulkBuilder = c.prepareBulk();
-                    for (final SearchHit searchHit : searchHits) {
-                        bulkBuilder.add(c.prepareDelete().setIndex(index).setId(searchHit.getId()));
-                    }
-
-                    return bulkBuilder.execute();
-                });
-                if (bulkResponse.hasFailures()) {
-                    throw new OpenSearchAccessException(bulkResponse.buildFailureMessage());
-                }
-
-                final String sid = scrollId;
-                response = getClient().get(c -> c.prepareSearchScroll(sid).setScroll(new TimeValue(scrollTimeout)).execute());
-                if (!scrollId.equals(response.getScrollId())) {
-                    getClient().clearScroll(scrollId);
-                }
-                scrollId = response.getScrollId();
+                return bulkBuilder.execute();
+            });
+            if (bulkResponse.hasFailures()) {
+                throw new OpenSearchAccessException(bulkResponse.buildFailureMessage());
             }
-        } finally {
-            getClient().clearScroll(scrollId);
-        }
+            return true;
+        });
 
         refresh();
     }
@@ -766,35 +750,35 @@ public abstract class AbstractCrawlerService {
     }
 
     /**
-     * Gets the scroll timeout in milliseconds.
+     * Gets the keep alive of the point in time used to walk search results, in milliseconds.
      *
-     * @return The scroll timeout.
+     * @return The keep alive in milliseconds.
      */
     public int getScrollTimeout() {
         return scrollTimeout;
     }
 
     /**
-     * Sets the scroll timeout.
-     * @param scrollTimeout The scroll timeout.
+     * Sets the keep alive of the point in time used to walk search results, in milliseconds.
+     * @param scrollTimeout The keep alive in milliseconds.
      */
     public void setScrollTimeout(final int scrollTimeout) {
         this.scrollTimeout = scrollTimeout;
     }
 
     /**
-     * Gets the scroll size for search operations.
+     * Gets the number of hits fetched per page when walking search results.
      *
-     * @return The scroll size.
+     * @return The page size.
      */
     public int getScrollSize() {
         return scrollSize;
     }
 
     /**
-     * Sets the scroll size for search operations.
+     * Sets the number of hits fetched per page when walking search results.
      *
-     * @param scrollSize The scroll size.
+     * @param scrollSize The page size.
      */
     public void setScrollSize(final int scrollSize) {
         this.scrollSize = scrollSize;

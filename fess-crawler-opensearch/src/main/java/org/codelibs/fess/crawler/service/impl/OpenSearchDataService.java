@@ -224,49 +224,32 @@ public class OpenSearchDataService extends AbstractCrawlerService implements Dat
 
     /**
      * Iterates through all access results for a session, calling the callback for each result.
-     * Uses OpenSearch scroll API for efficient iteration over large result sets.
+     * Walks the results over a point in time, which keeps the iteration efficient for large result sets.
      *
      * @param sessionId The session ID.
      * @param callback The callback to execute for each access result.
      */
     @Override
     public void iterate(final String sessionId, final AccessResultCallback<OpenSearchAccessResult> callback) {
-        SearchResponse response = getClient().get(c -> c.prepareSearch(index)
-                .setScroll(new TimeValue(scrollTimeout))
+        // The index is carried by the point in time, so the search itself must not name it.
+        final SearchRequestBuilder builder = getClient().prepareSearch()
                 .setQuery(QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, sessionId)))
-                .setSize(scrollSize)
-                .execute());
-        String scrollId = response.getScrollId();
-        try {
-            while (scrollId != null) {
-                final SearchHits searchHits = response.getHits();
-                if (searchHits.getHits().length == 0) {
-                    break;
+                .setSize(scrollSize);
+        getClient().pitSearch(index, new TimeValue(scrollTimeout), builder, response -> {
+            for (final SearchHit searchHit : response.getHits()) {
+                final Map<String, Object> source = searchHit.getSourceAsMap();
+                final OpenSearchAccessResult accessResult = BeanUtil.copyMapToNewBean(source, OpenSearchAccessResult.class, option -> {
+                    option.converter(new EsTimestampConverter(), timestampFields).excludeWhitespace();
+                    option.exclude(OpenSearchAccessResult.ACCESS_RESULT_DATA);
+                });
+                @SuppressWarnings("unchecked")
+                final Map<String, Object> data = (Map<String, Object>) source.get(OpenSearchAccessResult.ACCESS_RESULT_DATA);
+                if (data != null) {
+                    accessResult.setAccessResultData(new OpenSearchAccessResultData(data));
                 }
-
-                for (final SearchHit searchHit : searchHits) {
-                    final Map<String, Object> source = searchHit.getSourceAsMap();
-                    final OpenSearchAccessResult accessResult = BeanUtil.copyMapToNewBean(source, OpenSearchAccessResult.class, option -> {
-                        option.converter(new EsTimestampConverter(), timestampFields).excludeWhitespace();
-                        option.exclude(OpenSearchAccessResult.ACCESS_RESULT_DATA);
-                    });
-                    @SuppressWarnings("unchecked")
-                    final Map<String, Object> data = (Map<String, Object>) source.get(OpenSearchAccessResult.ACCESS_RESULT_DATA);
-                    if (data != null) {
-                        accessResult.setAccessResultData(new OpenSearchAccessResultData(data));
-                    }
-                    callback.iterate(accessResult);
-                }
-
-                final String sid = scrollId;
-                response = getClient().get(c -> c.prepareSearchScroll(sid).setScroll(new TimeValue(scrollTimeout)).execute());
-                if (!scrollId.equals(response.getScrollId())) {
-                    getClient().clearScroll(scrollId);
-                }
-                scrollId = response.getScrollId();
+                callback.iterate(accessResult);
             }
-        } finally {
-            getClient().clearScroll(scrollId);
-        }
+            return true;
+        });
     }
 }

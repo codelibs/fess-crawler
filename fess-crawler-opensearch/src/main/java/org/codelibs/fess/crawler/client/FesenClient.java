@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.logging.log4j.LogManager;
@@ -61,6 +62,7 @@ import org.opensearch.action.index.IndexResponse;
 import org.opensearch.action.search.ClearScrollRequest;
 import org.opensearch.action.search.ClearScrollRequestBuilder;
 import org.opensearch.action.search.ClearScrollResponse;
+import org.opensearch.action.search.CreatePitAction;
 import org.opensearch.action.search.CreatePitRequest;
 import org.opensearch.action.search.CreatePitResponse;
 import org.opensearch.action.search.DeletePitRequest;
@@ -94,6 +96,8 @@ import org.opensearch.index.engine.VersionConflictEngineException;
 import org.opensearch.index.query.QueryBuilder;
 import org.opensearch.search.Scroll;
 import org.opensearch.search.SearchHit;
+import org.opensearch.search.builder.PointInTimeBuilder;
+import org.opensearch.search.sort.SortBuilders;
 import org.opensearch.threadpool.ThreadPool;
 import org.opensearch.transport.client.AdminClient;
 import org.opensearch.transport.client.Client;
@@ -143,7 +147,7 @@ public class FesenClient implements Client {
     private volatile boolean connected;
 
     /**
-     * Scroll for delete operations.
+     * Keep alive of the point in time used by delete operations.
      */
     protected Scroll scrollForDelete = new Scroll(TimeValue.timeValueMinutes(1));
 
@@ -607,7 +611,7 @@ public class FesenClient implements Client {
     }
 
     /**
-     * Deletes documents matching the specified query using scroll and bulk delete.
+     * Deletes documents matching the specified query using a point in time and bulk delete.
      *
      * @param index The index to delete from.
      * @param type The document type (deprecated, no longer used).
@@ -622,7 +626,7 @@ public class FesenClient implements Client {
     }
 
     /**
-     * Deletes documents matching the specified query using scroll and bulk delete.
+     * Deletes documents matching the specified query using a point in time and bulk delete.
      *
      * @param index The index to delete from.
      * @param queryBuilder The query to match documents for deletion.
@@ -630,51 +634,93 @@ public class FesenClient implements Client {
      * @throws OpenSearchAccessException if the deletion fails.
      */
     public int deleteByQuery(final String index, final QueryBuilder queryBuilder) {
-        SearchResponse response =
-                get(c -> c.prepareSearch(index).setScroll(scrollForDelete).setSize(sizeForDelete).setQuery(queryBuilder).execute());
-        String scrollId = response.getScrollId();
-        int count = 0;
+        final int[] count = new int[1];
+        pitSearch(index, scrollForDelete.keepAlive(), prepareSearch().setSize(sizeForDelete).setQuery(queryBuilder), response -> {
+            final SearchHit[] hits = response.getHits().getHits();
+            count[0] += hits.length;
+            final BulkResponse bulkResponse = get(c -> {
+                final BulkRequestBuilder bulkRequest = client.prepareBulk();
+                for (final SearchHit hit : hits) {
+                    bulkRequest.add(client.prepareDelete().setIndex(hit.getIndex()).setId(hit.getId()));
+                }
+                return bulkRequest.execute();
+            });
+            if (bulkResponse.hasFailures()) {
+                throw new OpenSearchAccessException(bulkResponse.buildFailureMessage());
+            }
+            return true;
+        });
+        return count[0];
+    }
+
+    /**
+     * Walks every document matching the given search request, one page at a time, over a point in time.
+     *
+     * <p>The pages are ordered by the request's own sort followed by a {@code _shard_doc} tiebreaker, which
+     * makes the order total so that {@code search_after} can walk it without skipping or repeating a
+     * document. The point in time is released in every case, and the walk stops as soon as the page handler
+     * returns {@code false}.</p>
+     *
+     * <p>The builder must be created by {@link #prepareSearch(String...)} <em>without</em> indices: a point in
+     * time carries the indices, routing and preference itself, and a search that repeats any of them is
+     * rejected with a 400 ({@code [indices] cannot be used with point in time}). Over HTTP such a 400 on a
+     * request with a body does not surface as an error, it hangs. Routing and preference already set on the
+     * builder are therefore moved onto the point in time and stripped off the search.</p>
+     *
+     * @param index The index to walk.
+     * @param keepAlive How long the point in time stays alive, extended by every page.
+     * @param builder The search request builder, created without indices.
+     * @param pageHandler Called once per non-empty page; returning false ends the walk.
+     */
+    public void pitSearch(final String index, final TimeValue keepAlive, final SearchRequestBuilder builder,
+            final Predicate<SearchResponse> pageHandler) {
+        builder.addSort(SortBuilders.shardDocSort());
+
+        final SearchRequest request = builder.request();
+        final CreatePitRequest createPitRequest = new CreatePitRequest(keepAlive, true, index);
+        if (request.preference() != null) {
+            createPitRequest.setPreference(request.preference());
+            request.preference(null);
+        }
+        if (request.routing() != null) {
+            createPitRequest.setRouting(request.routing());
+            request.routing((String) null);
+        }
+        final String pitId = get(c -> c.execute(CreatePitAction.INSTANCE, createPitRequest)).getId();
         try {
-            while (scrollId != null) {
+            builder.setPointInTime(new PointInTimeBuilder(pitId).setKeepAlive(keepAlive));
+            Object[] searchAfter = null;
+            while (true) {
+                if (searchAfter != null) {
+                    builder.searchAfter(searchAfter);
+                }
+                final SearchResponse response = get(c -> builder.execute());
                 final SearchHit[] hits = response.getHits().getHits();
                 if (hits.length == 0) {
                     break;
                 }
 
-                count += hits.length;
-                final BulkResponse bulkResponse = get(c -> {
-                    final BulkRequestBuilder bulkRequest = client.prepareBulk();
-                    for (final SearchHit hit : hits) {
-                        bulkRequest.add(client.prepareDelete().setIndex(hit.getIndex()).setId(hit.getId()));
-                    }
-                    return bulkRequest.execute();
-                });
-                if (bulkResponse.hasFailures()) {
-                    throw new OpenSearchAccessException(bulkResponse.buildFailureMessage());
+                if (!pageHandler.test(response)) {
+                    break;
                 }
 
-                final String previousScrollId = scrollId;
-                response = get(c -> c.prepareSearchScroll(previousScrollId).setScroll(scrollForDelete).execute());
-                scrollId = response.getScrollId();
-                if (!previousScrollId.equals(scrollId)) {
-                    clearScroll(previousScrollId);
-                }
+                searchAfter = hits[hits.length - 1].getSortValues();
             }
         } finally {
-            clearScroll(scrollId);
+            deletePitContext(pitId);
         }
-        return count;
     }
 
     /**
-     * Clears a scroll context.
+     * Releases a point in time context. A failure is logged and not rethrown, so that it cannot mask the
+     * exception that is already unwinding.
      *
-     * @param scrollId The scroll ID to clear.
+     * @param pitId The point in time ID to release.
      */
-    public void clearScroll(final String scrollId) {
-        if (scrollId != null) {
-            prepareClearScroll().addScrollId(scrollId)
-                    .execute(ActionListener.wrap(res -> {}, e -> logger.warn("Failed to clear scroll context: scrollId={}", scrollId, e)));
+    public void deletePitContext(final String pitId) {
+        if (pitId != null) {
+            deletePits(new DeletePitRequest(pitId),
+                    ActionListener.wrap(res -> {}, e -> logger.warn("Failed to delete the point in time: pitId={}", pitId, e)));
         }
     }
 
@@ -689,9 +735,10 @@ public class FesenClient implements Client {
     }
 
     /**
-     * Sets the scroll configuration for delete operations.
+     * Sets the keep alive of the point in time used by delete operations.
+     * Only the keep alive of the given value is used; no scroll context is created.
      *
-     * @param scrollForDelete The scroll configuration.
+     * @param scrollForDelete The value carrying the keep alive.
      */
     public void setScrollForDelete(final Scroll scrollForDelete) {
         this.scrollForDelete = scrollForDelete;

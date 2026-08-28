@@ -15,16 +15,17 @@
  */
 package org.codelibs.fess.crawler.client;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -47,23 +48,27 @@ import org.apache.logging.log4j.Logger;
 import org.codelibs.fess.crawler.client.FesenClient.OnConnectListener;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.opensearch.action.admin.cluster.health.ClusterHealthResponse;
 import org.opensearch.action.bulk.BulkRequestBuilder;
 import org.opensearch.action.bulk.BulkResponse;
 import org.opensearch.action.delete.DeleteRequestBuilder;
-import org.opensearch.action.search.ClearScrollRequestBuilder;
-import org.opensearch.action.search.ClearScrollResponse;
+import org.opensearch.action.search.CreatePitAction;
+import org.opensearch.action.search.CreatePitRequest;
+import org.opensearch.action.search.CreatePitResponse;
+import org.opensearch.action.search.DeletePitRequest;
+import org.opensearch.action.search.SearchRequest;
 import org.opensearch.action.search.SearchRequestBuilder;
 import org.opensearch.action.search.SearchResponse;
-import org.opensearch.action.search.SearchScrollRequestBuilder;
 import org.opensearch.common.action.ActionFuture;
-import org.opensearch.core.action.ActionListener;
+import org.opensearch.common.unit.TimeValue;
 import org.opensearch.index.query.QueryBuilders;
-import org.opensearch.search.Scroll;
 import org.opensearch.search.SearchHit;
 import org.opensearch.search.SearchHits;
+import org.opensearch.search.builder.PointInTimeBuilder;
+import org.opensearch.search.sort.ShardDocSortBuilder;
 import org.opensearch.transport.client.AdminClient;
 import org.opensearch.transport.client.Client;
 import org.opensearch.transport.client.ClusterAdminClient;
@@ -250,20 +255,22 @@ public class FesenClientTest {
 
     /**
      * Test: deleteByQuery with new signature (without type parameter)
-     * Verifies the improved scroll cleanup logic
+     * Verifies the point in time walk, the bulk delete and the point in time cleanup
      */
     @Test
     public void testDeleteByQueryNewSignature() {
         final SearchRequestBuilder mockSearchBuilder = mock(SearchRequestBuilder.class);
-        final SearchResponse mockSearchResponse = mock(SearchResponse.class);
-        final SearchHits mockSearchHits = mock(SearchHits.class);
-        final SearchHit mockHit = mock(SearchHit.class);
+        final SearchRequest searchRequest = new SearchRequest();
         final ActionFuture<SearchResponse> mockSearchFuture = mock(ActionFuture.class);
 
-        final SearchScrollRequestBuilder mockScrollBuilder = mock(SearchScrollRequestBuilder.class);
-        final SearchResponse mockScrollResponse = mock(SearchResponse.class);
-        final SearchHits mockScrollHits = mock(SearchHits.class);
-        final ActionFuture<SearchResponse> mockScrollFuture = mock(ActionFuture.class);
+        final SearchResponse mockFirstPage = mock(SearchResponse.class);
+        final SearchHits mockFirstHits = mock(SearchHits.class);
+        final SearchResponse mockLastPage = mock(SearchResponse.class);
+        final SearchHits mockLastHits = mock(SearchHits.class);
+        final SearchHit mockHit = mock(SearchHit.class);
+
+        final CreatePitResponse mockCreatePitResponse = mock(CreatePitResponse.class);
+        final ActionFuture<CreatePitResponse> mockCreatePitFuture = mock(ActionFuture.class);
 
         final BulkRequestBuilder mockBulkBuilder = mock(BulkRequestBuilder.class);
         final BulkResponse mockBulkResponse = mock(BulkResponse.class);
@@ -271,27 +278,27 @@ public class FesenClientTest {
 
         final DeleteRequestBuilder mockDeleteBuilder = mock(DeleteRequestBuilder.class);
 
-        final ClearScrollRequestBuilder mockClearScrollBuilder = mock(ClearScrollRequestBuilder.class);
-
-        // Setup search response with one hit
-        when(mockClient.prepareSearch("test-index")).thenReturn(mockSearchBuilder);
-        when(mockSearchBuilder.setScroll(any(Scroll.class))).thenReturn(mockSearchBuilder);
+        // The search must be prepared without indices: the point in time carries them itself.
+        when(mockClient.prepareSearch()).thenReturn(mockSearchBuilder);
         when(mockSearchBuilder.setSize(10)).thenReturn(mockSearchBuilder);
         when(mockSearchBuilder.setQuery(any())).thenReturn(mockSearchBuilder);
+        when(mockSearchBuilder.request()).thenReturn(searchRequest);
         when(mockSearchBuilder.execute()).thenReturn(mockSearchFuture);
-        when(mockSearchFuture.actionGet(anyLong(), any(TimeUnit.class))).thenReturn(mockSearchResponse);
-        when(mockSearchResponse.getScrollId()).thenReturn("scroll1", "scroll1");
-        when(mockSearchResponse.getHits()).thenReturn(mockSearchHits);
-        when(mockSearchHits.getHits()).thenReturn(new SearchHit[] { mockHit }, new SearchHit[0]);
+        when(mockSearchFuture.actionGet(anyLong(), any(TimeUnit.class))).thenReturn(mockFirstPage, mockLastPage);
+
+        // One hit on the first page, then an empty page ends the walk.
+        when(mockFirstPage.getHits()).thenReturn(mockFirstHits);
+        when(mockFirstHits.getHits()).thenReturn(new SearchHit[] { mockHit });
+        when(mockLastPage.getHits()).thenReturn(mockLastHits);
+        when(mockLastHits.getHits()).thenReturn(new SearchHit[0]);
         when(mockHit.getIndex()).thenReturn("test-index");
         when(mockHit.getId()).thenReturn("doc1");
+        when(mockHit.getSortValues()).thenReturn(new Object[] { 1L });
 
-        // Setup scroll response (empty on second call)
-        when(mockClient.prepareSearchScroll("scroll1")).thenReturn(mockScrollBuilder);
-        when(mockScrollBuilder.setScroll(any(Scroll.class))).thenReturn(mockScrollBuilder);
-        when(mockScrollBuilder.execute()).thenReturn(mockScrollFuture);
-        when(mockScrollFuture.actionGet(anyLong(), any(TimeUnit.class))).thenReturn(mockScrollResponse);
-        when(mockScrollResponse.getHits()).thenReturn(mockScrollHits);
+        // Setup the point in time creation
+        when(mockClient.execute(eq(CreatePitAction.INSTANCE), any(CreatePitRequest.class))).thenReturn(mockCreatePitFuture);
+        when(mockCreatePitFuture.actionGet(anyLong(), any(TimeUnit.class))).thenReturn(mockCreatePitResponse);
+        when(mockCreatePitResponse.getId()).thenReturn("pit1");
 
         // Setup bulk delete
         when(mockClient.prepareBulk()).thenReturn(mockBulkBuilder);
@@ -303,19 +310,25 @@ public class FesenClientTest {
         when(mockBulkFuture.actionGet(anyLong(), any(TimeUnit.class))).thenReturn(mockBulkResponse);
         when(mockBulkResponse.hasFailures()).thenReturn(false);
 
-        // Setup clear scroll
-        when(mockClient.prepareClearScroll()).thenReturn(mockClearScrollBuilder);
-        when(mockClearScrollBuilder.addScrollId(any(String.class))).thenReturn(mockClearScrollBuilder);
-        doAnswer(invocation -> {
-            ActionListener<ClearScrollResponse> listener = invocation.getArgument(0);
-            listener.onResponse(mock(ClearScrollResponse.class));
-            return null;
-        }).when(mockClearScrollBuilder).execute(any(ActionListener.class));
-
         final int deleted = fesenClient.deleteByQuery("test-index", QueryBuilders.matchAllQuery());
 
         assertEquals(1, deleted);
-        verify(mockClearScrollBuilder, times(1)).addScrollId("scroll1");
+
+        // The index belongs to the point in time, never to the search request.
+        final ArgumentCaptor<CreatePitRequest> pitRequestCaptor = ArgumentCaptor.forClass(CreatePitRequest.class);
+        verify(mockClient, times(1)).execute(eq(CreatePitAction.INSTANCE), pitRequestCaptor.capture());
+        assertArrayEquals(new String[] { "test-index" }, pitRequestCaptor.getValue().getIndices());
+        assertEquals(0, searchRequest.indices().length);
+
+        // search_after needs a total order, so a _shard_doc tiebreaker is appended.
+        verify(mockSearchBuilder, times(1)).addSort(any(ShardDocSortBuilder.class));
+        verify(mockSearchBuilder, times(1)).setPointInTime(any(PointInTimeBuilder.class));
+        verify(mockSearchBuilder, times(1)).searchAfter(new Object[] { 1L });
+
+        // The point in time is always released.
+        final ArgumentCaptor<DeletePitRequest> deletePitCaptor = ArgumentCaptor.forClass(DeletePitRequest.class);
+        verify(mockClient, times(1)).deletePits(deletePitCaptor.capture(), any());
+        assertEquals(List.of("pit1"), deletePitCaptor.getValue().getPitIds());
     }
 
     /**
@@ -326,36 +339,76 @@ public class FesenClientTest {
     @SuppressWarnings("deprecation")
     public void testDeleteByQueryDeprecatedMethodDelegates() {
         final SearchRequestBuilder mockSearchBuilder = mock(SearchRequestBuilder.class);
+        final SearchRequest searchRequest = new SearchRequest();
         final SearchResponse mockSearchResponse = mock(SearchResponse.class);
         final SearchHits mockSearchHits = mock(SearchHits.class);
         final ActionFuture<SearchResponse> mockSearchFuture = mock(ActionFuture.class);
 
-        final ClearScrollRequestBuilder mockClearScrollBuilder = mock(ClearScrollRequestBuilder.class);
+        final CreatePitResponse mockCreatePitResponse = mock(CreatePitResponse.class);
+        final ActionFuture<CreatePitResponse> mockCreatePitFuture = mock(ActionFuture.class);
 
-        when(mockClient.prepareSearch("test-index")).thenReturn(mockSearchBuilder);
-        when(mockSearchBuilder.setScroll(any(Scroll.class))).thenReturn(mockSearchBuilder);
+        when(mockClient.prepareSearch()).thenReturn(mockSearchBuilder);
         when(mockSearchBuilder.setSize(10)).thenReturn(mockSearchBuilder);
         when(mockSearchBuilder.setQuery(any())).thenReturn(mockSearchBuilder);
+        when(mockSearchBuilder.request()).thenReturn(searchRequest);
         when(mockSearchBuilder.execute()).thenReturn(mockSearchFuture);
         when(mockSearchFuture.actionGet(anyLong(), any(TimeUnit.class))).thenReturn(mockSearchResponse);
-        when(mockSearchResponse.getScrollId()).thenReturn("scroll1");
         when(mockSearchResponse.getHits()).thenReturn(mockSearchHits);
         when(mockSearchHits.getHits()).thenReturn(new SearchHit[0]);
 
-        when(mockClient.prepareClearScroll()).thenReturn(mockClearScrollBuilder);
-        when(mockClearScrollBuilder.addScrollId(any(String.class))).thenReturn(mockClearScrollBuilder);
-        doAnswer(invocation -> {
-            ActionListener<ClearScrollResponse> listener = invocation.getArgument(0);
-            listener.onResponse(mock(ClearScrollResponse.class));
-            return null;
-        }).when(mockClearScrollBuilder).execute(any(ActionListener.class));
+        when(mockClient.execute(eq(CreatePitAction.INSTANCE), any(CreatePitRequest.class))).thenReturn(mockCreatePitFuture);
+        when(mockCreatePitFuture.actionGet(anyLong(), any(TimeUnit.class))).thenReturn(mockCreatePitResponse);
+        when(mockCreatePitResponse.getId()).thenReturn("pit1");
 
         // Call deprecated method with type parameter
         final int deleted = fesenClient.deleteByQuery("test-index", "_doc", QueryBuilders.matchAllQuery());
 
         assertEquals(0, deleted);
         // Verify it used the same search logic (type parameter is ignored)
-        verify(mockClient).prepareSearch("test-index");
+        verify(mockClient, times(1)).prepareSearch();
+        verify(mockClient, times(1)).deletePits(any(DeletePitRequest.class), any());
+    }
+
+    /**
+     * Test: pitSearch moves the indices, routing and preference onto the point in time.
+     * OpenSearch rejects a point in time search that repeats any of them with a 400, and over HTTP
+     * that 400 does not surface as an error but hangs, so the search must not carry them.
+     */
+    @Test
+    public void testPitSearchMovesRoutingAndPreferenceOntoPit() {
+        final SearchRequestBuilder mockSearchBuilder = mock(SearchRequestBuilder.class);
+        final SearchRequest searchRequest = new SearchRequest();
+        searchRequest.preference("_local");
+        searchRequest.routing("route1");
+        final SearchResponse mockSearchResponse = mock(SearchResponse.class);
+        final SearchHits mockSearchHits = mock(SearchHits.class);
+        final ActionFuture<SearchResponse> mockSearchFuture = mock(ActionFuture.class);
+
+        final CreatePitResponse mockCreatePitResponse = mock(CreatePitResponse.class);
+        final ActionFuture<CreatePitResponse> mockCreatePitFuture = mock(ActionFuture.class);
+
+        when(mockSearchBuilder.request()).thenReturn(searchRequest);
+        when(mockSearchBuilder.execute()).thenReturn(mockSearchFuture);
+        when(mockSearchFuture.actionGet(anyLong(), any(TimeUnit.class))).thenReturn(mockSearchResponse);
+        when(mockSearchResponse.getHits()).thenReturn(mockSearchHits);
+        when(mockSearchHits.getHits()).thenReturn(new SearchHit[0]);
+
+        when(mockClient.execute(eq(CreatePitAction.INSTANCE), any(CreatePitRequest.class))).thenReturn(mockCreatePitFuture);
+        when(mockCreatePitFuture.actionGet(anyLong(), any(TimeUnit.class))).thenReturn(mockCreatePitResponse);
+        when(mockCreatePitResponse.getId()).thenReturn("pit1");
+
+        fesenClient.pitSearch("test-index", TimeValue.timeValueMinutes(1), mockSearchBuilder, response -> true);
+
+        final ArgumentCaptor<CreatePitRequest> pitRequestCaptor = ArgumentCaptor.forClass(CreatePitRequest.class);
+        verify(mockClient, times(1)).execute(eq(CreatePitAction.INSTANCE), pitRequestCaptor.capture());
+        final CreatePitRequest pitRequest = pitRequestCaptor.getValue();
+        assertArrayEquals(new String[] { "test-index" }, pitRequest.getIndices());
+        assertEquals("_local", pitRequest.getPreference());
+        assertEquals("route1", pitRequest.getRouting());
+
+        assertEquals(0, searchRequest.indices().length);
+        assertNull(searchRequest.preference());
+        assertNull(searchRequest.routing());
     }
 
     /**

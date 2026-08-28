@@ -19,6 +19,7 @@ import static org.codelibs.fess.crawler.util.OpenSearchRunnerUtil.findFreePort;
 import static org.codelibs.opensearch.runner.OpenSearchRunner.newConfigs;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -31,6 +32,7 @@ import org.dbflute.utflute.lastadi.LastaDiTestCase;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.opensearch.index.query.QueryBuilders;
+import org.opensearch.search.SearchHit;
 
 import jakarta.annotation.Resource;
 
@@ -39,6 +41,8 @@ import jakarta.annotation.Resource;
  *
  */
 public class OpenSearchUrlQueueServiceTest extends LastaDiTestCase {
+    private static final String QUEUE_INDEX = "fess_crawler.queue";
+
     @Resource
     private OpenSearchUrlQueueService urlQueueService;
 
@@ -186,6 +190,97 @@ public class OpenSearchUrlQueueServiceTest extends LastaDiTestCase {
                 .getHits()
                 .getTotalHits()
                 .value() > 0);
+    }
+
+    @Test
+    public void test_updateSessionIdTx() {
+        final String oldSessionId = "update_session_old";
+        final String newSessionId = "update_session_new";
+        final String otherSessionId = "update_session_other";
+
+        // A page size below the document count forces the search_after walk over more than one page.
+        urlQueueService.setScrollSize(2);
+
+        final List<String> urls = new ArrayList<>();
+        for (int i = 1; i <= 5; i++) {
+            final OpenSearchUrlQueue urlQueue = new OpenSearchUrlQueue();
+            urlQueue.setCreateTime(System.currentTimeMillis());
+            urlQueue.setDepth(1);
+            urlQueue.setMethod("GET");
+            urlQueue.setSessionId(oldSessionId);
+            urlQueue.setUrl("http://www.example.com/update" + i);
+            urlQueueService.insert(urlQueue);
+            urls.add(urlQueue.getUrl());
+        }
+
+        final OpenSearchUrlQueue otherQueue = new OpenSearchUrlQueue();
+        otherQueue.setCreateTime(System.currentTimeMillis());
+        otherQueue.setDepth(1);
+        otherQueue.setMethod("GET");
+        otherQueue.setSessionId(otherSessionId);
+        otherQueue.setUrl("http://www.example.com/other");
+        urlQueueService.insert(otherQueue);
+
+        urlQueueService.updateSessionId(oldSessionId, newSessionId);
+        refreshQueueIndex();
+
+        // Every document of the old session moved exactly once, and no other session was touched.
+        assertEquals(0L, countBySessionId(oldSessionId));
+        assertEquals(5L, countBySessionId(newSessionId));
+        assertEquals(1L, countBySessionId(otherSessionId));
+
+        final List<String> movedUrls = new ArrayList<>();
+        for (final SearchHit hit : fesenClient.prepareSearch(QUEUE_INDEX)
+                .setQuery(QueryBuilders.termQuery("sessionId", newSessionId))
+                .setSize(10)
+                .execute()
+                .actionGet()
+                .getHits()) {
+            movedUrls.add(hit.getSourceAsMap().get("url").toString());
+        }
+        Collections.sort(urls);
+        Collections.sort(movedUrls);
+        assertEquals(urls, movedUrls);
+
+        urlQueueService.delete(newSessionId);
+        urlQueueService.delete(otherSessionId);
+    }
+
+    @Test
+    public void test_updateSessionId_noMatchTx() {
+        final String sessionId = "update_session_keep";
+
+        final OpenSearchUrlQueue urlQueue = new OpenSearchUrlQueue();
+        urlQueue.setCreateTime(System.currentTimeMillis());
+        urlQueue.setDepth(1);
+        urlQueue.setMethod("GET");
+        urlQueue.setSessionId(sessionId);
+        urlQueue.setUrl("http://www.example.com/keep");
+        urlQueueService.insert(urlQueue);
+
+        // An empty result set must release the point in time and leave the index untouched.
+        urlQueueService.updateSessionId("update_session_missing", "update_session_created");
+        refreshQueueIndex();
+
+        assertEquals(1L, countBySessionId(sessionId));
+        assertEquals(0L, countBySessionId("update_session_created"));
+
+        urlQueueService.delete(sessionId);
+    }
+
+    private void refreshQueueIndex() {
+        fesenClient.admin().indices().prepareRefresh(QUEUE_INDEX).execute().actionGet();
+    }
+
+    private long countBySessionId(final String sessionId) {
+        return fesenClient.prepareSearch(QUEUE_INDEX)
+                .setQuery(QueryBuilders.termQuery("sessionId", sessionId))
+                .setSize(0)
+                .execute()
+                .actionGet()
+                .getHits()
+                .getTotalHits()
+                .value();
     }
 
     @Test

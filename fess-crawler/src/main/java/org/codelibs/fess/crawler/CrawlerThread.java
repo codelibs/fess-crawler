@@ -20,6 +20,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.lang.SystemUtil;
@@ -82,6 +84,9 @@ import jakarta.annotation.Resource;
  *
  */
 public class CrawlerThread implements Runnable {
+    /** Logger instance for this class. */
+    private static final Logger logger = LogManager.getLogger(CrawlerThread.class);
+
     /**
      * Constructs a new CrawlerThread.
      */
@@ -465,7 +470,12 @@ public class CrawlerThread implements Runnable {
         if (childList.isEmpty()) {
             return;
         }
-        urlQueueWeigher.apply(crawlerContext.sessionId, childList);
+        try {
+            urlQueueWeigher.apply(crawlerContext.sessionId, childList);
+        } catch (final Exception e) {
+            logger.warn("Failed to apply weigher {} to child URLs. Falling back to inherited weights.",
+                    urlQueueWeigher.getClass().getName(), e);
+        }
         urlQueueService.offerAll(crawlerContext.sessionId, childList);
     }
 

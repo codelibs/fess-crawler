@@ -3,6 +3,8 @@
 	"http://dbflute.org/meta/lastadi10.dtd">
 <components namespace="fessCrawler">
 
+	<include path="crawler/weigher.xml" />
+
 	<component class="org.lastaflute.di.naming.StyledNamingConvention">
 	</component>
 

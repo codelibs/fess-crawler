@@ -398,6 +398,33 @@ public class CrawlerThreadTest extends PlainTestCase {
     }
 
     /**
+     * Test that a throwing weigher does not lose the child URLs: they are still offered to the
+     * queue with their inherited weights instead of the whole batch being dropped.
+     */
+    @SuppressWarnings("unchecked")
+    @Test
+    public void test_storeChildUrls_throwingWeigherKeepsInheritedWeights() throws Exception {
+        final Set<RequestData> childUrlList = new HashSet<>();
+        childUrlList.add(RequestDataBuilder.newRequestData().url("http://example.com/child1").weight(3.0f).build());
+
+        when(urlFilter.match(anyString())).thenReturn(true);
+        when(crawlerContainer.getComponent("urlQueue")).thenReturn(new UrlQueueImpl<>());
+
+        crawlerThread.urlQueueWeigher = (sessionId, childList) -> {
+            throw new RuntimeException("weigher failure");
+        };
+
+        final java.lang.reflect.Method method = CrawlerThread.class.getDeclaredMethod("storeChildUrls", Set.class, String.class, int.class);
+        method.setAccessible(true);
+        method.invoke(crawlerThread, childUrlList, "http://example.com/", 2);
+
+        final org.mockito.ArgumentCaptor<List<UrlQueue<?>>> captor = org.mockito.ArgumentCaptor.forClass(List.class);
+        verify(urlQueueService, times(1)).offerAll(anyString(), captor.capture());
+        assertEquals(1, captor.getValue().size());
+        assertEquals(Float.valueOf(3.0f), Float.valueOf(captor.getValue().get(0).getWeight()));
+    }
+
+    /**
      * Test that the default weigher leaves the inherited weight untouched.
      */
     @SuppressWarnings("unchecked")

@@ -24,7 +24,16 @@ import org.codelibs.fess.crawler.entity.UrlQueue;
  *
  * <p>
  * The weight decides the fetch order under the weight-based {@code UrlQueueOrder}
- * implementations. Callers do not catch exceptions, so an implementation must not throw.
+ * implementations. An implementation must not throw: call sites wrap {@link #apply} in a
+ * try/catch, log a warning naming the weigher, and continue with the child URLs' inherited
+ * weights, but a throwing implementation still loses its own weighting for that batch.
+ * </p>
+ *
+ * <p>
+ * Implementations must only set the {@code weight} of the entries already present in
+ * {@code childList}; they must not add or remove entries. By the time {@code apply} runs,
+ * {@code childList} membership has already been finalized by the URL-filter and max-depth
+ * checks upstream, so adding or removing entries here would bypass those checks.
  * </p>
  */
 public interface UrlQueueWeigher {
@@ -33,7 +42,8 @@ public interface UrlQueueWeigher {
      * Sets the weight of the child URLs that are about to be queued.
      *
      * @param sessionId the crawling session ID
-     * @param childList the child URLs extracted from a single parent page
+     * @param childList the child URLs extracted from a single parent page; implementations
+     *        must only mutate the weight of existing entries, not add or remove entries
      */
     void apply(String sessionId, List<UrlQueue<?>> childList);
 }

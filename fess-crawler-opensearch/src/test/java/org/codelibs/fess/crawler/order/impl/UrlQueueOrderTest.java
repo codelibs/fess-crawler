@@ -20,6 +20,7 @@ import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.Test;
 import org.opensearch.index.query.functionscore.FunctionScoreQueryBuilder;
 import org.opensearch.search.sort.FieldSortBuilder;
+import org.opensearch.search.sort.ScoreSortBuilder;
 import org.opensearch.search.sort.SortBuilder;
 import org.opensearch.search.sort.SortOrder;
 
@@ -75,6 +76,7 @@ public class UrlQueueOrderTest extends PlainTestCase {
         assertTrue(order.buildQuery("s1") instanceof FunctionScoreQueryBuilder);
         final SortBuilder<?>[] sorts = order.buildSorts("s1");
         assertEquals(1, sorts.length);
+        assertTrue(sorts[0] instanceof ScoreSortBuilder);
         assertEquals(SortOrder.DESC, sorts[0].order());
     }
 

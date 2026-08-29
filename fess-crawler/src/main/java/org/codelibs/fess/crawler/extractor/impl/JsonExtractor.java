@@ -15,7 +15,6 @@
  */
 package org.codelibs.fess.crawler.extractor.impl;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -30,11 +29,13 @@ import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.ExtractException;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 
-import com.fasterxml.jackson.core.StreamReadConstraints;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.StreamReadConstraints;
+import tools.jackson.core.json.JsonFactory;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Extracts text content and metadata from JSON files.
@@ -103,7 +104,7 @@ public class JsonExtractor extends AbstractExtractor {
     protected static final int MAX_NUMBER_LENGTH = 1000;
 
     /** Jackson ObjectMapper for JSON parsing. */
-    protected final ObjectMapper objectMapper = new ObjectMapper();
+    protected final ObjectMapper objectMapper;
 
     /** Maximum depth for nested structure extraction. */
     protected int maxDepth = 10;
@@ -153,7 +154,7 @@ public class JsonExtractor extends AbstractExtractor {
                 .maxStringLength(MAX_STRING_LENGTH)
                 .maxNumberLength(MAX_NUMBER_LENGTH)
                 .build();
-        objectMapper.getFactory().setStreamReadConstraints(constraints);
+        objectMapper = new ObjectMapper(JsonFactory.builder().streamReadConstraints(constraints).build());
     }
 
     @Override
@@ -190,7 +191,7 @@ public class JsonExtractor extends AbstractExtractor {
             }
 
             return extractData;
-        } catch (final IOException e) {
+        } catch (final JacksonException e) {
             throw new ExtractException("Failed to parse JSON content", e);
         }
     }
@@ -281,7 +282,7 @@ public class JsonExtractor extends AbstractExtractor {
      */
     protected void extractObject(final ObjectNode node, final String parentKey, final TextAccumulator textAccumulator,
             final Map<String, List<String>> metadataMap, final int depth) {
-        final Iterator<Map.Entry<String, JsonNode>> fields = node.fields();
+        final Iterator<Map.Entry<String, JsonNode>> fields = node.properties().iterator();
         while (fields.hasNext() && !textAccumulator.truncated) {
             final Map.Entry<String, JsonNode> field = fields.next();
             final String fieldName = field.getKey();

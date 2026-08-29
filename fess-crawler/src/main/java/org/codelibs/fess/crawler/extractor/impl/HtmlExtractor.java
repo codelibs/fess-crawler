@@ -51,10 +51,11 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.StreamReadConstraints;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.StreamReadConstraints;
+import tools.jackson.core.json.JsonFactory;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -533,7 +534,7 @@ public class HtmlExtractor extends AbstractXmlExtractor {
                 return;
             }
             collectTypeNodes(root, typeList);
-        } catch (final JsonProcessingException e) {
+        } catch (final JacksonException e) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Skipping malformed JSON-LD block.", e);
             } else {
@@ -601,7 +602,7 @@ public class HtmlExtractor extends AbstractXmlExtractor {
         // @graph, mainEntity, author, publisher, itemListElement, ...) also
         // contribute their @type values. Skip @type (already handled) and
         // @context (vocabulary term definitions, not data).
-        node.fields().forEachRemaining(field -> {
+        node.properties().forEach(field -> {
             final String fieldName = field.getKey();
             if ("@type".equals(fieldName) || "@context".equals(fieldName)) {
                 return;
@@ -628,13 +629,12 @@ public class HtmlExtractor extends AbstractXmlExtractor {
             synchronized (this) {
                 mapper = objectMapper;
                 if (mapper == null) {
-                    mapper = new ObjectMapper();
                     final StreamReadConstraints constraints = StreamReadConstraints.builder()
                             .maxNestingDepth(JSONLD_MAX_NESTING_DEPTH)
                             .maxStringLength(JSONLD_MAX_STRING_LENGTH)
                             .maxNumberLength(JSONLD_MAX_NUMBER_LENGTH)
                             .build();
-                    mapper.getFactory().setStreamReadConstraints(constraints);
+                    mapper = new ObjectMapper(JsonFactory.builder().streamReadConstraints(constraints).build());
                     objectMapper = mapper;
                 }
             }

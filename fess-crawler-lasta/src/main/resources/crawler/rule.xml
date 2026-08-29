@@ -4,6 +4,7 @@
 <components namespace="fessCrawler">
 	<include path="crawler/container.xml" />
 	<include path="crawler/transformer.xml" />
+	<include path="crawler/weigher.xml" />
 
 	<component name="ruleManager"
 		class="org.codelibs.fess.crawler.rule.impl.RuleManagerImpl" instance="prototype">

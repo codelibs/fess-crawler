@@ -542,6 +542,7 @@ public abstract class AbstractCrawlerService {
             if (StringUtil.isNotBlank(sessionId)) {
                 if (queryBuilder instanceof BoolQueryBuilder) {
                     ((BoolQueryBuilder) queryBuilder).filter(QueryBuilders.termQuery(SESSION_ID, sessionId));
+                    builder.setQuery(queryBuilder);
                 } else {
                     final BoolQueryBuilder boolQuery = QueryBuilders.boolQuery().filter(QueryBuilders.termQuery(SESSION_ID, sessionId));
                     if (queryBuilder != null) {

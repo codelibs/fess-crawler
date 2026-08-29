@@ -519,4 +519,30 @@ public class OpenSearchUrlQueueServiceTest extends LastaDiTestCase {
         assertTrue(count <= 2); // At most 2 items (may be deduplicated)
         urlQueueService.delete(sessionId);
     }
+
+    @Test
+    public void test_getList_boolQueryIsFilteredBySessionId() {
+        final OpenSearchUrlQueue target = new OpenSearchUrlQueue();
+        target.setSessionId("session-a");
+        target.setUrl("http://www.example.com/a");
+        target.setCreateTime(System.currentTimeMillis());
+        target.setDepth(1);
+        target.setMethod("GET");
+        urlQueueService.insert(target);
+
+        final OpenSearchUrlQueue other = new OpenSearchUrlQueue();
+        other.setSessionId("session-b");
+        other.setUrl("http://www.example.com/b");
+        other.setCreateTime(System.currentTimeMillis());
+        other.setDepth(1);
+        other.setMethod("GET");
+        urlQueueService.insert(other);
+
+        final List<OpenSearchUrlQueue> list = urlQueueService.getList(OpenSearchUrlQueue.class, "session-a",
+                QueryBuilders.boolQuery().filter(QueryBuilders.rangeQuery(OpenSearchUrlQueue.DEPTH).gte(0)), 0, 10);
+
+        assertEquals(1, list.size());
+        assertEquals("session-a", list.get(0).getSessionId());
+        assertEquals("http://www.example.com/a", list.get(0).getUrl());
+    }
 }

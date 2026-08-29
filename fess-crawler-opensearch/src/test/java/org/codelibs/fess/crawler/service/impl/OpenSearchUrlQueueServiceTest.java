@@ -27,6 +27,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.codelibs.fess.crawler.client.FesenClient;
 import org.codelibs.fess.crawler.entity.OpenSearchUrlQueue;
+import org.codelibs.fess.crawler.order.UrlQueueOrder;
+import org.codelibs.fess.crawler.order.impl.DepthFirstUrlQueueOrder;
+import org.codelibs.fess.crawler.order.impl.SequentialUrlQueueOrder;
 import org.codelibs.opensearch.runner.OpenSearchRunner;
 import org.dbflute.utflute.lastadi.LastaDiTestCase;
 import org.junit.jupiter.api.Test;
@@ -544,5 +547,41 @@ public class OpenSearchUrlQueueServiceTest extends LastaDiTestCase {
         assertEquals(1, list.size());
         assertEquals("session-a", list.get(0).getSessionId());
         assertEquals("http://www.example.com/a", list.get(0).getUrl());
+    }
+
+    @Test
+    public void test_poll_followsTheConfiguredOrder() {
+        final String sessionId = "order-session";
+        for (int depth = 1; depth <= 3; depth++) {
+            final OpenSearchUrlQueue urlQueue = new OpenSearchUrlQueue();
+            urlQueue.setSessionId(sessionId);
+            urlQueue.setUrl("http://www.example.com/depth" + depth);
+            urlQueue.setCreateTime(System.currentTimeMillis() + depth);
+            urlQueue.setDepth(depth);
+            urlQueue.setMethod("GET");
+            urlQueueService.insert(urlQueue);
+        }
+
+        urlQueueService.setUrlQueueOrder(new DepthFirstUrlQueueOrder());
+        try {
+            for (int depth = 3; depth >= 1; depth--) {
+                final OpenSearchUrlQueue polled = urlQueueService.poll(sessionId);
+                assertNotNull(polled);
+                assertEquals("http://www.example.com/depth" + depth, polled.getUrl());
+            }
+        } finally {
+            urlQueueService.setUrlQueueOrder(new SequentialUrlQueueOrder());
+            urlQueueService.clearCache();
+        }
+    }
+
+    @Test
+    public void test_di_registersTheBuiltInOrders() {
+        for (final String name : new String[] { "sequentialUrlQueueOrder", "randomUrlQueueOrder", "depthFirstUrlQueueOrder",
+                "newestFirstUrlQueueOrder", "weightFirstUrlQueueOrder" }) {
+            final Object component = getComponent(name);
+            assertNotNull(component);
+            assertTrue(component instanceof UrlQueueOrder);
+        }
     }
 }

@@ -279,8 +279,11 @@ public class DefaultResponseProcessor implements ResponseProcessor {
             try {
                 urlQueueWeigher.apply(crawlerContext.getSessionId(), childList);
             } catch (final Exception e) {
-                logger.warn("Failed to apply weigher {} to child URLs. Falling back to inherited weights.",
-                        urlQueueWeigher.getClass().getName(), e);
+                logger.warn("Failed to apply weigher {} to child URLs of {}. Queueing them with whatever weights it left behind.",
+                        urlQueueWeigher.getClass().getName(), url);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Weigher {} failed.", urlQueueWeigher.getClass().getName(), e);
+                }
             }
             CrawlingParameterUtil.getUrlQueueService().offerAll(crawlerContext.getSessionId(), childList);
         }

@@ -27,6 +27,9 @@ import org.opensearch.search.sort.SortOrder;
  * <p>
  * The approximation is bounded by the polling fetch size: a batch is fetched, then fully
  * consumed before the next one, so URLs discovered mid-batch wait for the following batch.
+ * A crawl whose frontier fits in a single batch therefore proceeds level by level no matter
+ * which order is selected. Lowering the queue service's polling fetch size tightens the
+ * approximation, at the cost of one queue query per that many URLs.
  * </p>
  */
 public class DepthFirstUrlQueueOrder implements UrlQueueOrder {

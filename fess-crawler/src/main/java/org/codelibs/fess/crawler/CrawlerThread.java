@@ -473,8 +473,11 @@ public class CrawlerThread implements Runnable {
         try {
             urlQueueWeigher.apply(crawlerContext.sessionId, childList);
         } catch (final Exception e) {
-            logger.warn("Failed to apply weigher {} to child URLs. Falling back to inherited weights.",
-                    urlQueueWeigher.getClass().getName(), e);
+            logger.warn("Failed to apply weigher {} to {} child URL(s). Queueing them with whatever weights it left behind.",
+                    urlQueueWeigher.getClass().getName(), childList.size());
+            if (logger.isDebugEnabled()) {
+                logger.debug("Weigher {} failed.", urlQueueWeigher.getClass().getName(), e);
+            }
         }
         urlQueueService.offerAll(crawlerContext.sessionId, childList);
     }

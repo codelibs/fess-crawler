@@ -22,7 +22,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.codelibs.fess.crawler.builder.RequestDataBuilder;
@@ -41,6 +43,7 @@ import org.codelibs.fess.crawler.rule.Rule;
 import org.codelibs.fess.crawler.rule.RuleManager;
 import org.codelibs.fess.crawler.service.DataService;
 import org.codelibs.fess.crawler.service.UrlQueueService;
+import org.codelibs.fess.crawler.weight.impl.DefaultUrlQueueWeigher;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -86,6 +89,7 @@ public class CrawlerThreadTest extends PlainTestCase {
         crawlerContext.ruleManager = ruleManager;
 
         crawlerThread.urlQueueService = urlQueueService;
+        crawlerThread.urlQueueWeigher = new DefaultUrlQueueWeigher();
         crawlerThread.dataService = dataService;
         crawlerThread.crawlerContainer = crawlerContainer;
         crawlerThread.logHelper = logHelper;
@@ -363,6 +367,82 @@ public class CrawlerThreadTest extends PlainTestCase {
         method.invoke(crawlerThread, childUrlList, "http://example.com/", 5); // Exceeds maxDepth
 
         verify(urlQueueService, times(0)).offerAll(anyString(), any());
+    }
+
+    /**
+     * Test that the weigher is applied to child URLs before they are queued.
+     */
+    @SuppressWarnings("unchecked")
+    @Test
+    public void test_storeChildUrls_appliesWeigher() throws Exception {
+        final Set<RequestData> childUrlList = new HashSet<>();
+        childUrlList.add(RequestDataBuilder.newRequestData().url("http://example.com/child1").build());
+
+        when(urlFilter.match(anyString())).thenReturn(true);
+        when(crawlerContainer.getComponent("urlQueue")).thenReturn(new UrlQueueImpl<>());
+
+        final List<UrlQueue<?>> weighed = new ArrayList<>();
+        crawlerThread.urlQueueWeigher = (sessionId, childList) -> {
+            weighed.addAll(childList);
+            childList.forEach(uq -> uq.setWeight(7.5f));
+        };
+
+        final java.lang.reflect.Method method = CrawlerThread.class.getDeclaredMethod("storeChildUrls", Set.class, String.class, int.class);
+        method.setAccessible(true);
+        method.invoke(crawlerThread, childUrlList, "http://example.com/", 2);
+
+        assertEquals(1, weighed.size());
+        assertEquals("test-session", weighed.get(0).getSessionId());
+        assertEquals(Float.valueOf(7.5f), Float.valueOf(weighed.get(0).getWeight()));
+        verify(urlQueueService, times(1)).offerAll(anyString(), any());
+    }
+
+    /**
+     * Test that a throwing weigher does not lose the child URLs: they are still offered to the
+     * queue with their inherited weights instead of the whole batch being dropped.
+     */
+    @SuppressWarnings("unchecked")
+    @Test
+    public void test_storeChildUrls_throwingWeigherKeepsInheritedWeights() throws Exception {
+        final Set<RequestData> childUrlList = new HashSet<>();
+        childUrlList.add(RequestDataBuilder.newRequestData().url("http://example.com/child1").weight(3.0f).build());
+
+        when(urlFilter.match(anyString())).thenReturn(true);
+        when(crawlerContainer.getComponent("urlQueue")).thenReturn(new UrlQueueImpl<>());
+
+        crawlerThread.urlQueueWeigher = (sessionId, childList) -> {
+            throw new RuntimeException("weigher failure");
+        };
+
+        final java.lang.reflect.Method method = CrawlerThread.class.getDeclaredMethod("storeChildUrls", Set.class, String.class, int.class);
+        method.setAccessible(true);
+        method.invoke(crawlerThread, childUrlList, "http://example.com/", 2);
+
+        final org.mockito.ArgumentCaptor<List<UrlQueue<?>>> captor = org.mockito.ArgumentCaptor.forClass(List.class);
+        verify(urlQueueService, times(1)).offerAll(anyString(), captor.capture());
+        assertEquals(1, captor.getValue().size());
+        assertEquals(Float.valueOf(3.0f), Float.valueOf(captor.getValue().get(0).getWeight()));
+    }
+
+    /**
+     * Test that the default weigher leaves the inherited weight untouched.
+     */
+    @SuppressWarnings("unchecked")
+    @Test
+    public void test_storeChildUrl_defaultWeigherKeepsInheritedWeight() throws Exception {
+        when(urlFilter.match("http://example.com/child")).thenReturn(true);
+        final UrlQueueImpl<Long> queued = new UrlQueueImpl<>();
+        when(crawlerContainer.getComponent("urlQueue")).thenReturn(queued);
+
+        crawlerThread.urlQueueWeigher = new DefaultUrlQueueWeigher();
+
+        final java.lang.reflect.Method method =
+                CrawlerThread.class.getDeclaredMethod("storeChildUrl", String.class, String.class, float.class, int.class);
+        method.setAccessible(true);
+        method.invoke(crawlerThread, "http://example.com/child", "http://example.com/", 3.0f, 2);
+
+        assertEquals(Float.valueOf(3.0f), Float.valueOf(queued.getWeight()));
+        verify(urlQueueService, times(1)).offerAll(anyString(), any());
     }
 
     /**

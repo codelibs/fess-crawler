@@ -20,6 +20,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.lang.SystemUtil;
@@ -41,6 +43,7 @@ import org.codelibs.fess.crawler.rule.Rule;
 import org.codelibs.fess.crawler.service.DataService;
 import org.codelibs.fess.crawler.service.UrlQueueService;
 import org.codelibs.fess.crawler.util.CrawlingParameterUtil;
+import org.codelibs.fess.crawler.weight.UrlQueueWeigher;
 
 import jakarta.annotation.Resource;
 
@@ -81,6 +84,9 @@ import jakarta.annotation.Resource;
  *
  */
 public class CrawlerThread implements Runnable {
+    /** Logger instance for this class. */
+    private static final Logger logger = LogManager.getLogger(CrawlerThread.class);
+
     /**
      * Constructs a new CrawlerThread.
      */
@@ -93,6 +99,12 @@ public class CrawlerThread implements Runnable {
      */
     @Resource
     protected UrlQueueService<UrlQueue<?>> urlQueueService;
+
+    /**
+     * Weigher applied to child URLs before they are queued.
+     */
+    @Resource
+    protected UrlQueueWeigher urlQueueWeigher;
 
     /**
      * Service for managing access result data.
@@ -419,7 +431,7 @@ public class CrawlerThread implements Runnable {
             uq.setWeight(d.getWeight());
             childList.add(uq);
         }
-        urlQueueService.offerAll(crawlerContext.sessionId, childList);
+        offerChildUrls(childList);
     }
 
     /**
@@ -446,8 +458,25 @@ public class CrawlerThread implements Runnable {
             uq.setUrl(childUrl);
             uq.setWeight(weight);
             childList.add(uq);
-            urlQueueService.offerAll(crawlerContext.sessionId, childList);
+            offerChildUrls(childList);
         }
+    }
+
+    /**
+     * Applies the weigher to the child URLs and adds them to the queue.
+     * @param childList The child URLs to queue.
+     */
+    protected void offerChildUrls(final List<UrlQueue<?>> childList) {
+        if (childList.isEmpty()) {
+            return;
+        }
+        try {
+            urlQueueWeigher.apply(crawlerContext.sessionId, childList);
+        } catch (final Exception e) {
+            logger.warn("Failed to apply weigher {} to child URLs. Falling back to inherited weights.",
+                    urlQueueWeigher.getClass().getName(), e);
+        }
+        urlQueueService.offerAll(crawlerContext.sessionId, childList);
     }
 
     /**

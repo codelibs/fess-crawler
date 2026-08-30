@@ -52,6 +52,7 @@ import org.codelibs.fess.crawler.service.impl.UrlFilterServiceImpl;
 import org.codelibs.fess.crawler.service.impl.UrlQueueServiceImpl;
 import org.codelibs.fess.crawler.transformer.impl.FileTransformer;
 import org.codelibs.fess.crawler.util.CrawlerWebServer;
+import org.codelibs.fess.crawler.weight.impl.DefaultUrlQueueWeigher;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -104,6 +105,7 @@ public class CrawlerTest extends PlainTestCase {
                 .prototype("urlQueueService", UrlQueueServiceImpl.class)
                 .prototype("dataService", DataServiceImpl.class)
                 .prototype("urlFilter", UrlFilterImpl.class)
+                .singleton("urlQueueWeigher", DefaultUrlQueueWeigher.class)
                 .singleton("urlConvertHelper", UrlConvertHelper.class)
                 .singleton("intervalController", DefaultIntervalController.class)
                 .singleton("sitemapsHelper", SitemapsHelper.class)

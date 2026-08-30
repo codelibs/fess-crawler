@@ -37,6 +37,7 @@ import org.codelibs.fess.crawler.processor.ResponseProcessor;
 import org.codelibs.fess.crawler.service.UrlQueueService;
 import org.codelibs.fess.crawler.transformer.Transformer;
 import org.codelibs.fess.crawler.util.CrawlingParameterUtil;
+import org.codelibs.fess.crawler.weight.UrlQueueWeigher;
 
 import jakarta.annotation.Resource;
 
@@ -72,6 +73,12 @@ public class DefaultResponseProcessor implements ResponseProcessor {
     /** Container for managing crawler components */
     @Resource
     protected CrawlerContainer crawlerContainer;
+
+    /**
+     * Weigher applied to child URLs before they are queued.
+     */
+    @Resource
+    protected UrlQueueWeigher urlQueueWeigher;
 
     /** Transformer used to transform response data */
     protected Transformer transformer;
@@ -269,6 +276,12 @@ public class DefaultResponseProcessor implements ResponseProcessor {
                 .collect(Collectors.toList());
 
         if (!childList.isEmpty()) {
+            try {
+                urlQueueWeigher.apply(crawlerContext.getSessionId(), childList);
+            } catch (final Exception e) {
+                logger.warn("Failed to apply weigher {} to child URLs. Falling back to inherited weights.",
+                        urlQueueWeigher.getClass().getName(), e);
+            }
             CrawlingParameterUtil.getUrlQueueService().offerAll(crawlerContext.getSessionId(), childList);
         }
     }

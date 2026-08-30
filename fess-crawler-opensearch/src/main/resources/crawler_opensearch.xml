@@ -13,6 +13,7 @@
     <include path="crawler/urlconverter.xml"/>
     <include path="crawler/log.xml"/>
     <include path="crawler/sitemaps.xml"/>
+    <include path="crawler/order.xml"/>
 
     <include path="crawler/opensearch.xml"/>
 

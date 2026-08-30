@@ -31,6 +31,8 @@ import org.codelibs.fess.crawler.entity.AccessResult;
 import org.codelibs.fess.crawler.entity.OpenSearchUrlQueue;
 import org.codelibs.fess.crawler.entity.UrlQueue;
 import org.codelibs.fess.crawler.exception.OpenSearchAccessException;
+import org.codelibs.fess.crawler.order.UrlQueueOrder;
+import org.codelibs.fess.crawler.order.impl.SequentialUrlQueueOrder;
 import org.codelibs.fess.crawler.service.UrlQueueService;
 import org.codelibs.fess.crawler.util.OpenSearchCrawlerConfig;
 import org.opensearch.action.DocWriteRequest.OpType;
@@ -43,8 +45,6 @@ import org.opensearch.common.unit.TimeValue;
 import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.search.SearchHit;
 import org.opensearch.search.SearchHits;
-import org.opensearch.search.sort.SortBuilders;
-import org.opensearch.search.sort.SortOrder;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -82,6 +82,11 @@ public class OpenSearchUrlQueueService extends AbstractCrawlerService implements
      * The maximum size of the crawling queue.
      */
     protected int maxCrawlingQueueSize = 100;
+
+    /**
+     * The order in which queued URLs are fetched.
+     */
+    protected UrlQueueOrder urlQueueOrder = new SequentialUrlQueueOrder();
 
     /**
      * Creates a new instance of OpenSearchUrlQueueService.
@@ -307,14 +312,24 @@ public class OpenSearchUrlQueueService extends AbstractCrawlerService implements
     }
 
     /**
+     * Returns the fetch order to apply to this session.
+     * Subclasses override this to switch the order per session.
+     *
+     * @param sessionId The session ID.
+     * @return The fetch order.
+     */
+    protected UrlQueueOrder getUrlQueueOrder(final String sessionId) {
+        return urlQueueOrder;
+    }
+
+    /**
      * Fetches a list of URL queues for a given session ID.
      * @param sessionId The session ID.
      * @return A list of OpenSearchUrlQueue objects.
      */
     protected List<OpenSearchUrlQueue> fetchUrlQueueList(final String sessionId) {
-        return getList(OpenSearchUrlQueue.class, sessionId, null, 0, pollingFetchSize,
-                SortBuilders.fieldSort(OpenSearchUrlQueue.WEIGHT).order(SortOrder.DESC),
-                SortBuilders.fieldSort(CREATE_TIME).order(SortOrder.ASC));
+        final UrlQueueOrder order = getUrlQueueOrder(sessionId);
+        return getList(OpenSearchUrlQueue.class, sessionId, order.buildQuery(sessionId), 0, pollingFetchSize, order.buildSorts(sessionId));
     }
 
     /**
@@ -453,5 +468,13 @@ public class OpenSearchUrlQueueService extends AbstractCrawlerService implements
      */
     public void setMaxCrawlingQueueSize(final int maxCrawlingQueueSize) {
         this.maxCrawlingQueueSize = maxCrawlingQueueSize;
+    }
+
+    /**
+     * Sets the order in which queued URLs are fetched.
+     * @param urlQueueOrder The fetch order.
+     */
+    public void setUrlQueueOrder(final UrlQueueOrder urlQueueOrder) {
+        this.urlQueueOrder = urlQueueOrder;
     }
 }

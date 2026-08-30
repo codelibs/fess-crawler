@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE components PUBLIC "-//DBFLUTE//DTD LastaDi 1.0//EN"
+	"http://dbflute.org/meta/lastadi10.dtd">
+<components namespace="fessCrawler">
+	<component name="sequentialUrlQueueOrder"
+		class="org.codelibs.fess.crawler.order.impl.SequentialUrlQueueOrder">
+	</component>
+	<component name="randomUrlQueueOrder"
+		class="org.codelibs.fess.crawler.order.impl.RandomUrlQueueOrder">
+	</component>
+	<component name="depthFirstUrlQueueOrder"
+		class="org.codelibs.fess.crawler.order.impl.DepthFirstUrlQueueOrder">
+	</component>
+	<component name="newestFirstUrlQueueOrder"
+		class="org.codelibs.fess.crawler.order.impl.NewestFirstUrlQueueOrder">
+	</component>
+	<component name="weightFirstUrlQueueOrder"
+		class="org.codelibs.fess.crawler.order.impl.WeightFirstUrlQueueOrder">
+	</component>
+</components>

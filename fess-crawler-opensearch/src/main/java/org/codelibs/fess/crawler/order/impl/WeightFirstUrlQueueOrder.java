@@ -23,6 +23,20 @@ import org.opensearch.search.sort.SortOrder;
 
 /**
  * Fetches queued URLs by descending weight only, leaving ties in the index order.
+ *
+ * <p>
+ * This differs from the default {@link SequentialUrlQueueOrder} only in what happens between
+ * entries of equal weight: that order falls back to discovery order, this one lets the search
+ * engine return them however it likes. Choose it when a queue carries a large backlog scored
+ * by a {@code UrlQueueWeigher} and only the score should decide what is crawled next, with no
+ * bias towards whatever was discovered first.
+ * </p>
+ *
+ * <p>
+ * Without a weigher every entry is at the default weight, every entry ties, and the fetch
+ * order is whatever the index hands back - so this order only means something once weights
+ * differ.
+ * </p>
  */
 public class WeightFirstUrlQueueOrder implements UrlQueueOrder {
 

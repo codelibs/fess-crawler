@@ -23,6 +23,14 @@ import org.opensearch.search.sort.SortOrder;
 
 /**
  * Fetches queued URLs by descending weight, then by discovery order. This is the default.
+ *
+ * <p>
+ * Weight is the primary key, so a {@code UrlQueueWeigher} takes effect under this order
+ * without any {@code crawl.order} setting; discovery order only decides between entries of
+ * equal weight. Weights are uniform out of the box, which leaves discovery order as the
+ * effective sort. Use {@link WeightFirstUrlQueueOrder} instead when entries of equal weight
+ * should not be held to discovery order.
+ * </p>
  */
 public class SequentialUrlQueueOrder implements UrlQueueOrder {
 

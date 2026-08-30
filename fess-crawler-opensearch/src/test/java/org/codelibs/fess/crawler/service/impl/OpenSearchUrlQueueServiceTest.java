@@ -576,6 +576,44 @@ public class OpenSearchUrlQueueServiceTest extends LastaDiTestCase {
     }
 
     @Test
+    public void test_poll_reevaluatesTheOrderOncePerBatch() {
+        final String sessionId = "batch-session";
+        final long base = System.currentTimeMillis();
+        insertUrlQueue(sessionId, "http://www.example.com/shallow1", 1, base);
+        insertUrlQueue(sessionId, "http://www.example.com/shallow2", 1, base + 1L);
+
+        final int defaultFetchSize = urlQueueService.pollingFetchSize;
+        urlQueueService.setUrlQueueOrder(new DepthFirstUrlQueueOrder());
+        urlQueueService.setPollingFetchSize(2);
+        try {
+            // Both shallow URLs are fetched as one batch. Equal depth, so the newer wins.
+            assertEquals("http://www.example.com/shallow2", urlQueueService.poll(sessionId).getUrl());
+
+            // A deeper URL turns up while that batch is still being handed out.
+            insertUrlQueue(sessionId, "http://www.example.com/deep", 5, base + 2L);
+
+            // The batch is drained before the queue is consulted again, so the deeper URL
+            // waits even though the order asks for the deepest first.
+            assertEquals("http://www.example.com/shallow1", urlQueueService.poll(sessionId).getUrl());
+            assertEquals("http://www.example.com/deep", urlQueueService.poll(sessionId).getUrl());
+        } finally {
+            urlQueueService.setUrlQueueOrder(new SequentialUrlQueueOrder());
+            urlQueueService.setPollingFetchSize(defaultFetchSize);
+            urlQueueService.clearCache();
+        }
+    }
+
+    private void insertUrlQueue(final String sessionId, final String url, final int depth, final long createTime) {
+        final OpenSearchUrlQueue urlQueue = new OpenSearchUrlQueue();
+        urlQueue.setSessionId(sessionId);
+        urlQueue.setUrl(url);
+        urlQueue.setCreateTime(createTime);
+        urlQueue.setDepth(depth);
+        urlQueue.setMethod("GET");
+        urlQueueService.insert(urlQueue);
+    }
+
+    @Test
     public void test_di_registersTheBuiltInOrders() {
         for (final String name : new String[] { "sequentialUrlQueueOrder", "randomUrlQueueOrder", "depthFirstUrlQueueOrder",
                 "newestFirstUrlQueueOrder", "weightFirstUrlQueueOrder" }) {

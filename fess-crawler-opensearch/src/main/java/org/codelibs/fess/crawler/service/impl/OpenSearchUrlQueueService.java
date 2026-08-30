@@ -75,8 +75,15 @@ public class OpenSearchUrlQueueService extends AbstractCrawlerService implements
 
     /**
      * The number of URLs to fetch when polling.
+     *
+     * <p>
+     * A batch is handed out in full before the queue is queried again, so this is also how
+     * often the {@link UrlQueueOrder} is re-evaluated. A large batch makes every order
+     * degenerate towards the discovery order, because the URLs found while a batch is being
+     * consumed cannot be considered until the next one.
+     * </p>
      */
-    protected int pollingFetchSize = 1000;
+    protected int pollingFetchSize = 100;
 
     /**
      * The maximum size of the crawling queue.

@@ -191,6 +191,52 @@ public class HtmlTransformerTest extends PlainTestCase {
     }
 
     @Test
+    public void test_parseCharset_html5ShortForm() {
+        String content;
+
+        // HTML5 spells the declaration as a charset attribute of its own. Only the content-type
+        // form was recognised before, so a page like this declared nothing and was decoded as the
+        // default rather than as what it said it was.
+        content = "<meta charset=\"Shift_JIS\">";
+        assertEquals("Shift_JIS", htmlTransformer.parseCharset(content));
+
+        content = "<meta charset=\"UTF-8\">";
+        assertEquals("UTF-8", htmlTransformer.parseCharset(content));
+
+        // unquoted, single quoted, spaced around the equals sign, and upper case
+        content = "<meta charset=EUC-JP>";
+        assertEquals("EUC-JP", htmlTransformer.parseCharset(content));
+
+        content = "<meta charset='Shift_JIS'>";
+        assertEquals("Shift_JIS", htmlTransformer.parseCharset(content));
+
+        content = "<meta charset = \"Shift_JIS\">";
+        assertEquals("Shift_JIS", htmlTransformer.parseCharset(content));
+
+        content = "<META CHARSET=\"Shift_JIS\">";
+        assertEquals("Shift_JIS", htmlTransformer.parseCharset(content));
+
+        // XHTML style self-closing tag, and a declaration preceded by other meta tags
+        content = "<meta charset=\"Shift_JIS\" />";
+        assertEquals("Shift_JIS", htmlTransformer.parseCharset(content));
+
+        content = "<html><head><meta name=\"viewport\" content=\"width=device-width\">" + "<meta charset=\"Shift_JIS\"></head>";
+        assertEquals("Shift_JIS", htmlTransformer.parseCharset(content));
+
+        // the preloaded window cuts the tag before its closing quote and bracket
+        content = "<html><head><meta charset=\"Shift_JIS";
+        assertEquals("Shift_JIS", htmlTransformer.parseCharset(content));
+    }
+
+    @Test
+    public void test_parseCharset_notAnAttributeNameOfItsOwn() {
+        // "charset" has to start an attribute name; a longer name ending in it is not a
+        // declaration, and neither is one outside any meta tag.
+        assertNull(htmlTransformer.parseCharset("<meta data-charset=\"Shift_JIS\">"));
+        assertNull(htmlTransformer.parseCharset("<div charset=\"Shift_JIS\">"));
+    }
+
+    @Test
     public void test_parseCharset_outsideMetaTag() {
         String content;
 

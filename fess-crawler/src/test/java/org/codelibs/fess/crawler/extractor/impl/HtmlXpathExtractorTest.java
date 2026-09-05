@@ -18,6 +18,7 @@ package org.codelibs.fess.crawler.extractor.impl;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -106,6 +107,37 @@ public class HtmlXpathExtractorTest extends PlainTestCase {
         final String encoding = htmlXpathExtractor.getEncoding(bis);
         CloseableUtil.closeQuietly(bis);
         assertEquals("Shift_JIS", encoding);
+    }
+
+    @Test
+    public void test_getEncoding_html5ShortForm() {
+        // This extractor reads the same documents as HtmlExtractor and carried the same pattern, so
+        // it too saw no declaration at all in the HTML5 short form.
+        assertEquals("Shift_JIS", detectEncoding("<meta charset=\"Shift_JIS\">"));
+        assertEquals("EUC-JP", detectEncoding("<html><head><meta charset=EUC-JP></head>"));
+    }
+
+    @Test
+    public void test_getEncoding_contentTypeForm() {
+        // The http-equiv spelling was the only one recognised before and must keep working.
+        assertEquals("Shift_JIS", detectEncoding("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=Shift_JIS\">"));
+    }
+
+    @Test
+    public void test_getEncoding_notADeclaration() {
+        // A distinctive default makes the fall-through visible when nothing is declared.
+        htmlXpathExtractor.setEncoding("ISO-8859-1");
+        assertEquals("ISO-8859-1", detectEncoding("<meta data-charset=\"Shift_JIS\">"));
+        assertEquals("ISO-8859-1", detectEncoding("<p>write charset=Shift_JIS to declare it</p>"));
+    }
+
+    private String detectEncoding(final String head) {
+        final BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(head.getBytes(StandardCharsets.UTF_8)));
+        try {
+            return htmlXpathExtractor.getEncoding(bis);
+        } finally {
+            CloseableUtil.closeQuietly(bis);
+        }
     }
 
     @Test

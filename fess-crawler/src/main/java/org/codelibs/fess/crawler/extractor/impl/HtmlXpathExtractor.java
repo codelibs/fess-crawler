@@ -64,12 +64,15 @@ import jakarta.annotation.Resource;
  */
 public class HtmlXpathExtractor extends AbstractXmlExtractor {
     /**
-     * Regular expression pattern to match the charset attribute in the meta tag of HTML documents.
-     * The pattern captures the charset value specified in the content attribute of the meta tag.
-     * Example: &lt;meta http-equiv="Content-Type" content="text/html; charset=UTF-8"&gt;
+     * Regular expression pattern to match a charset declaration in a meta tag of an HTML document.
+     * Both spellings are captured: the {@code http-equiv="Content-Type"} form, for example
+     * &lt;meta http-equiv="Content-Type" content="text/html; charset=UTF-8"&gt;, and the HTML5 form,
+     * &lt;meta charset="UTF-8"&gt;. See {@link HtmlExtractor#metaCharsetPattern} for why the declaration is
+     * anchored to an opening {@code <meta} tag and why the tag is delimited the way it is; this extractor
+     * reads the same documents and must recognise the same declarations.
      */
-    protected Pattern metaCharsetPattern = Pattern.compile("<meta.*content\\s*=\\s*['\"].*;\\s*charset=([\\w\\d\\-_]*)['\"]\\s*/?>",
-            Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+    protected Pattern metaCharsetPattern =
+            Pattern.compile("<meta\\s(?:[^<>]*?[\\s;])?charset *= *[\"']?([a-zA-Z0-9\\-_]+)", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
 
     /**
      * Map of features for the DOM parser.

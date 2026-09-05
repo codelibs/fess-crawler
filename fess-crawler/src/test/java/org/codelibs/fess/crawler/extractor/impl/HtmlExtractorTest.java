@@ -19,6 +19,7 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -76,6 +77,20 @@ public class HtmlExtractorTest extends PlainTestCase {
         return new ByteArrayInputStream(html.getBytes(StandardCharsets.UTF_8));
     }
 
+    /**
+     * Runs the charset detection of {@link HtmlExtractor} over the given document head. A head with no
+     * charset declaration falls back to {@link HtmlExtractor#getEncoding()}, so callers that assert a
+     * non-detection set a distinctive default first.
+     */
+    private String detectEncoding(final String head) {
+        final BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(head.getBytes(StandardCharsets.UTF_8)));
+        try {
+            return htmlExtractor.getEncoding(bis);
+        } finally {
+            CloseableUtil.closeQuietly(bis);
+        }
+    }
+
     @Test
     public void test_getHtml_utf8() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_utf8.html");
@@ -123,6 +138,66 @@ public class HtmlExtractorTest extends PlainTestCase {
         final String encoding = htmlExtractor.getEncoding(bis);
         CloseableUtil.closeQuietly(bis);
         assertEquals("Shift_JIS", encoding);
+    }
+
+    @Test
+    public void test_getEncoding_html5ShortForm() {
+        // HTML5 spells the declaration as a charset attribute of its own. Only the content-type
+        // form was recognised before, so a page like this declared nothing and was decoded as the
+        // default rather than as what it said it was.
+        assertEquals("Shift_JIS", detectEncoding("<meta charset=\"Shift_JIS\">"));
+        assertEquals("UTF-8", detectEncoding("<meta charset=\"UTF-8\">"));
+
+        // unquoted, single quoted, spaced around the equals sign, and upper case
+        assertEquals("EUC-JP", detectEncoding("<meta charset=EUC-JP>"));
+        assertEquals("Shift_JIS", detectEncoding("<meta charset='Shift_JIS'>"));
+        assertEquals("Shift_JIS", detectEncoding("<meta charset = \"Shift_JIS\">"));
+        assertEquals("Shift_JIS", detectEncoding("<META CHARSET=\"Shift_JIS\">"));
+
+        // XHTML style self-closing tag, and a declaration preceded by other meta tags
+        assertEquals("Shift_JIS", detectEncoding("<meta charset=\"Shift_JIS\" />"));
+        assertEquals("Shift_JIS", detectEncoding(
+                "<html><head><meta name=\"viewport\" content=\"width=device-width\">" + "<meta charset=\"Shift_JIS\"></head>"));
+
+        // the preloaded window cuts the tag before its closing quote and bracket
+        assertEquals("Shift_JIS", detectEncoding("<html><head><meta charset=\"Shift_JIS"));
+    }
+
+    @Test
+    public void test_getEncoding_contentTypeForm() {
+        // The http-equiv spelling was the only one recognised before and must keep working.
+        assertEquals("Shift_JIS", detectEncoding("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=Shift_JIS\">"));
+        assertEquals("Shift_JIS", detectEncoding("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=Shift_JIS\"/>"));
+
+        // A tag whose attributes are spread over several lines is now recognised too: the old
+        // pattern spanned the tag with "." and so gave up at the first line terminator.
+        assertEquals("EUC-JP", detectEncoding("<meta\n  http-equiv=\"Content-Type\"\n  content=\"text/html; charset=EUC-JP\">"));
+    }
+
+    @Test
+    public void test_getEncoding_notADeclaration() {
+        // "charset" has to start an attribute name of a meta tag; a longer name ending in it is not a
+        // declaration, and neither is one outside any meta tag. A distinctive default makes the
+        // fall-through visible.
+        htmlExtractor.setEncoding("ISO-8859-1");
+        assertEquals("ISO-8859-1", detectEncoding("<meta data-charset=\"Shift_JIS\">"));
+        assertEquals("ISO-8859-1", detectEncoding("<div charset=\"Shift_JIS\">"));
+        assertEquals("ISO-8859-1", detectEncoding("<p>write charset=Shift_JIS to declare it</p>"));
+        assertEquals("ISO-8859-1", detectEncoding("<html><head><title>no declaration</title></head>"));
+    }
+
+    @Test
+    public void test_getHtml_sjis_html5ShortForm() {
+        // The file, SMB and FTP crawl paths reach this extractor rather than HtmlTransformer, so a
+        // Shift_JIS page that declares its charset the HTML5 way came out as replacement characters
+        // and could no longer be searched in its own language.
+        final String html = "<html><head><meta charset=\"Shift_JIS\"><title>タイトル</title></head><body>テスト</body></html>";
+        final InputStream in = new ByteArrayInputStream(html.getBytes(Charset.forName("Shift_JIS")));
+        final ExtractData data = htmlExtractor.getText(in, null);
+        final String content = data.getContent();
+        CloseableUtil.closeQuietly(in);
+        assertTrue(content.contains("テスト"));
+        assertEquals("タイトル", data.getValues("title")[0]);
     }
 
     @Test

@@ -153,9 +153,36 @@ public class HtmlExtractor extends AbstractXmlExtractor {
      */
     protected static final int JSONLD_MAX_TYPES_PER_BLOCK = 256;
 
-    /** Pattern for extracting charset from meta tags. */
-    protected Pattern metaCharsetPattern = Pattern.compile("<meta.*content\\s*=\\s*['\"].*;\\s*charset=([\\w\\d\\-_]*)['\"]\\s*/?>",
-            Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+    /**
+     * Pattern for extracting a charset declaration from a {@code <meta>} tag, used by
+     * {@link org.codelibs.fess.crawler.extractor.impl.AbstractXmlExtractor#getEncoding(java.io.BufferedInputStream)}.
+     * <p>
+     * Both spellings of the declaration are accepted: the {@code http-equiv="Content-Type"} form, where the
+     * charset follows a {@code ;} inside the content type, and the HTML5 form, where {@code charset} is an
+     * attribute of the {@code <meta>} tag on its own. Only the first was matched before, so a page using the
+     * short form declared nothing as far as this extractor was concerned and was decoded with
+     * {@link #encoding} instead.
+     * <p>
+     * The charset is deliberately anchored to an opening {@code <meta} tag. The string it is matched against is
+     * the first {@link #preloadSizeForCharset} bytes of the document, which is neither parsed nor guaranteed to
+     * be well-formed HTML, so without that anchor any occurrence of {@code charset=} in ordinary body text (an
+     * article about character encodings, a code sample, ...) would be picked up as the declared encoding of the
+     * whole document. Inside the tag the name has to start a word, so it cannot be picked out of a longer
+     * attribute name.
+     * <p>
+     * The tag is delimited with {@code [^<>]*} rather than by matching a complete {@code <meta ...>} element on
+     * purpose: {@code >} keeps the match from running past the end of the tag into the body, {@code <} stops it at
+     * the next tag when the {@code <meta>} tag itself is malformed, and requiring neither a closing quote nor a
+     * closing {@code >} still detects a declaration in a tag that the preload window cut in half. A negated
+     * character class also matches line terminators, so attributes spread over several lines are handled.
+     * <p>
+     * This is the same shape as the pattern
+     * {@link org.codelibs.fess.crawler.transformer.impl.HtmlTransformer} uses on the web-crawl path; the two must
+     * agree on what counts as a charset declaration so that the same page is decoded the same way whether it is
+     * reached over HTTP or from a file, SMB or FTP share.
+     */
+    protected Pattern metaCharsetPattern =
+            Pattern.compile("<meta\\s(?:[^<>]*?[\\s;])?charset *= *[\"']?([a-zA-Z0-9\\-_]+)", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
 
     /**
      * Pattern for HTML tags.

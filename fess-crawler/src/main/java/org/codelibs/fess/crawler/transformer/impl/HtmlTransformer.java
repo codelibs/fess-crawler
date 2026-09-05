@@ -136,11 +136,17 @@ public class HtmlTransformer extends AbstractTransformer {
     /**
      * Precompiled pattern for extracting a charset value from a content string in {@link #parseCharset(String)}.
      * <p>
-     * The {@code ; charset=} part is deliberately anchored to an opening {@code <meta} tag. The string it is
-     * matched against is the first {@link #preloadSizeForCharset} bytes of the raw response body, which is neither
-     * parsed nor guaranteed to be well-formed HTML, so without that anchor any occurrence of {@code ; charset=}
-     * in ordinary body text (an article about character encodings, a code sample, ...) would be picked up as the
-     * declared encoding of the whole document.
+     * Both spellings of the declaration are accepted: the {@code http-equiv="Content-Type"} form, where the
+     * charset follows a {@code ;} inside the content type, and the HTML5 form, where {@code charset} is an
+     * attribute of the {@code <meta>} tag on its own. Only the first was matched before, so a page using the
+     * short form declared nothing as far as this class was concerned.
+     * <p>
+     * The charset is deliberately anchored to an opening {@code <meta} tag. The string it is matched against is
+     * the first {@link #preloadSizeForCharset} bytes of the raw response body, which is neither parsed nor
+     * guaranteed to be well-formed HTML, so without that anchor any occurrence of {@code charset=} in ordinary
+     * body text (an article about character encodings, a code sample, ...) would be picked up as the declared
+     * encoding of the whole document. Inside the tag the name has to start a word, so it cannot be picked out of
+     * a longer attribute name.
      * <p>
      * The tag is delimited with {@code [^<>]*} rather than by matching a complete {@code <meta ...>} element on
      * purpose: {@code >} keeps the match from running past the end of the tag into the body, {@code <} stops it at
@@ -149,7 +155,7 @@ public class HtmlTransformer extends AbstractTransformer {
      * character class also matches line terminators, so attributes spread over several lines are handled.
      */
     private static final Pattern CHARSET_PATTERN =
-            Pattern.compile("<meta\\s[^<>]*; *charset *= *([a-zA-Z0-9\\-_]+)", Pattern.CASE_INSENSITIVE);
+            Pattern.compile("<meta\\s(?:[^<>]*?[\\s;])?charset *= *[\"']?([a-zA-Z0-9\\-_]+)", Pattern.CASE_INSENSITIVE);
 
     /** The crawler container for dependency injection. */
     @Resource

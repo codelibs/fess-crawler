@@ -301,19 +301,25 @@ public class S3Client extends AbstractCrawlerClient {
                 final ListObjectsV2Request listRequest =
                         ListObjectsV2Request.builder().bucket(bucketName).prefix(path).delimiter("/").build();
 
-                final ListObjectsV2Response listResponse = awsS3Client.listObjectsV2(listRequest);
-
-                // Add objects (excluding the prefix itself if it matches exactly)
-                for (final S3Object s3Object : listResponse.contents()) {
-                    final String objectKey = s3Object.key();
-                    if (!objectKey.equals(path)) {
-                        requestDataSet.add(RequestDataBuilder.newRequestData().get().url("s3://" + bucketName + "/" + objectKey).build());
+                // A single ListObjectsV2 response is capped at 1000 entries, which objects and common
+                // prefixes share, so every page has to be walked. The pages are iterated once because
+                // ListObjectsV2Iterable#contents() and #commonPrefixes() each re-paginate from scratch,
+                // which would double the number of requests.
+                for (final ListObjectsV2Response listResponse : awsS3Client.listObjectsV2Paginator(listRequest)) {
+                    // Add objects (excluding the prefix itself if it matches exactly)
+                    for (final S3Object s3Object : listResponse.contents()) {
+                        final String objectKey = s3Object.key();
+                        if (!objectKey.equals(path)) {
+                            requestDataSet
+                                    .add(RequestDataBuilder.newRequestData().get().url("s3://" + bucketName + "/" + objectKey).build());
+                        }
                     }
-                }
 
-                // Add common prefixes (directories)
-                for (final CommonPrefix prefix : listResponse.commonPrefixes()) {
-                    requestDataSet.add(RequestDataBuilder.newRequestData().get().url("s3://" + bucketName + "/" + prefix.prefix()).build());
+                    // Add common prefixes (directories)
+                    for (final CommonPrefix prefix : listResponse.commonPrefixes()) {
+                        requestDataSet
+                                .add(RequestDataBuilder.newRequestData().get().url("s3://" + bucketName + "/" + prefix.prefix()).build());
+                    }
                 }
 
                 throw new ChildUrlsException(requestDataSet, this.getClass().getName() + "#getResponseData");

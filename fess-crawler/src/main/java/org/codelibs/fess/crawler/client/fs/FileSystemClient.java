@@ -76,6 +76,9 @@ public class FileSystemClient extends AbstractCrawlerClient {
     /** Key for file groups in metadata */
     public static final String FS_FILE_GROUPS = "fsFileGroups";
 
+    /** Init parameter deciding whether a symbolic link is followed. */
+    public static final String FOLLOW_SYMLINK_PROPERTY = "followSymlink";
+
     /** Character encoding for files */
     protected String charset = Constants.UTF_8;
 
@@ -85,6 +88,14 @@ public class FileSystemClient extends AbstractCrawlerClient {
 
     /** Flag to track initialization status */
     protected AtomicBoolean isInit = new AtomicBoolean(false);
+
+    /**
+     * Whether a symbolic link is followed. Following one indexes the file it points at a second
+     * time, under the configuration that reached the link rather than the one that covers the
+     * target, so the copy carries the roles of the link. Where a share is readable by more people
+     * than the tree it links into, that is a way around the roles on the target.
+     */
+    protected boolean followSymlink = true;
 
     /**
      * Constructs a new FileSystemClient.
@@ -166,6 +177,12 @@ public class FileSystemClient extends AbstractCrawlerClient {
                 responseData.setHttpStatusCode(Constants.NOT_FOUND_STATUS_CODE);
                 responseData.setCharSet(charset);
                 responseData.setContentLength(0);
+            } else if (isSkippedSymlink(file)) {
+                logger.info("Skipped a symbolic link: file={}", file.getAbsolutePath());
+                responseData.setHttpStatusCode(Constants.FORBIDDEN_STATUS_CODE);
+                responseData.setCharSet(charset);
+                responseData.setContentLength(0);
+                responseData.setMimeType(APPLICATION_OCTET_STREAM);
             } else if (file.isFile()) {
                 // check file size
                 responseData.setContentLength(file.length());
@@ -226,6 +243,10 @@ public class FileSystemClient extends AbstractCrawlerClient {
                             logger.debug("Found {} child entries in directory: directory={}", files.length, file.getAbsolutePath());
                         }
                         for (final File f : files) {
+                            if (isSkippedSymlink(f)) {
+                                logger.info("Skipped a symbolic link: file={}", f.getAbsolutePath());
+                                continue;
+                            }
                             final String childUri = f.toURI().toASCIIString();
                             requestDataSet.add(RequestDataBuilder.newRequestData().get().url(childUri).build());
                         }
@@ -286,6 +307,44 @@ public class FileSystemClient extends AbstractCrawlerClient {
         } catch (final Exception e) {
             throw new CrawlingAccessException("Failed to parse file ownership attributes: file=" + file.getAbsolutePath(), e);
         }
+    }
+
+    @Override
+    public void init() {
+        super.init();
+        followSymlink = getInitParameter(FOLLOW_SYMLINK_PROPERTY, Boolean.valueOf(followSymlink), Boolean.class).booleanValue();
+        if (logger.isDebugEnabled()) {
+            logger.debug("followSymlink={}", followSymlink);
+        }
+    }
+
+    /**
+     * Determines whether the given file must be left alone because it is a symbolic link and
+     * links are not being followed.
+     *
+     * @param file the file to check
+     * @return true if the file is to be skipped
+     */
+    protected boolean isSkippedSymlink(final File file) {
+        return !followSymlink && Files.isSymbolicLink(file.toPath());
+    }
+
+    /**
+     * Returns whether a symbolic link is followed.
+     *
+     * @return true if symbolic links are followed
+     */
+    public boolean isFollowSymlink() {
+        return followSymlink;
+    }
+
+    /**
+     * Sets whether a symbolic link is followed.
+     *
+     * @param followSymlink true to follow symbolic links
+     */
+    public void setFollowSymlink(final boolean followSymlink) {
+        this.followSymlink = followSymlink;
     }
 
     /**

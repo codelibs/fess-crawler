@@ -74,6 +74,70 @@ public class FileSystemClientTest extends PlainTestCase {
 
     }
 
+    /**
+     * A symbolic link is followed by default, which is what java.io.File does and what every
+     * release so far has done.
+     */
+    @Test
+    public void test_followSymlink_isOnByDefault() {
+        assertTrue(fsClient.isFollowSymlink());
+    }
+
+    /**
+     * With links turned off, a link is not read. Following one indexes the file it points at a
+     * second time, under the configuration that reached the link rather than the one that covers
+     * the target, so the copy carries the roles of the link: on a share that more people can read
+     * than the tree it links into, that is a way around the roles on the target.
+     */
+    @Test
+    public void test_doGet_symlink_isRefusedWhenLinksAreNotFollowed() throws Exception {
+        final File target = ResourceUtil.getResourceAsFile("test/text1.txt");
+        final File link = new File(tempDir(), "link1.txt");
+        try {
+            Files.createSymbolicLink(link.toPath(), target.toPath());
+        } catch (final UnsupportedOperationException | java.io.IOException e) {
+            return; // the file system does not support symbolic links
+        }
+
+        fsClient.setFollowSymlink(false);
+        final ResponseData responseData = fsClient.doGet(link.toURI().toASCIIString());
+        assertEquals(Constants.FORBIDDEN_STATUS_CODE, responseData.getHttpStatusCode());
+        assertNull(responseData.getResponseBody());
+    }
+
+    /**
+     * A link inside a directory is left out of the child urls, so it is never queued either.
+     */
+    @Test
+    public void test_doGet_dir_leavesOutSymlinkChildrenWhenLinksAreNotFollowed() throws Exception {
+        final File target = ResourceUtil.getResourceAsFile("test/text1.txt");
+        final File dir = new File(tempDir(), "withlink");
+        assertTrue(dir.mkdirs() || dir.isDirectory());
+        final File link = new File(dir, "link2.txt");
+        try {
+            Files.createSymbolicLink(link.toPath(), target.toPath());
+        } catch (final UnsupportedOperationException | java.io.IOException e) {
+            return; // the file system does not support symbolic links
+        }
+
+        fsClient.setFollowSymlink(false);
+        try {
+            fsClient.doGet(dir.toURI().toASCIIString());
+            fail();
+        } catch (final ChildUrlsException e) {
+            for (final RequestData requestData : e.getChildUrlList()) {
+                assertFalse(requestData.getUrl().contains("link2.txt"));
+            }
+        }
+    }
+
+    private File tempDir() {
+        final File dir = new File(System.getProperty("java.io.tmpdir"), "fsClientSymlinkTest" + System.nanoTime());
+        assertTrue(dir.mkdirs());
+        dir.deleteOnExit();
+        return dir;
+    }
+
     @Test
     public void test_doGet_file() throws Exception {
         final File file = ResourceUtil.getResourceAsFile("test/text1.txt");

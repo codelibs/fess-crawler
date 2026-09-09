@@ -56,10 +56,12 @@
 		<property name="charset">"UTF-8"</property>
 	</component>
 
-	<component name="gcsClient"
-		class="org.codelibs.fess.crawler.client.gcs.GcsClient" instance="prototype">
-		<property name="charset">"UTF-8"</property>
-	</component>
+	<!-- gcs: has no client registered here. GcsClient stays in this library, but the Google Cloud
+	     Storage SDK it needs is 17 MiB that most installations never crawl, so Fess ships it in the
+	     fess-lib-gcs plugin, which registers the client through crawlerClientCreator the way
+	     fess-crawler-playwright registers playwrightClient. Registering it here instead would make
+	     every CrawlerClientFactory fail to build wherever the SDK is absent, because the component
+	     reference below is resolved when the factory is created. -->
 
 	<component name="crawlerClientCreator"
 		class="org.codelibs.fess.crawler.client.CrawlerClientCreator">
@@ -94,10 +96,6 @@
 		<postConstruct name="addClient">
 			<arg>"s3:.*"</arg>
 			<arg>s3Client</arg>
-		</postConstruct>
-		<postConstruct name="addClient">
-			<arg>"gcs:.*"</arg>
-			<arg>gcsClient</arg>
 		</postConstruct>
 	</component>
 

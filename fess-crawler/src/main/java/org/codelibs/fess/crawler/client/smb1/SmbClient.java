@@ -130,7 +130,7 @@ public class SmbClient extends AbstractCrawlerClient {
     public static final String SMB_OWNER_ATTRIBUTES = "smb1OwnerAttributes";
 
     static {
-        if (Config.getInt("jcifs.smb1.util.loglevel", -1) == -1) {
+        if (Config.getInt("jcifs.util.loglevel", -1) == -1) {
             if (logger.isTraceEnabled()) {
                 LogStream.setLevel(4);
             } else if (logger.isDebugEnabled()) {

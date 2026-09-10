@@ -220,12 +220,12 @@ public class WebAuthenticationConfigTest extends PlainTestCase {
         assertNull(config.getNtlmParameters());
 
         Map<String, String> params = new HashMap<>();
-        params.put("jcifs.smb.client.domain", "MYDOMAIN");
-        params.put("jcifs.smb.client.SO_SNDBUF", "65536");
+        params.put("jcifs.client.domain", "MYDOMAIN");
+        params.put("jcifs.client.snd_buf_size", "65536");
 
         config.setNtlmParameters(params);
         assertEquals(params, config.getNtlmParameters());
-        assertEquals("MYDOMAIN", config.getNtlmParameters().get("jcifs.smb.client.domain"));
+        assertEquals("MYDOMAIN", config.getNtlmParameters().get("jcifs.client.domain"));
 
         config.setNtlmParameters(null);
         assertNull(config.getNtlmParameters());
@@ -304,13 +304,13 @@ public class WebAuthenticationConfigTest extends PlainTestCase {
         config.setCredentials(credentials);
 
         Map<String, String> ntlmParams = new HashMap<>();
-        ntlmParams.put("jcifs.smb.client.domain", "CORP");
+        ntlmParams.put("jcifs.client.domain", "CORP");
         config.setNtlmParameters(ntlmParams);
 
         assertEquals(AuthSchemeType.NTLM, config.getAuthSchemeType());
         assertEquals(CredentialsType.NTLM, config.getCredentials().getType());
         assertEquals("CORP", config.getCredentials().getDomain());
-        assertEquals("CORP", config.getNtlmParameters().get("jcifs.smb.client.domain"));
+        assertEquals("CORP", config.getNtlmParameters().get("jcifs.client.domain"));
     }
 
     /**

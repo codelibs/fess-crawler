@@ -238,11 +238,14 @@ public class WebAuthenticationConfig {
      *
      * <p>Supported parameters include:</p>
      * <ul>
-     * <li>jcifs.smb.client.SO_SNDBUF - TCP send buffer size</li>
-     * <li>jcifs.smb.client.SO_RCVBUF - TCP receive buffer size</li>
-     * <li>jcifs.smb.client.domain - Default domain</li>
-     * <li>And other jcifs.* properties</li>
+     * <li>jcifs.client.domain - Default domain</li>
+     * <li>jcifs.client.snd_buf_size - TCP send buffer size</li>
+     * <li>jcifs.client.rcv_buf_size - TCP receive buffer size</li>
+     * <li>And other jcifs.* properties read by PropertyConfiguration</li>
      * </ul>
+     *
+     * <p>jcifs 3.0.0 dropped the .smb segment from every key, so the 2.x
+     * spelling jcifs.smb.client.* is ignored without error.</p>
      */
     private Map<String, String> ntlmParameters;
 

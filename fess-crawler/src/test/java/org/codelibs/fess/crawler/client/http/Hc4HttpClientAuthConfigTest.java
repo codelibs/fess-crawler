@@ -55,8 +55,8 @@ public class Hc4HttpClientAuthConfigTest extends PlainTestCase {
         config.setCredentials(credentials);
 
         Map<String, String> ntlmParams = new HashMap<>();
-        ntlmParams.put("jcifs.smb.client.domain", "TESTDOMAIN");
-        ntlmParams.put("jcifs.smb.client.SO_SNDBUF", "65535");
+        ntlmParams.put("jcifs.client.domain", "TESTDOMAIN");
+        ntlmParams.put("jcifs.client.snd_buf_size", "65535");
         config.setNtlmParameters(ntlmParams);
 
         WebAuthenticationConfig[] configs = new WebAuthenticationConfig[] { config };
@@ -180,7 +180,7 @@ public class Hc4HttpClientAuthConfigTest extends PlainTestCase {
         ntlmConfig.setCredentials(ntlmCredentials);
 
         Map<String, String> ntlmParams = new HashMap<>();
-        ntlmParams.put("jcifs.smb.client.domain", "NTLMDOMAIN");
+        ntlmParams.put("jcifs.client.domain", "NTLMDOMAIN");
         ntlmConfig.setNtlmParameters(ntlmParams);
 
         WebAuthenticationConfig[] configs = new WebAuthenticationConfig[] { basicConfig, ntlmConfig };

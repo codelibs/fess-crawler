@@ -51,17 +51,13 @@
 		<property name="charset">"UTF-8"</property>
 	</component>
 
-	<component name="s3Client"
-		class="org.codelibs.fess.crawler.client.s3.S3Client" instance="prototype">
-		<property name="charset">"UTF-8"</property>
-	</component>
-
-	<!-- gcs: has no client registered here. GcsClient stays in this library, but the Google Cloud
-	     Storage SDK it needs is 17 MiB that most installations never crawl, so Fess ships it in the
-	     fess-lib-gcs plugin, which registers the client through crawlerClientCreator the way
-	     fess-crawler-playwright registers playwrightClient. Registering it here instead would make
-	     every CrawlerClientFactory fail to build wherever the SDK is absent, because the component
-	     reference below is resolved when the factory is created. -->
+	<!-- s3: and gcs: have no client registered here. S3Client and GcsClient stay in this library,
+	     but the SDKs they need are 8 MiB and 17 MiB of jars that most installations never crawl, so
+	     Fess ships them in the fess-storage-s3 and fess-storage-gcs plugins, which register the
+	     clients through crawlerClientCreator the way fess-crawler-playwright registers
+	     playwrightClient. Registering them here instead would make every CrawlerClientFactory fail
+	     to build wherever the SDK is absent, because the component references in clientFactory
+	     below are resolved when the factory is created, not when a client is first used. -->
 
 	<component name="crawlerClientCreator"
 		class="org.codelibs.fess.crawler.client.CrawlerClientCreator">
@@ -92,10 +88,6 @@
 		<postConstruct name="addClient">
 			<arg>"ftps:.*"</arg>
 			<arg>ftpClient</arg>
-		</postConstruct>
-		<postConstruct name="addClient">
-			<arg>"s3:.*"</arg>
-			<arg>s3Client</arg>
 		</postConstruct>
 	</component>
 

@@ -14,7 +14,7 @@ crawling engine behind [Fess](https://github.com/codelibs/fess) and is also usab
 - **License**: Apache 2.0
 - **DI**: Lasta DI (`fess-crawler-lasta`) or the standalone `StandardCrawlerContainer`
 - **Repo**: https://github.com/codelibs/fess-crawler
-- **Default branch**: `master`
+- **Default branch**: `main`
 
 ### Tech Stack
 
@@ -221,7 +221,8 @@ mvn javadoc:jar                # Verify the javadoc gate on its own
 
 ### CI
 
-`.github/workflows/maven.yml`, on push/PR to `master` and `*.x`:
+`.github/workflows/maven.yml`, on push to `main`/`*.x` and on every pull request
+(no base filter, so stacked PRs are built too):
 single **JDK 21** (Temurin), installs `fess-parent`, then `mvn -B package`.
 
 **`mvn test` is not enough.** `package` additionally runs `license:check`, `formatter:format`,
@@ -253,7 +254,7 @@ while a `{@link Type}` still references it — fail CI while `mvn test` stays gr
 
 ### Contributing
 
-1. Fork repo, create feature branch off `master`
+1. Fork repo, create feature branch off `main`
 2. Make focused commits with tests
 3. Format code (`mvn formatter:format && mvn license:format`)
 4. Run `mvn package` (not just `mvn test`)

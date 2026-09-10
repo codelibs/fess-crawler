@@ -514,7 +514,8 @@ config, so do not add a local formatter file.
 
 ### Continuous Integration
 
-`.github/workflows/maven.yml` runs on pushes and pull requests to `master` and `*.x` branches: a
+`.github/workflows/maven.yml` runs on pushes to `main` and `*.x`, and on every pull request
+regardless of its base branch (so stacked PRs are built too): a
 single **JDK 21** (Temurin) build that installs `fess-parent` and then runs `mvn -B package`.
 
 `package` is more than tests — it also runs `license:check`, `formatter:format`, `jacoco:report`,
@@ -564,7 +565,7 @@ Lower `setNumOfThread`, lower `maxCachedContentSize` so bodies spill to disk soo
 2. Add tests for your change (JUnit 5)
 3. Run `mvn formatter:format && mvn license:format`
 4. Run `mvn package` — this catches Javadoc and license failures that `mvn test` does not
-5. Open a pull request against `master`
+5. Open a pull request against `main`
 
 Bug reports and feature requests: https://github.com/codelibs/fess-crawler/issues
 

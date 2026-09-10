@@ -58,8 +58,8 @@ public class Hc5HttpClientAuthConfigTest extends PlainTestCase {
         config.setCredentials(credentials);
 
         Map<String, String> ntlmParams = new HashMap<>();
-        ntlmParams.put("jcifs.smb.client.domain", "TESTDOMAIN");
-        ntlmParams.put("jcifs.smb.client.SO_SNDBUF", "65535");
+        ntlmParams.put("jcifs.client.domain", "TESTDOMAIN");
+        ntlmParams.put("jcifs.client.snd_buf_size", "65535");
         config.setNtlmParameters(ntlmParams);
 
         WebAuthenticationConfig[] configs = new WebAuthenticationConfig[] { config };
@@ -184,7 +184,7 @@ public class Hc5HttpClientAuthConfigTest extends PlainTestCase {
         ntlmConfig.setCredentials(ntlmCredentials);
 
         Map<String, String> ntlmParams = new HashMap<>();
-        ntlmParams.put("jcifs.smb.client.domain", "NTLMDOMAIN");
+        ntlmParams.put("jcifs.client.domain", "NTLMDOMAIN");
         ntlmConfig.setNtlmParameters(ntlmParams);
 
         WebAuthenticationConfig[] configs = new WebAuthenticationConfig[] { basicConfig, ntlmConfig };
@@ -328,8 +328,8 @@ public class Hc5HttpClientAuthConfigTest extends PlainTestCase {
         config.setCredentials(credentials);
 
         Map<String, String> ntlmParams = new HashMap<>();
-        ntlmParams.put("jcifs.smb.client.domain", "TESTDOMAIN");
-        ntlmParams.put("jcifs.smb.client.SO_SNDBUF", "65535");
+        ntlmParams.put("jcifs.client.domain", "TESTDOMAIN");
+        ntlmParams.put("jcifs.client.snd_buf_size", "65535");
         config.setNtlmParameters(ntlmParams);
 
         Map<String, Object> params = new HashMap<>();
@@ -339,8 +339,8 @@ public class Hc5HttpClientAuthConfigTest extends PlainTestCase {
         Properties result = httpClient.collectNtlmParameters();
 
         assertNotNull(result);
-        assertEquals("TESTDOMAIN", result.getProperty("jcifs.smb.client.domain"));
-        assertEquals("65535", result.getProperty("jcifs.smb.client.SO_SNDBUF"));
+        assertEquals("TESTDOMAIN", result.getProperty("jcifs.client.domain"));
+        assertEquals("65535", result.getProperty("jcifs.client.snd_buf_size"));
     }
 
     @Test
@@ -441,8 +441,8 @@ public class Hc5HttpClientAuthConfigTest extends PlainTestCase {
         config1.setCredentials(credentials1);
 
         Map<String, String> ntlmParams1 = new HashMap<>();
-        ntlmParams1.put("jcifs.smb.client.domain", "DOMAIN1");
-        ntlmParams1.put("jcifs.smb.client.SO_SNDBUF", "65535");
+        ntlmParams1.put("jcifs.client.domain", "DOMAIN1");
+        ntlmParams1.put("jcifs.client.snd_buf_size", "65535");
         config1.setNtlmParameters(ntlmParams1);
 
         // Second NTLM config with different params
@@ -459,8 +459,8 @@ public class Hc5HttpClientAuthConfigTest extends PlainTestCase {
         config2.setCredentials(credentials2);
 
         Map<String, String> ntlmParams2 = new HashMap<>();
-        ntlmParams2.put("jcifs.smb.client.domain", "DOMAIN2"); // Overrides DOMAIN1
-        ntlmParams2.put("jcifs.smb.client.SO_RCVBUF", "32768");
+        ntlmParams2.put("jcifs.client.domain", "DOMAIN2"); // Overrides DOMAIN1
+        ntlmParams2.put("jcifs.client.rcv_buf_size", "32768");
         config2.setNtlmParameters(ntlmParams2);
 
         Map<String, Object> params = new HashMap<>();
@@ -471,9 +471,9 @@ public class Hc5HttpClientAuthConfigTest extends PlainTestCase {
 
         assertNotNull(result);
         // Later config overrides earlier
-        assertEquals("DOMAIN2", result.getProperty("jcifs.smb.client.domain"));
-        assertEquals("65535", result.getProperty("jcifs.smb.client.SO_SNDBUF"));
-        assertEquals("32768", result.getProperty("jcifs.smb.client.SO_RCVBUF"));
+        assertEquals("DOMAIN2", result.getProperty("jcifs.client.domain"));
+        assertEquals("65535", result.getProperty("jcifs.client.snd_buf_size"));
+        assertEquals("32768", result.getProperty("jcifs.client.rcv_buf_size"));
     }
 
     @Test
@@ -504,7 +504,7 @@ public class Hc5HttpClientAuthConfigTest extends PlainTestCase {
         ntlmConfig.setCredentials(ntlmCredentials);
 
         Map<String, String> ntlmParams = new HashMap<>();
-        ntlmParams.put("jcifs.smb.client.domain", "NTLMDOMAIN");
+        ntlmParams.put("jcifs.client.domain", "NTLMDOMAIN");
         ntlmConfig.setNtlmParameters(ntlmParams);
 
         Map<String, Object> params = new HashMap<>();
@@ -514,7 +514,7 @@ public class Hc5HttpClientAuthConfigTest extends PlainTestCase {
         Properties result = httpClient.collectNtlmParameters();
 
         assertNotNull(result);
-        assertEquals("NTLMDOMAIN", result.getProperty("jcifs.smb.client.domain"));
+        assertEquals("NTLMDOMAIN", result.getProperty("jcifs.client.domain"));
         assertEquals(1, result.size());
     }
 }

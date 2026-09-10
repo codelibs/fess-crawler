@@ -151,7 +151,7 @@ public class Hc5NtlmAuthenticationStrategyTest extends PlainTestCase {
         config.setCredentials(credentials);
 
         Map<String, String> ntlmParams = new HashMap<>();
-        ntlmParams.put("jcifs.smb.client.domain", "TESTDOMAIN");
+        ntlmParams.put("jcifs.client.domain", "TESTDOMAIN");
         config.setNtlmParameters(ntlmParams);
 
         Map<String, Object> params = new HashMap<>();
@@ -284,7 +284,7 @@ public class Hc5NtlmAuthenticationStrategyTest extends PlainTestCase {
         ntlmConfig.setCredentials(ntlmCredentials);
 
         Map<String, String> ntlmParams = new HashMap<>();
-        ntlmParams.put("jcifs.smb.client.domain", "NTLMDOMAIN");
+        ntlmParams.put("jcifs.client.domain", "NTLMDOMAIN");
         ntlmConfig.setNtlmParameters(ntlmParams);
 
         Map<String, Object> params = new HashMap<>();
@@ -346,7 +346,7 @@ public class Hc5NtlmAuthenticationStrategyTest extends PlainTestCase {
         config.setCredentials(credentials);
 
         Map<String, String> ntlmParams = new HashMap<>();
-        ntlmParams.put("jcifs.smb.client.domain", "TESTDOMAIN");
+        ntlmParams.put("jcifs.client.domain", "TESTDOMAIN");
         config.setNtlmParameters(ntlmParams);
 
         Map<String, Object> params = new HashMap<>();
@@ -386,7 +386,7 @@ public class Hc5NtlmAuthenticationStrategyTest extends PlainTestCase {
         ntlmConfig.setCredentials(ntlmCredentials);
 
         Map<String, String> ntlmParams = new HashMap<>();
-        ntlmParams.put("jcifs.smb.client.domain", "NTLMDOMAIN");
+        ntlmParams.put("jcifs.client.domain", "NTLMDOMAIN");
         ntlmConfig.setNtlmParameters(ntlmParams);
 
         Map<String, Object> params = new HashMap<>();

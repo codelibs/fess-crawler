@@ -209,6 +209,19 @@
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-parser-microsoft-module</artifactId>
 			<version>${tika.version}</version>
+			<exclusions>
+				<exclusion>
+					<!-- poi-ooxml-full carries every OOXML XmlBeans schema (13.6 MiB); poi-ooxml,
+					     which poi-ooxml-lite comes with, carries the 2,555 the extractors actually
+					     reach (5.7 MiB). Every one of the 911 schema classes referenced from the
+					     jars this project ships - poi-ooxml and tika-parser-microsoft-module, the
+					     only two that name any - is present in the lite jar, the 26 Visio ones
+					     included. Tika asks for the full jar because signing and schema-level
+					     editing need it; Fess only reads text out of the documents. -->
+					<groupId>org.apache.poi</groupId>
+					<artifactId>poi-ooxml-full</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.tika</groupId>
@@ -287,9 +300,25 @@
 			<version>${pdfbox.version}</version>
 		</dependency>
 		<dependency>
+			<!-- Kept as a direct dependency, although nothing here calls it, so that it stays on
+			     ${pdfbox.version} with the rest of PDFBox: tika-parser-pdf-module asks for it too,
+			     and dropping the declaration would let Tika pick the version instead. Tika reaches
+			     exactly one class in it, org.apache.pdfbox.tools.imageio.ImageIOUtil. The command
+			     line entry points are what need picocli, and pdfbox-debugger is a Swing viewer; a
+			     server never loads either. -->
 			<groupId>org.apache.pdfbox</groupId>
 			<artifactId>pdfbox-tools</artifactId>
 			<version>${pdfbox.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.pdfbox</groupId>
+					<artifactId>pdfbox-debugger</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>info.picocli</groupId>
+					<artifactId>picocli</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.pdfbox</groupId>

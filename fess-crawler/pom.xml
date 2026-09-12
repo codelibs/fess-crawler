@@ -366,17 +366,6 @@
 			<artifactId>jai-imageio-jpeg2000</artifactId>
 			<version>${jai.imageio.version}</version>
 		</dependency>
-		<!-- No class here imports okhttp3, and that is not a mistake. This declaration is how
-		     Fess comes to ship okhttp 5.x in WEB-INF/lib, which plugins then use at runtime:
-		     fess-ds-microsoft365 calls okhttp from its own code and deliberately does not shade
-		     it, excluding the okhttp 4.12.0 that Kiota brings so that it runs on the copy Fess
-		     supplies. Deleting this for having no local caller breaks that plugin with a
-		     NoClassDefFoundError at crawl time, which no test here would catch. -->
-		<dependency>
-			<groupId>com.squareup.okhttp3</groupId>
-			<artifactId>okhttp-jvm</artifactId>
-			<version>${okhttp.version}</version>
-		</dependency>
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>s3</artifactId>

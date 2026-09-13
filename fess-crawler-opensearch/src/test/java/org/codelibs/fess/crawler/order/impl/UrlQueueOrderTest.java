@@ -18,11 +18,11 @@ package org.codelibs.fess.crawler.order.impl;
 import org.codelibs.fess.crawler.order.UrlQueueOrder;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.Test;
-import org.opensearch.index.query.functionscore.FunctionScoreQueryBuilder;
-import org.opensearch.search.sort.FieldSortBuilder;
-import org.opensearch.search.sort.ScoreSortBuilder;
-import org.opensearch.search.sort.SortBuilder;
-import org.opensearch.search.sort.SortOrder;
+import org.codelibs.fesen.opensearch.index.query.functionscore.FunctionScoreQueryBuilder;
+import org.codelibs.fesen.opensearch.search.sort.FieldSortBuilder;
+import org.codelibs.fesen.opensearch.search.sort.ScoreSortBuilder;
+import org.codelibs.fesen.opensearch.search.sort.SortBuilder;
+import org.codelibs.fesen.opensearch.search.sort.SortOrder;
 
 public class UrlQueueOrderTest extends PlainTestCase {
 

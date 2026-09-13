@@ -28,13 +28,13 @@ import org.codelibs.fess.crawler.service.DataService;
 import org.codelibs.fess.crawler.util.AccessResultCallback;
 import org.codelibs.fess.crawler.util.OpenSearchCrawlerConfig;
 import org.codelibs.fess.crawler.util.OpenSearchResultList;
-import org.opensearch.action.DocWriteRequest.OpType;
-import org.opensearch.action.search.SearchRequestBuilder;
-import org.opensearch.action.search.SearchResponse;
-import org.opensearch.common.unit.TimeValue;
-import org.opensearch.index.query.QueryBuilders;
-import org.opensearch.search.SearchHit;
-import org.opensearch.search.SearchHits;
+import org.codelibs.fesen.opensearch.action.DocWriteRequest.OpType;
+import org.codelibs.fesen.opensearch.action.search.SearchRequestBuilder;
+import org.codelibs.fesen.opensearch.action.search.SearchResponse;
+import org.codelibs.fesen.opensearch.common.unit.TimeValue;
+import org.codelibs.fesen.opensearch.index.query.QueryBuilders;
+import org.codelibs.fesen.opensearch.search.SearchHit;
+import org.codelibs.fesen.opensearch.search.SearchHits;
 
 import jakarta.annotation.PostConstruct;
 

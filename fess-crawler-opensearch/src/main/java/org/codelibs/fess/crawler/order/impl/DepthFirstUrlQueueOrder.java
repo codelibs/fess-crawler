@@ -17,9 +17,9 @@ package org.codelibs.fess.crawler.order.impl;
 
 import org.codelibs.fess.crawler.entity.OpenSearchUrlQueue;
 import org.codelibs.fess.crawler.order.UrlQueueOrder;
-import org.opensearch.search.sort.SortBuilder;
-import org.opensearch.search.sort.SortBuilders;
-import org.opensearch.search.sort.SortOrder;
+import org.codelibs.fesen.opensearch.search.sort.SortBuilder;
+import org.codelibs.fesen.opensearch.search.sort.SortBuilders;
+import org.codelibs.fesen.opensearch.search.sort.SortOrder;
 
 /**
  * Fetches the deepest queued URLs first, approximating a depth-first crawl.

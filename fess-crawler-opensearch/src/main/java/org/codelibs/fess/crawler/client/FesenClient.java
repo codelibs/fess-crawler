@@ -36,8 +36,6 @@ import org.codelibs.fesen.opensearch.OpenSearchException;
 import org.codelibs.fesen.opensearch.action.ActionRequest;
 import org.codelibs.fesen.opensearch.action.ActionType;
 import org.codelibs.fesen.opensearch.action.admin.cluster.health.ClusterHealthResponse;
-import org.codelibs.fesen.opensearch.action.admin.indices.segments.IndicesSegmentResponse;
-import org.codelibs.fesen.opensearch.action.admin.indices.segments.PitSegmentsRequest;
 import org.codelibs.fesen.opensearch.action.bulk.BulkRequest;
 import org.codelibs.fesen.opensearch.action.bulk.BulkRequestBuilder;
 import org.codelibs.fesen.opensearch.action.bulk.BulkResponse;
@@ -821,11 +819,6 @@ public class FesenClient implements Client {
     @Override
     public void getAllPits(final GetAllPitNodesRequest getAllPitNodesRequest, final ActionListener<GetAllPitNodesResponse> listener) {
         client.getAllPits(getAllPitNodesRequest, listener);
-    }
-
-    @Override
-    public void pitSegments(final PitSegmentsRequest pitSegmentsRequest, final ActionListener<IndicesSegmentResponse> listener) {
-        client.pitSegments(pitSegmentsRequest, listener);
     }
 
     @Override

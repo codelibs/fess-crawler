@@ -15,8 +15,8 @@
  */
 package org.codelibs.fess.crawler.order;
 
-import org.opensearch.index.query.QueryBuilder;
-import org.opensearch.search.sort.SortBuilder;
+import org.codelibs.fesen.opensearch.index.query.QueryBuilder;
+import org.codelibs.fesen.opensearch.search.sort.SortBuilder;
 
 /**
  * Decides which queued URLs are fetched next, and in what order.

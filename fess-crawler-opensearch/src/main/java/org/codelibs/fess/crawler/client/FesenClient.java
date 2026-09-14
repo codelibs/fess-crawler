@@ -32,75 +32,75 @@ import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.lang.ThreadUtil;
 import org.codelibs.fesen.client.HttpClient;
 import org.codelibs.fess.crawler.exception.OpenSearchAccessException;
-import org.opensearch.OpenSearchException;
-import org.opensearch.action.ActionRequest;
-import org.opensearch.action.ActionType;
-import org.opensearch.action.admin.cluster.health.ClusterHealthResponse;
-import org.opensearch.action.admin.indices.segments.IndicesSegmentResponse;
-import org.opensearch.action.admin.indices.segments.PitSegmentsRequest;
-import org.opensearch.action.bulk.BulkRequest;
-import org.opensearch.action.bulk.BulkRequestBuilder;
-import org.opensearch.action.bulk.BulkResponse;
-import org.opensearch.action.delete.DeleteRequest;
-import org.opensearch.action.delete.DeleteRequestBuilder;
-import org.opensearch.action.delete.DeleteResponse;
-import org.opensearch.action.explain.ExplainRequest;
-import org.opensearch.action.explain.ExplainRequestBuilder;
-import org.opensearch.action.explain.ExplainResponse;
-import org.opensearch.action.fieldcaps.FieldCapabilitiesRequest;
-import org.opensearch.action.fieldcaps.FieldCapabilitiesRequestBuilder;
-import org.opensearch.action.fieldcaps.FieldCapabilitiesResponse;
-import org.opensearch.action.get.GetRequest;
-import org.opensearch.action.get.GetRequestBuilder;
-import org.opensearch.action.get.GetResponse;
-import org.opensearch.action.get.MultiGetRequest;
-import org.opensearch.action.get.MultiGetRequestBuilder;
-import org.opensearch.action.get.MultiGetResponse;
-import org.opensearch.action.index.IndexRequest;
-import org.opensearch.action.index.IndexRequestBuilder;
-import org.opensearch.action.index.IndexResponse;
-import org.opensearch.action.search.ClearScrollRequest;
-import org.opensearch.action.search.ClearScrollRequestBuilder;
-import org.opensearch.action.search.ClearScrollResponse;
-import org.opensearch.action.search.CreatePitAction;
-import org.opensearch.action.search.CreatePitRequest;
-import org.opensearch.action.search.CreatePitResponse;
-import org.opensearch.action.search.DeletePitRequest;
-import org.opensearch.action.search.DeletePitResponse;
-import org.opensearch.action.search.GetAllPitNodesRequest;
-import org.opensearch.action.search.GetAllPitNodesResponse;
-import org.opensearch.action.search.MultiSearchRequest;
-import org.opensearch.action.search.MultiSearchRequestBuilder;
-import org.opensearch.action.search.MultiSearchResponse;
-import org.opensearch.action.search.SearchRequest;
-import org.opensearch.action.search.SearchRequestBuilder;
-import org.opensearch.action.search.SearchResponse;
-import org.opensearch.action.search.SearchScrollRequest;
-import org.opensearch.action.search.SearchScrollRequestBuilder;
-import org.opensearch.action.termvectors.MultiTermVectorsRequest;
-import org.opensearch.action.termvectors.MultiTermVectorsRequestBuilder;
-import org.opensearch.action.termvectors.MultiTermVectorsResponse;
-import org.opensearch.action.termvectors.TermVectorsRequest;
-import org.opensearch.action.termvectors.TermVectorsRequestBuilder;
-import org.opensearch.action.termvectors.TermVectorsResponse;
-import org.opensearch.action.update.UpdateRequest;
-import org.opensearch.action.update.UpdateRequestBuilder;
-import org.opensearch.action.update.UpdateResponse;
-import org.opensearch.common.action.ActionFuture;
-import org.opensearch.common.settings.Settings;
-import org.opensearch.common.unit.TimeValue;
-import org.opensearch.core.action.ActionListener;
-import org.opensearch.core.action.ActionResponse;
-import org.opensearch.index.IndexNotFoundException;
-import org.opensearch.index.engine.VersionConflictEngineException;
-import org.opensearch.index.query.QueryBuilder;
-import org.opensearch.search.Scroll;
-import org.opensearch.search.SearchHit;
-import org.opensearch.search.builder.PointInTimeBuilder;
-import org.opensearch.search.sort.SortBuilders;
-import org.opensearch.threadpool.ThreadPool;
-import org.opensearch.transport.client.AdminClient;
-import org.opensearch.transport.client.Client;
+import org.codelibs.fesen.opensearch.OpenSearchException;
+import org.codelibs.fesen.opensearch.action.ActionRequest;
+import org.codelibs.fesen.opensearch.action.ActionType;
+import org.codelibs.fesen.opensearch.action.admin.cluster.health.ClusterHealthResponse;
+import org.codelibs.fesen.opensearch.action.admin.indices.segments.IndicesSegmentResponse;
+import org.codelibs.fesen.opensearch.action.admin.indices.segments.PitSegmentsRequest;
+import org.codelibs.fesen.opensearch.action.bulk.BulkRequest;
+import org.codelibs.fesen.opensearch.action.bulk.BulkRequestBuilder;
+import org.codelibs.fesen.opensearch.action.bulk.BulkResponse;
+import org.codelibs.fesen.opensearch.action.delete.DeleteRequest;
+import org.codelibs.fesen.opensearch.action.delete.DeleteRequestBuilder;
+import org.codelibs.fesen.opensearch.action.delete.DeleteResponse;
+import org.codelibs.fesen.opensearch.action.explain.ExplainRequest;
+import org.codelibs.fesen.opensearch.action.explain.ExplainRequestBuilder;
+import org.codelibs.fesen.opensearch.action.explain.ExplainResponse;
+import org.codelibs.fesen.opensearch.action.fieldcaps.FieldCapabilitiesRequest;
+import org.codelibs.fesen.opensearch.action.fieldcaps.FieldCapabilitiesRequestBuilder;
+import org.codelibs.fesen.opensearch.action.fieldcaps.FieldCapabilitiesResponse;
+import org.codelibs.fesen.opensearch.action.get.GetRequest;
+import org.codelibs.fesen.opensearch.action.get.GetRequestBuilder;
+import org.codelibs.fesen.opensearch.action.get.GetResponse;
+import org.codelibs.fesen.opensearch.action.get.MultiGetRequest;
+import org.codelibs.fesen.opensearch.action.get.MultiGetRequestBuilder;
+import org.codelibs.fesen.opensearch.action.get.MultiGetResponse;
+import org.codelibs.fesen.opensearch.action.index.IndexRequest;
+import org.codelibs.fesen.opensearch.action.index.IndexRequestBuilder;
+import org.codelibs.fesen.opensearch.action.index.IndexResponse;
+import org.codelibs.fesen.opensearch.action.search.ClearScrollRequest;
+import org.codelibs.fesen.opensearch.action.search.ClearScrollRequestBuilder;
+import org.codelibs.fesen.opensearch.action.search.ClearScrollResponse;
+import org.codelibs.fesen.opensearch.action.search.CreatePitAction;
+import org.codelibs.fesen.opensearch.action.search.CreatePitRequest;
+import org.codelibs.fesen.opensearch.action.search.CreatePitResponse;
+import org.codelibs.fesen.opensearch.action.search.DeletePitRequest;
+import org.codelibs.fesen.opensearch.action.search.DeletePitResponse;
+import org.codelibs.fesen.opensearch.action.search.GetAllPitNodesRequest;
+import org.codelibs.fesen.opensearch.action.search.GetAllPitNodesResponse;
+import org.codelibs.fesen.opensearch.action.search.MultiSearchRequest;
+import org.codelibs.fesen.opensearch.action.search.MultiSearchRequestBuilder;
+import org.codelibs.fesen.opensearch.action.search.MultiSearchResponse;
+import org.codelibs.fesen.opensearch.action.search.SearchRequest;
+import org.codelibs.fesen.opensearch.action.search.SearchRequestBuilder;
+import org.codelibs.fesen.opensearch.action.search.SearchResponse;
+import org.codelibs.fesen.opensearch.action.search.SearchScrollRequest;
+import org.codelibs.fesen.opensearch.action.search.SearchScrollRequestBuilder;
+import org.codelibs.fesen.opensearch.action.termvectors.MultiTermVectorsRequest;
+import org.codelibs.fesen.opensearch.action.termvectors.MultiTermVectorsRequestBuilder;
+import org.codelibs.fesen.opensearch.action.termvectors.MultiTermVectorsResponse;
+import org.codelibs.fesen.opensearch.action.termvectors.TermVectorsRequest;
+import org.codelibs.fesen.opensearch.action.termvectors.TermVectorsRequestBuilder;
+import org.codelibs.fesen.opensearch.action.termvectors.TermVectorsResponse;
+import org.codelibs.fesen.opensearch.action.update.UpdateRequest;
+import org.codelibs.fesen.opensearch.action.update.UpdateRequestBuilder;
+import org.codelibs.fesen.opensearch.action.update.UpdateResponse;
+import org.codelibs.fesen.opensearch.common.action.ActionFuture;
+import org.codelibs.fesen.opensearch.common.settings.Settings;
+import org.codelibs.fesen.opensearch.common.unit.TimeValue;
+import org.codelibs.fesen.opensearch.core.action.ActionListener;
+import org.codelibs.fesen.opensearch.core.action.ActionResponse;
+import org.codelibs.fesen.opensearch.index.IndexNotFoundException;
+import org.codelibs.fesen.opensearch.index.engine.VersionConflictEngineException;
+import org.codelibs.fesen.opensearch.index.query.QueryBuilder;
+import org.codelibs.fesen.opensearch.search.Scroll;
+import org.codelibs.fesen.opensearch.search.SearchHit;
+import org.codelibs.fesen.opensearch.search.builder.PointInTimeBuilder;
+import org.codelibs.fesen.opensearch.search.sort.SortBuilders;
+import org.codelibs.fesen.opensearch.threadpool.ThreadPool;
+import org.codelibs.fesen.opensearch.transport.client.AdminClient;
+import org.codelibs.fesen.opensearch.transport.client.Client;
 
 import jakarta.annotation.PreDestroy;
 
@@ -829,25 +829,26 @@ public class FesenClient implements Client {
     }
 
     @Override
-    public void searchView(org.opensearch.action.admin.indices.view.SearchViewAction.Request request,
+    public void searchView(org.codelibs.fesen.opensearch.action.admin.indices.view.SearchViewAction.Request request,
             ActionListener<SearchResponse> listener) {
         throw new UnsupportedOperationException("Not implemented yet");
     }
 
     @Override
-    public ActionFuture<SearchResponse> searchView(org.opensearch.action.admin.indices.view.SearchViewAction.Request request) {
+    public ActionFuture<SearchResponse> searchView(
+            org.codelibs.fesen.opensearch.action.admin.indices.view.SearchViewAction.Request request) {
         throw new UnsupportedOperationException("Not implemented yet");
     }
 
     @Override
-    public void listViewNames(org.opensearch.action.admin.indices.view.ListViewNamesAction.Request request,
-            ActionListener<org.opensearch.action.admin.indices.view.ListViewNamesAction.Response> listener) {
+    public void listViewNames(org.codelibs.fesen.opensearch.action.admin.indices.view.ListViewNamesAction.Request request,
+            ActionListener<org.codelibs.fesen.opensearch.action.admin.indices.view.ListViewNamesAction.Response> listener) {
         throw new UnsupportedOperationException("Not implemented yet");
     }
 
     @Override
-    public ActionFuture<org.opensearch.action.admin.indices.view.ListViewNamesAction.Response> listViewNames(
-            org.opensearch.action.admin.indices.view.ListViewNamesAction.Request request) {
+    public ActionFuture<org.codelibs.fesen.opensearch.action.admin.indices.view.ListViewNamesAction.Response> listViewNames(
+            org.codelibs.fesen.opensearch.action.admin.indices.view.ListViewNamesAction.Request request) {
         throw new UnsupportedOperationException("Not implemented yet");
     }
 }

@@ -20,8 +20,8 @@ import java.io.IOException;
 import org.codelibs.core.beans.util.BeanUtil;
 import org.codelibs.fess.crawler.service.impl.OpenSearchDataService;
 import org.lastaflute.di.core.SingletonLaContainer;
-import org.opensearch.core.xcontent.ToXContent;
-import org.opensearch.core.xcontent.XContentBuilder;
+import org.codelibs.fesen.opensearch.core.xcontent.ToXContent;
+import org.codelibs.fesen.opensearch.core.xcontent.XContentBuilder;
 
 /**
  * OpenSearchAccessResult is an implementation of {@link AccessResult} for OpenSearch.

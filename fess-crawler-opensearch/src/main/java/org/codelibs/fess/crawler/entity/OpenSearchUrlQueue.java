@@ -17,8 +17,8 @@ package org.codelibs.fess.crawler.entity;
 
 import java.io.IOException;
 
-import org.opensearch.core.xcontent.ToXContent;
-import org.opensearch.core.xcontent.XContentBuilder;
+import org.codelibs.fesen.opensearch.core.xcontent.ToXContent;
+import org.codelibs.fesen.opensearch.core.xcontent.XContentBuilder;
 
 /**
  * OpenSearchUrlQueue is an implementation of {@link UrlQueue} for OpenSearch.

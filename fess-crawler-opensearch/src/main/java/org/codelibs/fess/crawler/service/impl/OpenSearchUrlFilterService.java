@@ -26,8 +26,8 @@ import org.codelibs.fess.crawler.entity.OpenSearchUrlFilter;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.service.UrlFilterService;
 import org.codelibs.fess.crawler.util.OpenSearchCrawlerConfig;
-import org.opensearch.action.DocWriteRequest.OpType;
-import org.opensearch.index.query.QueryBuilders;
+import org.codelibs.fesen.opensearch.action.DocWriteRequest.OpType;
+import org.codelibs.fesen.opensearch.index.query.QueryBuilders;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;

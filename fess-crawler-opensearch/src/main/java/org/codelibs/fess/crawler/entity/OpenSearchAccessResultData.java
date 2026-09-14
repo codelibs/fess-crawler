@@ -20,8 +20,8 @@ import java.util.Map;
 
 import org.codelibs.core.misc.Base64Util;
 import org.codelibs.fess.crawler.exception.OpenSearchAccessException;
-import org.opensearch.core.xcontent.ToXContent;
-import org.opensearch.core.xcontent.XContentBuilder;
+import org.codelibs.fesen.opensearch.core.xcontent.ToXContent;
+import org.codelibs.fesen.opensearch.core.xcontent.XContentBuilder;
 
 /**
  * OpenSearchAccessResultData is an implementation of {@link AccessResultData} for OpenSearch.

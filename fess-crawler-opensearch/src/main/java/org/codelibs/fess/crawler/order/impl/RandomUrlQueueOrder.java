@@ -16,13 +16,13 @@
 package org.codelibs.fess.crawler.order.impl;
 
 import org.codelibs.fess.crawler.order.UrlQueueOrder;
-import org.opensearch.index.query.QueryBuilder;
-import org.opensearch.index.query.QueryBuilders;
-import org.opensearch.index.query.functionscore.FunctionScoreQueryBuilder;
-import org.opensearch.index.query.functionscore.RandomScoreFunctionBuilder;
-import org.opensearch.search.sort.SortBuilder;
-import org.opensearch.search.sort.SortBuilders;
-import org.opensearch.search.sort.SortOrder;
+import org.codelibs.fesen.opensearch.index.query.QueryBuilder;
+import org.codelibs.fesen.opensearch.index.query.QueryBuilders;
+import org.codelibs.fesen.opensearch.index.query.functionscore.FunctionScoreQueryBuilder;
+import org.codelibs.fesen.opensearch.index.query.functionscore.RandomScoreFunctionBuilder;
+import org.codelibs.fesen.opensearch.search.sort.SortBuilder;
+import org.codelibs.fesen.opensearch.search.sort.SortBuilders;
+import org.codelibs.fesen.opensearch.search.sort.SortOrder;
 
 /**
  * Fetches queued URLs in a random order, seeded per session.

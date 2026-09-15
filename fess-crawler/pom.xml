@@ -244,6 +244,16 @@
 			<version>${tika.version}</version>
 		</dependency>
 		<dependency>
+			<!-- Nothing here calls it, but Tika's CompressorParser only registers application/zstd
+			     when com.github.luben.zstd.ZstdInputStream can be loaded, and commons-compress declares
+			     it optional. Without this jar .zst and .tar.zst files are indexed with no content and no
+			     error. It used to arrive with the OpenSearch jar. -->
+			<groupId>com.github.luben</groupId>
+			<artifactId>zstd-jni</artifactId>
+			<version>1.5.6-1</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-parser-text-module</artifactId>
 			<version>${tika.version}</version>

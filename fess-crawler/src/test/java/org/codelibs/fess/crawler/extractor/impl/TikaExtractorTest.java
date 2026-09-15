@@ -437,6 +437,36 @@ public class TikaExtractorTest extends PlainTestCase {
     }
 
     @Test
+    public void test_getTika_gz() {
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/gz/test.txt.gz");
+        final ExtractData extractData = tikaExtractor.getText(in, null);
+        final String content = extractData.getContent();
+        CloseableUtil.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("fcgziptoken"));
+    }
+
+    @Test
+    public void test_getTika_zst() {
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/zst/test.txt.zst");
+        final ExtractData extractData = tikaExtractor.getText(in, null);
+        final String content = extractData.getContent();
+        CloseableUtil.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("fczstdtoken"));
+    }
+
+    @Test
+    public void test_getTika_tarzst() {
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/zst/test.tar.zst");
+        final ExtractData extractData = tikaExtractor.getText(in, null);
+        final String content = extractData.getContent();
+        CloseableUtil.closeQuietly(in);
+        logger.info(content);
+        assertTrue(content.contains("fcztarzstdtoken"));
+    }
+
+    @Test
     public void test_getTika_xml() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_utf8.xml");
         final ExtractData extractData = tikaExtractor.getText(in, null);

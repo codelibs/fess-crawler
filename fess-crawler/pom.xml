@@ -119,11 +119,6 @@
 			<artifactId>httpmime</artifactId>
 			<version>${httpcomponents.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpclient-cache</artifactId>
-			<version>${httpcomponents.version}</version>
-		</dependency>
 		<!-- Apache HttpComponents 5.x -->
 		<dependency>
 			<groupId>org.apache.httpcomponents.client5</groupId>

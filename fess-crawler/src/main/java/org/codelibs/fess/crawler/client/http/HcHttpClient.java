@@ -15,6 +15,8 @@
  */
 package org.codelibs.fess.crawler.client.http;
 
+import java.util.Locale;
+
 import org.codelibs.fess.crawler.client.AbstractCrawlerClient;
 
 /**
@@ -30,6 +32,7 @@ import org.codelibs.fess.crawler.client.AbstractCrawlerClient;
  *   <li>PROXY_PORT_PROPERTY: Proxy port setting.</li>
  *   <li>PROXY_AUTH_SCHEME_PROPERTY: Proxy authentication scheme.</li>
  *   <li>PROXY_CREDENTIALS_PROPERTY: Proxy credentials, as a WebAuthenticationConfig.</li>
+ *   <li>NON_PROXY_HOSTS_PROPERTY: Hosts connected to directly, bypassing the proxy.</li>
  *   <li>USER_AGENT_PROPERTY: User agent string.</li>
  *   <li>ROBOTS_TXT_ENABLED_PROPERTY: Enable or disable robots.txt parsing.</li>
  *   <li>AUTHENTICATIONS_PROPERTY: Web authentications.</li>
@@ -69,6 +72,17 @@ public abstract class HcHttpClient extends AbstractCrawlerClient {
      * proxy; credentials of the underlying HTTP library are accepted as well.
      */
     public static final String PROXY_CREDENTIALS_PROPERTY = "proxyCredentials";
+
+    /**
+     * Property name for the hosts connected to directly, bypassing the proxy.
+     * The value has the format of the {@code http.nonProxyHosts} system property: host names separated
+     * by {@code |}, each of which may start or end with {@code *} as a wildcard. When it is not set,
+     * the {@code http.nonProxyHosts} system property is used.
+     */
+    public static final String NON_PROXY_HOSTS_PROPERTY = "nonProxyHosts";
+
+    /** System property the hosts to bypass the proxy for are read from when NON_PROXY_HOSTS_PROPERTY is not set */
+    protected static final String NON_PROXY_HOSTS_SYSTEM_PROPERTY = "http.nonProxyHosts";
 
     /** Property name for user agent setting */
     public static final String USER_AGENT_PROPERTY = "userAgent";
@@ -152,5 +166,41 @@ public abstract class HcHttpClient extends AbstractCrawlerClient {
         } catch (final NumberFormatException e) {
             return -1L;
         }
+    }
+
+    /**
+     * Returns whether a host is to be connected to directly rather than through the proxy.
+     * Matching follows the {@code http.nonProxyHosts} system property: case-insensitive, with a
+     * leading or trailing {@code *} as a wildcard, and an IPv6 address may be written in brackets.
+     *
+     * @param host the host name or address of the target
+     * @param nonProxyHosts the host patterns separated by {@code |}, may be {@code null}
+     * @return true if the host matches one of the patterns
+     */
+    protected static boolean isNonProxyHost(final String host, final String nonProxyHosts) {
+        if (host == null || nonProxyHosts == null) {
+            return false;
+        }
+        final String target = host.toLowerCase(Locale.ROOT);
+        for (final String value : nonProxyHosts.split("\\|")) {
+            final String pattern = value.trim().toLowerCase(Locale.ROOT);
+            if (pattern.isEmpty()) {
+                continue;
+            }
+            if (matchesHostPattern(target, pattern) || target.indexOf(':') >= 0 && matchesHostPattern("[" + target + "]", pattern)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean matchesHostPattern(final String host, final String pattern) {
+        if (pattern.startsWith("*")) {
+            return host.endsWith(pattern.substring(1));
+        }
+        if (pattern.endsWith("*")) {
+            return host.startsWith(pattern.substring(0, pattern.length() - 1));
+        }
+        return host.equals(pattern);
     }
 }

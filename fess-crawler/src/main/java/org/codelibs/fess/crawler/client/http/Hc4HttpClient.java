@@ -45,7 +45,9 @@ import org.apache.commons.io.output.DeferredFileOutputStream;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeProvider;
@@ -93,6 +95,7 @@ import org.apache.http.impl.cookie.NetscapeDraftSpecProvider;
 import org.apache.http.impl.cookie.RFC6265CookieSpecProvider;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
@@ -1068,6 +1071,8 @@ public class Hc4HttpClient extends HcHttpClient {
 
     /**
      * Builds the HTTP route planner with proxy configuration.
+     * Hosts matching {@link #NON_PROXY_HOSTS_PROPERTY}, or the {@code http.nonProxyHosts} system
+     * property when it is not set, are connected to directly.
      *
      * @return The configured route planner, or null if no proxy is configured
      */
@@ -1081,7 +1086,18 @@ public class Hc4HttpClient extends HcHttpClient {
         final Integer proxyPort = getInitParameter(PROXY_PORT_PROPERTY, this.proxyPort, Integer.class);
         if (proxyHost != null && proxyPort != null) {
             final HttpHost proxy = new HttpHost(proxyHost, proxyPort);
-            final DefaultProxyRoutePlanner defaultRoutePlanner = new DefaultProxyRoutePlanner(proxy);
+            final String nonProxyHosts =
+                    getInitParameter(NON_PROXY_HOSTS_PROPERTY, System.getProperty(NON_PROXY_HOSTS_SYSTEM_PROPERTY), String.class);
+            final DefaultProxyRoutePlanner defaultRoutePlanner = new DefaultProxyRoutePlanner(proxy) {
+                @Override
+                protected HttpHost determineProxy(final HttpHost target, final HttpRequest request, final HttpContext context)
+                        throws HttpException {
+                    if (isNonProxyHost(target.getHostName(), nonProxyHosts)) {
+                        return null;
+                    }
+                    return super.determineProxy(target, request, context);
+                }
+            };
 
             final Credentials credentials = getProxyCredentials();
             if (credentials != null) {

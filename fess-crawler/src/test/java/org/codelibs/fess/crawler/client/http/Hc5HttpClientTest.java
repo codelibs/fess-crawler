@@ -967,6 +967,91 @@ public class Hc5HttpClientTest extends PlainTestCase {
         }
     }
 
+    /**
+     * A host listed in the non-proxy hosts is connected to directly, not through the proxy.
+     */
+    @Test
+    public void test_doGet_nonProxyHosts() throws Exception {
+        assertEquals("direct", doGetThroughProxy("localhost|127.0.0.1"));
+    }
+
+    /**
+     * Without the parameter, the http.nonProxyHosts system property is honored.
+     */
+    @Test
+    public void test_doGet_nonProxyHostsSystemProperty() throws Exception {
+        final String original = System.getProperty("http.nonProxyHosts");
+        System.setProperty("http.nonProxyHosts", "localhost|127.*");
+        try {
+            assertEquals("direct", doGetThroughProxy(null));
+        } finally {
+            if (original == null) {
+                System.clearProperty("http.nonProxyHosts");
+            } else {
+                System.setProperty("http.nonProxyHosts", original);
+            }
+        }
+    }
+
+    /**
+     * A host that is not listed still goes through the proxy.
+     */
+    @Test
+    public void test_doGet_nonProxyHostsNotMatched() throws Exception {
+        assertEquals("proxy", doGetThroughProxy("*.example.com"));
+    }
+
+    private String doGetThroughProxy(final String nonProxyHosts) throws Exception {
+        final SimpleHttpServer target = new SimpleHttpServer();
+        target.setHandler(exchange -> respond(exchange, "direct"));
+        final SimpleHttpServer proxy = new SimpleHttpServer();
+        proxy.setHandler(exchange -> respond(exchange, "proxy"));
+        target.start();
+        proxy.start();
+        try {
+            final Map<String, Object> params = new HashMap<>();
+            params.put(HcHttpClient.PROXY_HOST_PROPERTY, "127.0.0.1");
+            params.put(HcHttpClient.PROXY_PORT_PROPERTY, proxy.port());
+            if (nonProxyHosts != null) {
+                params.put(HcHttpClient.NON_PROXY_HOSTS_PROPERTY, nonProxyHosts);
+            }
+            params.put(HcHttpClient.ROBOTS_TXT_ENABLED_PROPERTY, false);
+            httpClient.setInitParameterMap(params);
+            httpClient.init();
+
+            try (ResponseData responseData = httpClient.doGet("http://127.0.0.1:" + target.port() + "/")) {
+                assertEquals(200, responseData.getHttpStatusCode());
+                return new String(responseData.getResponseBody().readAllBytes(), StandardCharsets.UTF_8);
+            }
+        } finally {
+            proxy.stop();
+            target.stop();
+        }
+    }
+
+    private static void respond(final com.sun.net.httpserver.HttpExchange exchange, final String text) throws IOException {
+        final byte[] body = text.getBytes(StandardCharsets.UTF_8);
+        exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=UTF-8");
+        exchange.sendResponseHeaders(200, body.length);
+        try (OutputStream out = exchange.getResponseBody()) {
+            out.write(body);
+        }
+    }
+
+    @Test
+    public void test_isNonProxyHost() {
+        assertTrue(HcHttpClient.isNonProxyHost("localhost", "localhost|127.0.0.1"));
+        assertTrue(HcHttpClient.isNonProxyHost("127.0.0.1", "localhost|127.0.0.1"));
+        assertTrue(HcHttpClient.isNonProxyHost("127.0.0.1", "127.*"));
+        assertTrue(HcHttpClient.isNonProxyHost("www.Example.com", "*.example.com"));
+        assertTrue(HcHttpClient.isNonProxyHost("::1", "[::1]"));
+        assertTrue(HcHttpClient.isNonProxyHost("intranet", " localhost | intranet "));
+        assertFalse(HcHttpClient.isNonProxyHost("example.com", "*.example.com"));
+        assertFalse(HcHttpClient.isNonProxyHost("www.example.org", "localhost|*.example.com"));
+        assertFalse(HcHttpClient.isNonProxyHost("localhost", ""));
+        assertFalse(HcHttpClient.isNonProxyHost("localhost", null));
+    }
+
     private static class SimpleHttpServer {
         private HttpServer http;
         private int boundPort;

@@ -19,12 +19,19 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.conn.routing.HttpRoutePlanner;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.message.BasicHttpResponse;
+import org.apache.http.protocol.BasicHttpContext;
 import org.codelibs.fess.crawler.CrawlerContext;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.ResponseData;
@@ -633,4 +640,21 @@ public class Hc4HttpClientTest extends PlainTestCase {
     // }
     // }
     // }
+    /**
+     * A host listed in the non-proxy hosts is routed directly, others through the proxy.
+     */
+    @Test
+    public void test_buildRoutePlanner_nonProxyHosts() throws Exception {
+        final Map<String, Object> params = new HashMap<>();
+        params.put(HcHttpClient.PROXY_HOST_PROPERTY, "proxy.example.com");
+        params.put(HcHttpClient.PROXY_PORT_PROPERTY, 8080);
+        params.put(HcHttpClient.NON_PROXY_HOSTS_PROPERTY, "localhost|*.internal");
+        httpClient.setInitParameterMap(params);
+        final HttpRoutePlanner planner = httpClient.buildRoutePlanner();
+
+        final HttpRoute direct = planner.determineRoute(new HttpHost("wiki.internal", 80), new HttpGet("/"), new BasicHttpContext());
+        assertNull(direct.getProxyHost());
+        final HttpRoute proxied = planner.determineRoute(new HttpHost("www.example.org", 80), new HttpGet("/"), new BasicHttpContext());
+        assertEquals("proxy.example.com", proxied.getProxyHost().getHostName());
+    }
 }

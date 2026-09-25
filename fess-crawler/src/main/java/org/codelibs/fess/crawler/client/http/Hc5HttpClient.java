@@ -95,11 +95,13 @@ import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.Header;
 import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpException;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicHeader;
+import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.ssl.SSLContextBuilder;
 import org.apache.hc.core5.util.Timeout;
 import org.apache.logging.log4j.LogManager;
@@ -1347,6 +1349,8 @@ public class Hc5HttpClient extends HcHttpClient {
 
     /**
      * Builds the HTTP route planner with proxy configuration.
+     * Hosts matching {@link #NON_PROXY_HOSTS_PROPERTY}, or the {@code http.nonProxyHosts} system
+     * property when it is not set, are connected to directly.
      *
      * @return The configured route planner, or null if no proxy is configured
      */
@@ -1360,7 +1364,17 @@ public class Hc5HttpClient extends HcHttpClient {
         final Integer proxyPort = getInitParameter(PROXY_PORT_PROPERTY, this.proxyPort, Integer.class);
         if (proxyHost != null && proxyPort != null) {
             final HttpHost proxy = new HttpHost(proxyHost, proxyPort);
-            final DefaultProxyRoutePlanner defaultRoutePlanner = new DefaultProxyRoutePlanner(proxy);
+            final String nonProxyHosts =
+                    getInitParameter(NON_PROXY_HOSTS_PROPERTY, System.getProperty(NON_PROXY_HOSTS_SYSTEM_PROPERTY), String.class);
+            final DefaultProxyRoutePlanner defaultRoutePlanner = new DefaultProxyRoutePlanner(proxy) {
+                @Override
+                protected HttpHost determineProxy(final HttpHost target, final HttpContext context) throws HttpException {
+                    if (isNonProxyHost(target.getHostName(), nonProxyHosts)) {
+                        return null;
+                    }
+                    return super.determineProxy(target, context);
+                }
+            };
 
             final Credentials credentials = getProxyCredentials();
             if (credentials != null) {

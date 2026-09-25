@@ -18,9 +18,13 @@ package org.codelibs.fess.crawler.client.http;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
@@ -912,6 +916,57 @@ public class Hc5HttpClientTest extends PlainTestCase {
     }
 
     /** Lightweight HTTP server used for max-content-length tests, mirroring ApiExtractorTest's helper. */
+    /**
+     * A proxy that demands authentication must receive the configured proxy credentials. The
+     * credential-less Basic scheme the client used to put in the auth cache for the proxy was
+     * picked up preemptively, failed with "User credentials not set", and the 407 the proxy
+     * answered with was returned as the response instead of being retried with credentials.
+     */
+    @Test
+    public void test_doGet_proxyAuthentication() throws Exception {
+        final String expected = "Basic " + Base64.getEncoder().encodeToString("proxyuser:proxypass".getBytes(StandardCharsets.UTF_8));
+        final List<String> proxyAuthorizations = new CopyOnWriteArrayList<>();
+        final SimpleHttpServer proxy = new SimpleHttpServer();
+        final byte[] body = "via proxy".getBytes(StandardCharsets.UTF_8);
+        proxy.setHandler(exchange -> {
+            final String authorization = exchange.getRequestHeaders().getFirst("Proxy-Authorization");
+            proxyAuthorizations.add(String.valueOf(authorization));
+            if (!expected.equals(authorization)) {
+                exchange.getResponseHeaders().add("Proxy-Authenticate", "Basic realm=\"proxy\"");
+                exchange.sendResponseHeaders(407, -1);
+                exchange.close();
+                return;
+            }
+            exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=UTF-8");
+            exchange.sendResponseHeaders(200, body.length);
+            try (OutputStream out = exchange.getResponseBody()) {
+                out.write(body);
+            }
+        });
+        proxy.start();
+        try {
+            final CredentialsConfig credentials = new CredentialsConfig();
+            credentials.setUsername("proxyuser");
+            credentials.setPassword("proxypass");
+            final WebAuthenticationConfig proxyCredentials = new WebAuthenticationConfig();
+            proxyCredentials.setCredentials(credentials);
+            final Map<String, Object> params = new HashMap<>();
+            params.put(HcHttpClient.PROXY_HOST_PROPERTY, "127.0.0.1");
+            params.put(HcHttpClient.PROXY_PORT_PROPERTY, proxy.port());
+            params.put(HcHttpClient.PROXY_CREDENTIALS_PROPERTY, proxyCredentials);
+            params.put(HcHttpClient.ROBOTS_TXT_ENABLED_PROPERTY, false);
+            httpClient.setInitParameterMap(params);
+            httpClient.init();
+
+            final ResponseData responseData = httpClient.doGet("http://crawl-target.invalid/");
+            assertEquals(200, responseData.getHttpStatusCode());
+            // The credentials are sent preemptively, with the first request.
+            assertEquals(expected, proxyAuthorizations.get(0));
+        } finally {
+            proxy.stop();
+        }
+    }
+
     private static class SimpleHttpServer {
         private HttpServer http;
         private int boundPort;

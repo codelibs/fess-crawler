@@ -1366,7 +1366,14 @@ public class Hc5HttpClient extends HcHttpClient {
             if (credentials != null) {
                 credentialsProvider.setCredentials(new AuthScope(proxyHost, proxyPort), credentials);
                 final AuthScheme authScheme = getInitParameter(PROXY_AUTH_SCHEME_PROPERTY, proxyAuthScheme, AuthScheme.class);
-                if (authScheme != null) {
+                if (authScheme instanceof final BasicScheme basicScheme) {
+                    // A cached scheme is used preemptively with the credentials it holds, not those of
+                    // the credentials provider, so a Basic scheme is cached only once it holds them.
+                    if (credentials instanceof UsernamePasswordCredentials) {
+                        basicScheme.initPreemptive(credentials);
+                        authCache.put(proxy, basicScheme);
+                    }
+                } else if (authScheme != null) {
                     authCache.put(proxy, authScheme);
                 }
             }

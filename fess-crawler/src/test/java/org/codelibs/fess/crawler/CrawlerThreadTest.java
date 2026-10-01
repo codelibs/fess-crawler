@@ -22,22 +22,37 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
+import org.codelibs.core.lang.SystemUtil;
 import org.codelibs.fess.crawler.builder.RequestDataBuilder;
 import org.codelibs.fess.crawler.client.CrawlerClient;
 import org.codelibs.fess.crawler.client.CrawlerClientFactory;
 import org.codelibs.fess.crawler.container.CrawlerContainer;
+import org.codelibs.fess.crawler.entity.HostState;
 import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
+import org.codelibs.fess.crawler.entity.RobotsTxt;
 import org.codelibs.fess.crawler.entity.UrlQueue;
 import org.codelibs.fess.crawler.entity.UrlQueueImpl;
+import org.codelibs.fess.crawler.exception.RobotsTxtDisallowedException;
+import org.codelibs.fess.crawler.exception.RobotsTxtUnavailableException;
 import org.codelibs.fess.crawler.filter.UrlFilter;
 import org.codelibs.fess.crawler.helper.LogHelper;
+import org.codelibs.fess.crawler.helper.RobotsTxtFetcher;
+import org.codelibs.fess.crawler.helper.RobotsTxtHelper;
+import org.codelibs.fess.crawler.helper.RobotsTxtPolicy;
+import org.codelibs.fess.crawler.helper.RobotsTxtResponse;
 import org.codelibs.fess.crawler.interval.IntervalController;
+import org.codelibs.fess.crawler.interval.impl.DefaultIntervalController;
+import org.codelibs.fess.crawler.log.LogType;
 import org.codelibs.fess.crawler.processor.ResponseProcessor;
 import org.codelibs.fess.crawler.rule.Rule;
 import org.codelibs.fess.crawler.rule.RuleManager;
@@ -583,5 +598,389 @@ public class CrawlerThreadTest extends PlainTestCase {
         final boolean result = (boolean) method.invoke(crawlerThread, 15); // Exceeds maxThreadCheckCount
 
         assertTrue(result); // Should continue because active threads > 0
+    }
+
+    // -----------------------------------------------------------------------
+    // robots.txt admission, 429/503 backoff and re-queue
+    // -----------------------------------------------------------------------
+
+    private static final String URL = "http://example.com/page";
+
+    private final List<LogType> loggedTypes = new ArrayList<>();
+
+    private CrawlerClient client;
+
+    private ResponseProcessor responseProcessor;
+
+    private List<UrlQueue<?>> inserted;
+
+    /**
+     * Wires the mocks so that {@link CrawlerThread#run()} processes the given queue entries once each and then stops.
+     */
+    @SuppressWarnings("unchecked")
+    private void prepareRun(final UrlQueue<?>... queues) {
+        crawlerContext.setStatus(CrawlerStatus.RUNNING);
+        crawlerContext.maxThreadCheckCount = 1;
+        crawlerThread.logHelper = (key, objs) -> loggedTypes.add(key);
+
+        final Object[] rest = new Object[queues.length];
+        System.arraycopy(queues, 1, rest, 0, queues.length - 1);
+        org.mockito.Mockito.doReturn(queues[0], rest).when(urlQueueService).poll(anyString());
+        inserted = new ArrayList<>();
+        org.mockito.Mockito.doAnswer(invocation -> {
+            inserted.add(invocation.getArgument(0));
+            return null;
+        }).when(urlQueueService).insert(any());
+
+        when(urlFilter.match(anyString())).thenReturn(true);
+        client = mock(CrawlerClient.class);
+        when(clientFactory.getClient(anyString())).thenReturn(client);
+        when(crawlerContainer.getComponent("urlQueue")).thenAnswer(invocation -> new UrlQueueImpl<Long>());
+
+        final Rule rule = mock(Rule.class);
+        responseProcessor = mock(ResponseProcessor.class);
+        when(ruleManager.getRule(any())).thenReturn(rule);
+        when(rule.getRuleId()).thenReturn("test-rule");
+        when(rule.getResponseProcessor()).thenReturn(responseProcessor);
+    }
+
+    private static UrlQueueImpl<Long> newUrlQueue() {
+        final UrlQueueImpl<Long> urlQueue = new UrlQueueImpl<>();
+        urlQueue.setId(42L);
+        urlQueue.setUrl(URL);
+        urlQueue.setMethod(Constants.GET_METHOD);
+        urlQueue.setMetaData("meta");
+        urlQueue.setEncoding("UTF-8");
+        urlQueue.setParentUrl("http://example.com/");
+        urlQueue.setDepth(1);
+        urlQueue.setWeight(2.5f);
+        urlQueue.setSessionId("test-session");
+        urlQueue.setCreateTime(123L);
+        return urlQueue;
+    }
+
+    private static ResponseData newResponse(final int status) {
+        final ResponseData responseData = new ResponseData();
+        responseData.setUrl(URL);
+        responseData.setMethod(Constants.GET_METHOD);
+        responseData.setHttpStatusCode(status);
+        return responseData;
+    }
+
+    @Test
+    public void test_run_429WithRetryAfterRequeuesAndSkipsProcessing() throws Exception {
+        final UrlQueueImpl<Long> urlQueue = newUrlQueue();
+        prepareRun(urlQueue);
+        final ResponseData response = newResponse(429);
+        response.addMetaData("retry-after", "5");
+        when(client.execute(any())).thenReturn(response);
+
+        final long before = System.currentTimeMillis();
+        crawlerThread.run();
+
+        assertEquals(1, inserted.size());
+        final UrlQueue<?> copy = inserted.get(0);
+        assertFalse(urlQueue == copy);
+        assertEquals(Long.valueOf(42L), copy.getId());
+        assertEquals(URL, copy.getUrl());
+        assertEquals(Constants.GET_METHOD, copy.getMethod());
+        assertEquals("meta", copy.getMetaData());
+        assertEquals("UTF-8", copy.getEncoding());
+        assertEquals("http://example.com/", copy.getParentUrl());
+        assertEquals(Integer.valueOf(1), copy.getDepth());
+        assertNull(copy.getLastModified());
+        assertEquals(Float.valueOf(2.5f), Float.valueOf(copy.getWeight()));
+        assertEquals("test-session", copy.getSessionId());
+        assertEquals(Long.valueOf(123L), copy.getCreateTime());
+        verify(responseProcessor, times(0)).process(any());
+        assertTrue(crawlerContext.peekHostState(URL).getBackoffUntil() >= before + 4000);
+        assertFalse(loggedTypes.contains(LogType.CRAWLING_ACCESS_EXCEPTION));
+    }
+
+    @Test
+    public void test_run_503RetriedUntilMaxRetryCountThenProcessed() throws Exception {
+        crawlerContext.setMaxRetryCount(3);
+        prepareRun(newUrlQueue(), newUrlQueue(), newUrlQueue(), newUrlQueue());
+        when(client.execute(any())).thenAnswer(invocation -> newResponse(503));
+
+        crawlerThread.run();
+
+        assertEquals(3, inserted.size());
+        verify(responseProcessor, times(1)).process(any());
+    }
+
+    @Test
+    public void test_run_successAfter429ResetsExponentialBackoff() throws Exception {
+        prepareRun(newUrlQueue(), newUrlQueue());
+        when(client.execute(any())).thenReturn(newResponse(429), newResponse(200));
+
+        crawlerThread.run();
+
+        assertEquals(1, inserted.size());
+        verify(responseProcessor, times(1)).process(any());
+        final long wait = crawlerContext.peekHostState(URL)
+                .recordFailure(System.currentTimeMillis(), 0L, crawlerContext.getBackoffBaseMillis(), crawlerContext.getMaxBackoffMillis());
+        assertEquals(crawlerContext.getBackoffBaseMillis(), wait);
+    }
+
+    @Test
+    public void test_run_successDoesNotCreateHostState() throws Exception {
+        prepareRun(newUrlQueue());
+        when(client.execute(any())).thenReturn(newResponse(200));
+
+        crawlerThread.run();
+
+        verify(responseProcessor, times(1)).process(any());
+        assertNull(crawlerContext.peekHostState(URL));
+    }
+
+    @Test
+    public void test_run_robotsTxtDisallowedIsNotAFailure() throws Exception {
+        prepareRun(newUrlQueue());
+        when(client.execute(any())).thenThrow(new RobotsTxtDisallowedException(URL));
+
+        crawlerThread.run();
+
+        assertEquals(0, inserted.size());
+        verify(responseProcessor, times(0)).process(any());
+        assertFalse(loggedTypes.contains(LogType.CRAWLING_ACCESS_EXCEPTION));
+        assertFalse(loggedTypes.contains(LogType.CRAWLING_EXCEPTION));
+    }
+
+    @Test
+    public void test_run_robotsTxtUnavailableRequeuesWithoutRecordingFailure() throws Exception {
+        prepareRun(newUrlQueue());
+        final HostState hostState = crawlerContext.getHostState(URL);
+        when(client.execute(any())).thenThrow(new RobotsTxtUnavailableException(URL, 5000L, null));
+
+        crawlerThread.run();
+
+        assertEquals(1, inserted.size());
+        assertEquals(URL, inserted.get(0).getUrl());
+        verify(responseProcessor, times(0)).process(any());
+        assertFalse(loggedTypes.contains(LogType.CRAWLING_ACCESS_EXCEPTION));
+        // checkRobotsTxt has already recorded the failure; the thread must not record it a second time
+        assertEquals(0L, hostState.getBackoffUntil());
+        assertEquals(crawlerContext.getBackoffBaseMillis(), hostState.recordFailure(System.currentTimeMillis(), 0L,
+                crawlerContext.getBackoffBaseMillis(), crawlerContext.getMaxBackoffMillis()));
+    }
+
+    @Test
+    public void test_run_requeueFailureAfterRobotsTxtUnavailableDoesNotStopThread() throws Exception {
+        final UrlQueueImpl<Long> next = newUrlQueue();
+        next.setUrl("http://example.com/next");
+        prepareRun(newUrlQueue(), next);
+        org.mockito.Mockito.doThrow(new IllegalStateException("queue is down")).when(urlQueueService).insert(any());
+        when(client.execute(any())).thenThrow(new RobotsTxtUnavailableException(URL, 0L, null)).thenReturn(newResponse(200));
+
+        crawlerThread.run();
+
+        verify(urlQueueService, times(1)).insert(any());
+        verify(client, times(2)).execute(any());
+        verify(responseProcessor, times(1)).process(any());
+        assertTrue(loggedTypes.contains(LogType.CRAWLING_EXCEPTION));
+        assertFalse(loggedTypes.contains(LogType.SYSTEM_ERROR));
+    }
+
+    @Test
+    public void test_run_dequeuedDisallowedUrlIsNotAnEmptyPoll() throws Exception {
+        final IntervalController intervalController = mock(IntervalController.class);
+        crawlerContext.intervalController = intervalController;
+        crawlerContext.getHostState(URL).setRobotsTxt(HostState.RobotsTxtStatus.DISALLOW_ALL, null, 0L);
+        // maxThreadCheckCount is 1: if the disallowed entry counted as an empty poll, the loop would stop after it
+        prepareRun(newUrlQueue(), newUrlQueue());
+
+        crawlerThread.run();
+
+        verify(urlQueueService, times(3)).poll(anyString());
+        verify(intervalController, times(1)).delay(IntervalController.NO_URL_IN_QUEUE);
+        verify(intervalController, times(1)).delay(IntervalController.WAIT_NEW_URL);
+        verify(intervalController, times(0)).delay(IntervalController.PRE_PROCESSING);
+        verify(client, times(0)).execute(any());
+        assertFalse(loggedTypes.contains(LogType.CRAWLING_ACCESS_EXCEPTION));
+    }
+
+    private static HostState disallowPrivate(final HostState hostState) {
+        final RobotsTxt.Directive directive = new RobotsTxt.Directive("*");
+        directive.addDisallow("/private/");
+        hostState.setRobotsTxt(HostState.RobotsTxtStatus.PARSED, directive, 0L);
+        return hostState;
+    }
+
+    @Test
+    public void test_storeChildUrls_skipsUrlsDisallowedByRobotsTxt() throws Exception {
+        when(urlFilter.match(anyString())).thenReturn(true);
+        when(crawlerContainer.getComponent("urlQueue")).thenAnswer(invocation -> new UrlQueueImpl<Long>());
+        disallowPrivate(crawlerContext.getHostState("http://example.com/"));
+        crawlerContext.getHostState("http://blocked.example.com/").setRobotsTxt(HostState.RobotsTxtStatus.DISALLOW_ALL, null, 0L);
+
+        final Set<RequestData> childUrlList = new HashSet<>();
+        childUrlList.add(RequestDataBuilder.newRequestData().url("http://example.com/private/a").build());
+        childUrlList.add(RequestDataBuilder.newRequestData().url("http://blocked.example.com/b").build());
+        childUrlList.add(RequestDataBuilder.newRequestData().url("http://example.com/public/c").build());
+        childUrlList.add(RequestDataBuilder.newRequestData().url("http://unknown.example.com/d").build());
+        crawlerThread.storeChildUrls(childUrlList, "http://example.com/", 2);
+
+        @SuppressWarnings("unchecked")
+        final org.mockito.ArgumentCaptor<List<UrlQueue<?>>> captor = org.mockito.ArgumentCaptor.forClass(List.class);
+        verify(urlQueueService, times(1)).offerAll(anyString(), captor.capture());
+        final Set<String> stored = new HashSet<>();
+        captor.getValue().forEach(uq -> stored.add(uq.getUrl()));
+        assertEquals(Set.of("http://example.com/public/c", "http://unknown.example.com/d"), stored);
+        assertNull(crawlerContext.peekHostState("http://unknown.example.com/d"));
+    }
+
+    @Test
+    public void test_storeChildUrl_skipsUrlDisallowedByRobotsTxt() throws Exception {
+        when(urlFilter.match(anyString())).thenReturn(true);
+        when(crawlerContainer.getComponent("urlQueue")).thenAnswer(invocation -> new UrlQueueImpl<Long>());
+        disallowPrivate(crawlerContext.getHostState("http://example.com/"));
+        crawlerContext.getHostState("http://blocked.example.com/").setRobotsTxt(HostState.RobotsTxtStatus.DISALLOW_ALL, null, 0L);
+
+        crawlerThread.storeChildUrl("http://example.com/private/a", "http://example.com/", 1.0f, 2);
+        crawlerThread.storeChildUrl("http://blocked.example.com/b", "http://example.com/", 1.0f, 2);
+        verify(urlQueueService, times(0)).offerAll(anyString(), any());
+
+        crawlerThread.storeChildUrl("http://example.com/public/c", "http://example.com/", 1.0f, 2);
+        verify(urlQueueService, times(1)).offerAll(anyString(), any());
+    }
+
+    @Test
+    public void test_run_robotsTxtUnavailableGivesUpAfterMaxRetryCount() throws Exception {
+        crawlerContext.setMaxRetryCount(1);
+        prepareRun(newUrlQueue(), newUrlQueue());
+        when(client.execute(any())).thenThrow(new RobotsTxtUnavailableException(URL, 0L, null));
+
+        crawlerThread.run();
+
+        assertEquals(1, inserted.size());
+        verify(responseProcessor, times(0)).process(any());
+        assertFalse(loggedTypes.contains(LogType.CRAWLING_ACCESS_EXCEPTION));
+    }
+
+    @Test
+    public void test_run_robotsTxtBackoffPendingDoesNotUseUpRetries() throws Exception {
+        crawlerContext.setMaxRetryCount(1);
+        prepareRun(newUrlQueue(), newUrlQueue(), newUrlQueue(), newUrlQueue());
+        // robots.txt was not requested because the backoff of the origin has not ended: the URL has not been tried
+        final RobotsTxtUnavailableException pending = new RobotsTxtUnavailableException(URL, 0L, null, false);
+        when(client.execute(any())).thenThrow(pending, pending, pending).thenReturn(newResponse(200));
+
+        crawlerThread.run();
+
+        assertEquals(3, inserted.size());
+        verify(responseProcessor, times(1)).process(any());
+        assertNull(crawlerContext.getRetryCountMap().get(URL));
+        assertFalse(loggedTypes.contains(LogType.CRAWLING_ACCESS_EXCEPTION));
+    }
+
+    /**
+     * robots.txt answers 503 and then 200 while the interval controller does not wait for the backoff of the origin
+     * (the default {@link DefaultIntervalController}): the URL comes back many times before the backoff ends, and it
+     * must still be fetched once robots.txt is available instead of being dropped.
+     */
+    @Test
+    public void test_run_robotsTxt503ThenOkWithNonWaitingIntervalControllerFetchesUrl() throws Exception {
+        final AtomicLong clock = new AtomicLong(1_700_000_000_000L);
+        SystemUtil.setTimeProvider(clock::get);
+        try {
+            final DefaultIntervalController intervalController = new DefaultIntervalController();
+            intervalController.setDelayMillisAtNoUrlInQueue(0L);
+            intervalController.setDelayMillisForWaitingNewUrl(0L);
+            crawlerContext.intervalController = intervalController;
+            prepareRun(newUrlQueue());
+
+            // a queue that serves what is re-queued; each poll takes one second of the fake clock
+            final Deque<UrlQueue<?>> queue = new ArrayDeque<>();
+            queue.add(newUrlQueue());
+            org.mockito.Mockito.doAnswer(invocation -> {
+                clock.addAndGet(1000L);
+                return queue.poll();
+            }).when(urlQueueService).poll(anyString());
+            org.mockito.Mockito.doAnswer(invocation -> {
+                final UrlQueue<?> urlQueue = invocation.getArgument(0);
+                inserted.add(urlQueue);
+                queue.add(urlQueue);
+                return null;
+            }).when(urlQueueService).insert(any());
+
+            final List<String> robotsTxtFetched = new ArrayList<>();
+            final List<RobotsTxtResponse> robotsTxtResponses = new ArrayList<>(List.of(new RobotsTxtResponse(503, null, null, null, null),
+                    new RobotsTxtResponse(200, null, null, "User-agent: *\nDisallow: /private/\n".getBytes(StandardCharsets.UTF_8), null)));
+            final RobotsTxtFetcher fetcher = robotsTxtUrl -> {
+                robotsTxtFetched.add(robotsTxtUrl);
+                return robotsTxtResponses.size() > 1 ? robotsTxtResponses.remove(0) : robotsTxtResponses.get(0);
+            };
+            final RobotsTxtHelper robotsTxtHelper = new RobotsTxtHelper();
+            final RobotsTxtPolicy policy = new RobotsTxtPolicy(true, true, false, crawlerContext.getRobotsTxtMaxRetries());
+            final List<String> fetched = new ArrayList<>();
+            when(client.execute(any())).thenAnswer(invocation -> {
+                final RequestData requestData = invocation.getArgument(0);
+                robotsTxtHelper.checkRobotsTxt(crawlerContext, requestData.getUrl(), "FessCrawler", fetcher, policy);
+                fetched.add(requestData.getUrl());
+                return newResponse(200);
+            });
+
+            crawlerThread.run();
+
+            assertEquals(List.of(URL), fetched);
+            verify(responseProcessor, times(1)).process(any());
+            assertEquals(List.of("http://example.com/robots.txt", "http://example.com/robots.txt"), robotsTxtFetched);
+            assertEquals(HostState.RobotsTxtStatus.PARSED, crawlerContext.peekHostState(URL).getRobotsTxtStatus());
+            // only the failed robots.txt fetch used up a retry of the URL
+            assertEquals(Integer.valueOf(1), crawlerContext.getRetryCountMap().get(URL));
+            assertTrue(inserted.size() > crawlerContext.getMaxRetryCount());
+        } finally {
+            SystemUtil.setTimeProvider(null);
+        }
+    }
+
+    @Test
+    public void test_run_robotsTxtUnavailableFromHeadRequestIsRequeued() throws Exception {
+        final UrlQueueImpl<Long> urlQueue = newUrlQueue();
+        urlQueue.setLastModified(1000L);
+        prepareRun(urlQueue);
+        when(client.execute(any())).thenThrow(new RobotsTxtUnavailableException(URL, 0L, null));
+
+        crawlerThread.run();
+
+        assertEquals(1, inserted.size());
+        assertEquals(Long.valueOf(1000L), inserted.get(0).getLastModified());
+        verify(client, times(1)).execute(any());
+        assertFalse(loggedTypes.contains(LogType.CRAWLING_ACCESS_EXCEPTION));
+    }
+
+    @Test
+    public void test_isValid_robotsTxtDisallowAll() throws Exception {
+        when(urlFilter.match(anyString())).thenReturn(true);
+        crawlerContext.getHostState("http://blocked.example.com/").setRobotsTxt(HostState.RobotsTxtStatus.DISALLOW_ALL, null, 0L);
+
+        final UrlQueueImpl<Long> blocked = new UrlQueueImpl<>();
+        blocked.setUrl("http://blocked.example.com/page");
+        blocked.setDepth(1);
+        final UrlQueueImpl<Long> unknown = new UrlQueueImpl<>();
+        unknown.setUrl("http://unknown.example.com/page");
+        unknown.setDepth(1);
+
+        assertFalse(crawlerThread.isValid(blocked));
+        assertTrue(crawlerThread.isValid(unknown));
+        assertNull(crawlerContext.peekHostState("http://unknown.example.com/page"));
+    }
+
+    @Test
+    public void test_isRetryableStatus() {
+        assertTrue(crawlerThread.isRetryableStatus(429));
+        assertTrue(crawlerThread.isRetryableStatus(503));
+        assertFalse(crawlerThread.isRetryableStatus(200));
+        assertFalse(crawlerThread.isRetryableStatus(500));
+        assertFalse(crawlerThread.isRetryableStatus(0));
+    }
+
+    @Test
+    public void test_getRetryAfter() {
+        final ResponseData responseData = newResponse(429);
+        assertNull(crawlerThread.getRetryAfter(responseData));
+        responseData.addMetaData("RETRY-AFTER", Integer.valueOf(7));
+        assertEquals("7", crawlerThread.getRetryAfter(responseData));
     }
 }

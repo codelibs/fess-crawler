@@ -54,6 +54,12 @@ public class HostState {
 
     private int robotsTxtFailureCount;
 
+    private int robotsTxtLastFailureAttempts;
+
+    private String robotsTxtLastFailureReason;
+
+    private Throwable robotsTxtLastFailure;
+
     private long lastAccessTime;
 
     private long backoffUntil;
@@ -125,7 +131,8 @@ public class HostState {
 
     /**
      * Stores the resolved robots.txt. Any status other than {@link RobotsTxtStatus#UNAVAILABLE}
-     * resets the count of failed attempts.
+     * resets the count of failed attempts. {@link RobotsTxtStatus#PARSED} and {@link RobotsTxtStatus#ALLOW_ALL}
+     * also clear the last failure.
      *
      * @param status the status
      * @param directive the directive that applies to this crawler, or null
@@ -138,6 +145,49 @@ public class HostState {
         if (status != RobotsTxtStatus.UNAVAILABLE) {
             robotsTxtFailureCount = 0;
         }
+        if (status != RobotsTxtStatus.UNAVAILABLE && status != RobotsTxtStatus.DISALLOW_ALL) {
+            robotsTxtLastFailureAttempts = 0;
+            robotsTxtLastFailureReason = null;
+            robotsTxtLastFailure = null;
+        }
+    }
+
+    /**
+     * Records the last failed attempt to retrieve robots.txt, so that the URLs dropped after the origin is given up
+     * ({@link RobotsTxtStatus#DISALLOW_ALL}) can be reported with it.
+     *
+     * @param attempts the number of failed attempts so far
+     * @param reason the failure, such as "HTTP 503" or the exception
+     * @param cause the exception, or null for a failure status
+     */
+    public synchronized void setRobotsTxtLastFailure(final int attempts, final String reason, final Throwable cause) {
+        this.robotsTxtLastFailureAttempts = attempts;
+        this.robotsTxtLastFailureReason = reason;
+        this.robotsTxtLastFailure = cause;
+    }
+
+    /**
+     * Returns the number of failed attempts to retrieve robots.txt when the last failure was recorded.
+     * @return the number of attempts, 0 if no failure is recorded
+     */
+    public synchronized int getRobotsTxtLastFailureAttempts() {
+        return robotsTxtLastFailureAttempts;
+    }
+
+    /**
+     * Returns the last failure to retrieve robots.txt, such as "HTTP 503" or the exception.
+     * @return the failure, or null if none is recorded
+     */
+    public synchronized String getRobotsTxtLastFailureReason() {
+        return robotsTxtLastFailureReason;
+    }
+
+    /**
+     * Returns the exception of the last failure to retrieve robots.txt.
+     * @return the exception, or null if none is recorded or the last failure was a status such as 503
+     */
+    public synchronized Throwable getRobotsTxtLastFailure() {
+        return robotsTxtLastFailure;
     }
 
     /**

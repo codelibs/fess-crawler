@@ -22,6 +22,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -42,6 +44,7 @@ import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.entity.RobotsTxt;
 import org.codelibs.fess.crawler.entity.UrlQueue;
 import org.codelibs.fess.crawler.entity.UrlQueueImpl;
+import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.exception.RobotsTxtDisallowedException;
 import org.codelibs.fess.crawler.exception.RobotsTxtUnavailableException;
 import org.codelibs.fess.crawler.filter.UrlFilter;
@@ -609,6 +612,9 @@ public class CrawlerThreadTest extends PlainTestCase {
 
     private final List<LogType> loggedTypes = new ArrayList<>();
 
+    /** The arguments of each {@link LogType#CRAWLING_ACCESS_EXCEPTION} log, in order. */
+    private final List<Object[]> accessExceptionLogs = new ArrayList<>();
+
     private CrawlerClient client;
 
     private ResponseProcessor responseProcessor;
@@ -622,7 +628,12 @@ public class CrawlerThreadTest extends PlainTestCase {
     private void prepareRun(final UrlQueue<?>... queues) {
         crawlerContext.setStatus(CrawlerStatus.RUNNING);
         crawlerContext.maxThreadCheckCount = 1;
-        crawlerThread.logHelper = (key, objs) -> loggedTypes.add(key);
+        crawlerThread.logHelper = (key, objs) -> {
+            loggedTypes.add(key);
+            if (key == LogType.CRAWLING_ACCESS_EXCEPTION) {
+                accessExceptionLogs.add(objs);
+            }
+        };
 
         final Object[] rest = new Object[queues.length];
         System.arraycopy(queues, 1, rest, 0, queues.length - 1);
@@ -658,6 +669,29 @@ public class CrawlerThreadTest extends PlainTestCase {
         urlQueue.setSessionId("test-session");
         urlQueue.setCreateTime(123L);
         return urlQueue;
+    }
+
+    /**
+     * Returns the exceptions logged as {@link LogType#CRAWLING_ACCESS_EXCEPTION}, checking that each log carries what a
+     * {@link LogHelper} needs to store a failure URL: the crawler context and the URL queue entry.
+     */
+    private List<CrawlingAccessException> accessExceptions() {
+        final List<CrawlingAccessException> list = new ArrayList<>();
+        for (final Object[] objs : accessExceptionLogs) {
+            assertEquals(3, objs.length);
+            assertTrue(objs[0] == crawlerContext);
+            assertTrue(objs[1] instanceof UrlQueue);
+            list.add((CrawlingAccessException) objs[2]);
+        }
+        return list;
+    }
+
+    /** Marks the origin of a URL as given up after robots.txt failed {@code attempts} times with {@code cause}. */
+    private HostState giveUp(final String url, final int attempts, final Throwable cause) {
+        final HostState hostState = crawlerContext.getHostState(url);
+        hostState.setRobotsTxtLastFailure(attempts, cause.getClass().getSimpleName() + ": " + cause.getMessage(), cause);
+        hostState.setRobotsTxt(HostState.RobotsTxtStatus.DISALLOW_ALL, null, 0L);
+        return hostState;
     }
 
     private static ResponseData newResponse(final int status) {
@@ -752,14 +786,16 @@ public class CrawlerThreadTest extends PlainTestCase {
     public void test_run_robotsTxtUnavailableRequeuesWithoutRecordingFailure() throws Exception {
         prepareRun(newUrlQueue());
         final HostState hostState = crawlerContext.getHostState(URL);
-        when(client.execute(any())).thenThrow(new RobotsTxtUnavailableException(URL, 5000L, null));
+        final RobotsTxtUnavailableException unavailable = new RobotsTxtUnavailableException(URL, 5000L, null);
+        when(client.execute(any())).thenThrow(unavailable);
 
         crawlerThread.run();
 
         assertEquals(1, inserted.size());
         assertEquals(URL, inserted.get(0).getUrl());
         verify(responseProcessor, times(0)).process(any());
-        assertFalse(loggedTypes.contains(LogType.CRAWLING_ACCESS_EXCEPTION));
+        // the failed robots.txt request is reported for the URL, which is still retried
+        assertEquals(List.of(unavailable), accessExceptions());
         // checkRobotsTxt has already recorded the failure; the thread must not record it a second time
         assertEquals(0L, hostState.getBackoffUntil());
         assertEquals(crawlerContext.getBackoffBaseMillis(), hostState.recordFailure(System.currentTimeMillis(), 0L,
@@ -787,9 +823,13 @@ public class CrawlerThreadTest extends PlainTestCase {
     public void test_run_dequeuedDisallowedUrlIsNotAnEmptyPoll() throws Exception {
         final IntervalController intervalController = mock(IntervalController.class);
         crawlerContext.intervalController = intervalController;
-        crawlerContext.getHostState(URL).setRobotsTxt(HostState.RobotsTxtStatus.DISALLOW_ALL, null, 0L);
+        disallowPrivate(crawlerContext.getHostState(URL));
+        final UrlQueueImpl<Long> first = newUrlQueue();
+        first.setUrl("http://example.com/private/a");
+        final UrlQueueImpl<Long> second = newUrlQueue();
+        second.setUrl("http://example.com/private/b");
         // maxThreadCheckCount is 1: if the disallowed entry counted as an empty poll, the loop would stop after it
-        prepareRun(newUrlQueue(), newUrlQueue());
+        prepareRun(first, second);
 
         crawlerThread.run();
 
@@ -798,7 +838,98 @@ public class CrawlerThreadTest extends PlainTestCase {
         verify(intervalController, times(1)).delay(IntervalController.WAIT_NEW_URL);
         verify(intervalController, times(0)).delay(IntervalController.PRE_PROCESSING);
         verify(client, times(0)).execute(any());
+        // a Disallow rule is not a failure
         assertFalse(loggedTypes.contains(LogType.CRAWLING_ACCESS_EXCEPTION));
+    }
+
+    /**
+     * A URL of an origin whose robots.txt was given up is dropped when it is dequeued, without a request, and reported as a
+     * failure of the URL with the last robots.txt failure as the cause, once per URL in a crawl.
+     */
+    @Test
+    public void test_run_dequeuedUrlOfGivenUpOriginIsReportedAsFailure() throws Exception {
+        final IntervalController intervalController = mock(IntervalController.class);
+        crawlerContext.intervalController = intervalController;
+        final UnknownHostException cause = new UnknownHostException("example.com");
+        giveUp(URL, 4, cause);
+        final UrlQueueImpl<Long> second = newUrlQueue();
+        second.setUrl("http://example.com/next");
+        // maxThreadCheckCount is 1: if the given-up entry counted as an empty poll, the loop would stop after it;
+        // the third entry is the first URL again, which has been reported already
+        prepareRun(newUrlQueue(), second, newUrlQueue());
+
+        crawlerThread.run();
+
+        verify(urlQueueService, times(4)).poll(anyString());
+        verify(intervalController, times(1)).delay(IntervalController.NO_URL_IN_QUEUE);
+        verify(intervalController, times(0)).delay(IntervalController.PRE_PROCESSING);
+        verify(client, times(0)).execute(any());
+        assertFalse(loggedTypes.contains(LogType.START_CRAWLING));
+        assertEquals(0, crawlerContext.getActiveThreadCount());
+        assertEquals(0, inserted.size());
+
+        final List<CrawlingAccessException> exceptions = accessExceptions();
+        assertEquals(2, exceptions.size());
+        assertEquals(URL, ((UrlQueue<?>) accessExceptionLogs.get(0)[1]).getUrl());
+        assertEquals("http://example.com/next", ((UrlQueue<?>) accessExceptionLogs.get(1)[1]).getUrl());
+        for (final CrawlingAccessException e : exceptions) {
+            assertTrue(e instanceof RobotsTxtUnavailableException);
+            assertTrue(e.getCause() == cause);
+            assertTrue(e.getMessage().contains("robots.txt of http://example.com was unavailable"));
+            assertTrue(e.getMessage().contains("gave up after 4 attempts"));
+            assertTrue(e.getMessage().contains("UnknownHostException: example.com"));
+        }
+        assertTrue(exceptions.get(0).getMessage().endsWith(URL));
+    }
+
+    /**
+     * The client resolves robots.txt and gives the origin up while fetching the URL (RobotsTxtDisallowedException for
+     * DISALLOW_ALL): the URL is reported as a failure.
+     */
+    @Test
+    public void test_run_disallowedByGivenUpOriginFromClientIsReportedAsFailure() throws Exception {
+        prepareRun(newUrlQueue());
+        final IOException cause = new IOException("connection reset");
+        when(client.execute(any())).thenAnswer(invocation -> {
+            giveUp(URL, 4, cause);
+            throw new RobotsTxtDisallowedException(URL);
+        });
+
+        crawlerThread.run();
+
+        assertEquals(0, inserted.size());
+        verify(responseProcessor, times(0)).process(any());
+        assertEquals(0, crawlerContext.getActiveThreadCount());
+        final List<CrawlingAccessException> exceptions = accessExceptions();
+        assertEquals(1, exceptions.size());
+        assertTrue(exceptions.get(0) instanceof RobotsTxtUnavailableException);
+        assertTrue(exceptions.get(0).getCause() == cause);
+        assertTrue(exceptions.get(0).getMessage().contains("gave up after 4 attempts"));
+        assertTrue(loggedTypes.contains(LogType.CLEANUP_CRAWLING));
+    }
+
+    /**
+     * A Disallow rule of a parsed robots.txt is not a failure, whether the client reports it or the URL is dequeued after
+     * the rules are known.
+     */
+    @Test
+    public void test_run_parsedDisallowIsNotAFailure() throws Exception {
+        final UrlQueueImpl<Long> first = newUrlQueue();
+        first.setUrl("http://example.com/private/a");
+        final UrlQueueImpl<Long> second = newUrlQueue();
+        second.setUrl("http://example.com/private/b");
+        prepareRun(first, second);
+        when(client.execute(any())).thenAnswer(invocation -> {
+            disallowPrivate(crawlerContext.getHostState(URL));
+            throw new RobotsTxtDisallowedException("http://example.com/private/a");
+        });
+
+        crawlerThread.run();
+
+        verify(client, times(1)).execute(any());
+        assertEquals(0, inserted.size());
+        assertFalse(loggedTypes.contains(LogType.CRAWLING_ACCESS_EXCEPTION));
+        assertFalse(loggedTypes.contains(LogType.CRAWLING_EXCEPTION));
     }
 
     private static HostState disallowPrivate(final HostState hostState) {
@@ -850,13 +981,59 @@ public class CrawlerThreadTest extends PlainTestCase {
     public void test_run_robotsTxtUnavailableGivesUpAfterMaxRetryCount() throws Exception {
         crawlerContext.setMaxRetryCount(1);
         prepareRun(newUrlQueue(), newUrlQueue());
-        when(client.execute(any())).thenThrow(new RobotsTxtUnavailableException(URL, 0L, null));
+        final RobotsTxtUnavailableException unavailable = new RobotsTxtUnavailableException(URL, 0L, null);
+        when(client.execute(any())).thenThrow(unavailable);
 
         crawlerThread.run();
 
         assertEquals(1, inserted.size());
         verify(responseProcessor, times(0)).process(any());
-        assertFalse(loggedTypes.contains(LogType.CRAWLING_ACCESS_EXCEPTION));
+        // the URL is reported once in a crawl, however many of its requests fail
+        assertEquals(List.of(unavailable), accessExceptions());
+    }
+
+    /**
+     * A URL that uses up its retries on robots.txt is reported even when the last request was not a failure of the site
+     * (an interrupted request), so that the dropped URL is visible.
+     */
+    @Test
+    public void test_run_robotsTxtRetriesExhaustedIsReportedAsFailure() throws Exception {
+        crawlerContext.setMaxRetryCount(1);
+        prepareRun(newUrlQueue(), newUrlQueue());
+        final RobotsTxtUnavailableException interrupted =
+                new RobotsTxtUnavailableException("robots.txt is unavailable for " + URL, 0L, new InterruptedException(), true, false);
+        when(client.execute(any())).thenThrow(interrupted);
+
+        crawlerThread.run();
+
+        assertEquals(1, inserted.size());
+        verify(client, times(2)).execute(any());
+        // the first request is re-queued silently; the second one uses up the retries and is reported
+        assertEquals(List.of(interrupted), accessExceptions());
+        assertEquals(Integer.valueOf(2), crawlerContext.getRetryCountMap().get(URL));
+    }
+
+    /**
+     * A failed robots.txt request is reported for the URL with the network error as the cause, and the URL is still
+     * re-queued.
+     */
+    @Test
+    public void test_run_robotsTxtFetchFailureIsReportedAndRequeued() throws Exception {
+        prepareRun(newUrlQueue());
+        final UnknownHostException cause = new UnknownHostException("example.com");
+        final RobotsTxtUnavailableException unavailable = new RobotsTxtUnavailableException(
+                "robots.txt of http://example.com is unavailable (UnknownHostException: example.com): " + URL, 0L, cause, true, true);
+        when(client.execute(any())).thenThrow(unavailable);
+
+        crawlerThread.run();
+
+        assertEquals(1, inserted.size());
+        assertEquals(URL, inserted.get(0).getUrl());
+        final List<CrawlingAccessException> exceptions = accessExceptions();
+        assertEquals(List.of(unavailable), exceptions);
+        assertTrue(exceptions.get(0).getCause() == cause);
+        assertEquals(URL, ((UrlQueue<?>) accessExceptionLogs.get(0)[1]).getUrl());
+        assertEquals(Integer.valueOf(1), crawlerContext.getRetryCountMap().get(URL));
     }
 
     @Test
@@ -872,6 +1049,7 @@ public class CrawlerThreadTest extends PlainTestCase {
         assertEquals(3, inserted.size());
         verify(responseProcessor, times(1)).process(any());
         assertNull(crawlerContext.getRetryCountMap().get(URL));
+        // no request was made, so there is no failure to report
         assertFalse(loggedTypes.contains(LogType.CRAWLING_ACCESS_EXCEPTION));
     }
 
@@ -931,6 +1109,102 @@ public class CrawlerThreadTest extends PlainTestCase {
             // only the failed robots.txt fetch used up a retry of the URL
             assertEquals(Integer.valueOf(1), crawlerContext.getRetryCountMap().get(URL));
             assertTrue(inserted.size() > crawlerContext.getMaxRetryCount());
+            // only the 503 of robots.txt is reported; the re-queues during the backoff are not
+            final List<CrawlingAccessException> exceptions = accessExceptions();
+            assertEquals(1, exceptions.size());
+            assertTrue(exceptions.get(0) instanceof RobotsTxtUnavailableException);
+            assertTrue(exceptions.get(0).getMessage().contains("HTTP 503"));
+        } finally {
+            SystemUtil.setTimeProvider(null);
+        }
+    }
+
+    /**
+     * The host of a URL does not resolve, so robots.txt can never be fetched: the failure is reported on the first attempt,
+     * with the network error as the cause, and not again for that URL on later attempts or when the origin is given up.
+     * Another URL of the origin gets a report of its own.
+     */
+    @Test
+    public void test_run_unresolvableHostReportedOnFirstRobotsTxtAttempt() throws Exception {
+        final AtomicLong clock = new AtomicLong(1_700_000_000_000L);
+        SystemUtil.setTimeProvider(clock::get);
+        try {
+            final DefaultIntervalController intervalController = new DefaultIntervalController();
+            intervalController.setDelayMillisAtNoUrlInQueue(0L);
+            intervalController.setDelayMillisForWaitingNewUrl(0L);
+            crawlerContext.intervalController = intervalController;
+            prepareRun(newUrlQueue());
+
+            final String next = "http://example.com/next";
+            final UrlQueueImpl<Long> nextQueue = newUrlQueue();
+            nextQueue.setUrl(next);
+            final Deque<UrlQueue<?>> queue = new ArrayDeque<>();
+            queue.add(newUrlQueue());
+            queue.add(nextQueue);
+            org.mockito.Mockito.doAnswer(invocation -> {
+                clock.addAndGet(1000L);
+                return queue.poll();
+            }).when(urlQueueService).poll(anyString());
+            org.mockito.Mockito.doAnswer(invocation -> {
+                final UrlQueue<?> urlQueue = invocation.getArgument(0);
+                inserted.add(urlQueue);
+                queue.add(urlQueue);
+                return null;
+            }).when(urlQueueService).insert(any());
+
+            final List<String> robotsTxtFetched = new ArrayList<>();
+            final List<String> robotsTxtFetchedFor = new ArrayList<>();
+            final RobotsTxtFetcher fetcher = robotsTxtUrl -> {
+                robotsTxtFetched.add(robotsTxtUrl);
+                throw new UnknownHostException("example.com");
+            };
+            // the number of robots.txt requests made when each failure was reported
+            final List<Integer> fetchesAtReport = new ArrayList<>();
+            crawlerThread.logHelper = (key, objs) -> {
+                loggedTypes.add(key);
+                if (key == LogType.CRAWLING_ACCESS_EXCEPTION) {
+                    accessExceptionLogs.add(objs);
+                    fetchesAtReport.add(robotsTxtFetched.size());
+                }
+            };
+            final RobotsTxtHelper robotsTxtHelper = new RobotsTxtHelper();
+            final RobotsTxtPolicy policy = new RobotsTxtPolicy(true, true, false, crawlerContext.getRobotsTxtMaxRetries());
+            when(client.execute(any())).thenAnswer(invocation -> {
+                final RequestData requestData = invocation.getArgument(0);
+                final int before = robotsTxtFetched.size();
+                try {
+                    robotsTxtHelper.checkRobotsTxt(crawlerContext, requestData.getUrl(), "FessCrawler", fetcher, policy);
+                } finally {
+                    if (robotsTxtFetched.size() > before) {
+                        robotsTxtFetchedFor.add(requestData.getUrl());
+                    }
+                }
+                return newResponse(200);
+            });
+
+            crawlerThread.run();
+
+            verify(responseProcessor, times(0)).process(any());
+            // the first request and robotsTxtMaxRetries (3) retries
+            assertEquals(4, robotsTxtFetched.size());
+            assertEquals(URL, robotsTxtFetchedFor.get(0));
+            assertEquals(HostState.RobotsTxtStatus.DISALLOW_ALL, crawlerContext.peekHostState(URL).getRobotsTxtStatus());
+            // each URL is reported exactly once in the crawl, the seed on the first failed robots.txt request,
+            // however many times robots.txt fails afterwards and when the origin is given up
+            assertEquals(2, accessExceptionLogs.size());
+            assertEquals(URL, ((UrlQueue<?>) accessExceptionLogs.get(0)[1]).getUrl());
+            assertEquals(next, ((UrlQueue<?>) accessExceptionLogs.get(1)[1]).getUrl());
+            assertEquals(Integer.valueOf(1), fetchesAtReport.get(0));
+            final List<CrawlingAccessException> exceptions = accessExceptions();
+            for (final CrawlingAccessException e : exceptions) {
+                assertTrue(e instanceof RobotsTxtUnavailableException);
+                assertTrue(e.getCause() instanceof UnknownHostException);
+                assertTrue(e.getMessage().contains("robots.txt of http://example.com"));
+            }
+            assertEquals("robots.txt of http://example.com is unavailable (UnknownHostException: example.com): " + URL,
+                    exceptions.get(0).getMessage());
+            assertTrue(exceptions.get(1).getMessage().endsWith(next));
+            assertEquals(0, crawlerContext.getActiveThreadCount());
         } finally {
             SystemUtil.setTimeProvider(null);
         }
@@ -948,7 +1222,7 @@ public class CrawlerThreadTest extends PlainTestCase {
         assertEquals(1, inserted.size());
         assertEquals(Long.valueOf(1000L), inserted.get(0).getLastModified());
         verify(client, times(1)).execute(any());
-        assertFalse(loggedTypes.contains(LogType.CRAWLING_ACCESS_EXCEPTION));
+        assertEquals(1, accessExceptions().size());
     }
 
     @Test

@@ -879,6 +879,13 @@ public class CrawlerContextTest extends PlainTestCase {
     }
 
     @Test
+    public void test_markRobotsTxtFailureReported() {
+        assertTrue(crawlerContext.markRobotsTxtFailureReported("http://example.com/a"));
+        assertFalse(crawlerContext.markRobotsTxtFailureReported("http://example.com/a"));
+        assertTrue(crawlerContext.markRobotsTxtFailureReported("http://example.com/b"));
+    }
+
+    @Test
     public void test_incrementAndGetRetryCount() {
         assertEquals(1, crawlerContext.incrementAndGetRetryCount("http://example.com/a"));
         assertEquals(2, crawlerContext.incrementAndGetRetryCount("http://example.com/a"));

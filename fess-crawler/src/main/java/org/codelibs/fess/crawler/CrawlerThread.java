@@ -216,7 +216,7 @@ public class CrawlerThread implements Runnable {
                 final UrlQueue<?> urlQueue = urlQueueService.poll(crawlerContext.sessionId);
                 if (urlQueue != null && isDisallowedByRobotsTxt(urlQueue.getUrl())) {
                     // a URL was dequeued, so this is not an empty poll; no request is made either
-                    logDisallowedByRobotsTxt(urlQueue.getUrl());
+                    handleDisallowedByRobotsTxt(urlQueue);
                     continue;
                 }
                 if (isValid(urlQueue)) {
@@ -292,12 +292,18 @@ public class CrawlerThread implements Runnable {
                             continue;
                         }
                     } catch (final RobotsTxtDisallowedException e) {
-                        logDisallowedByRobotsTxt(urlQueue.getUrl());
+                        handleDisallowedByRobotsTxt(urlQueue);
                     } catch (final RobotsTxtUnavailableException e) {
                         try {
                             if (e.isFetchAttempted()) {
                                 // checkRobotsTxt has already recorded the backoff of the origin
-                                handleRetryableFailure(urlQueue, e.getRetryAfterMillis(), "robots.txt unavailable", false);
+                                final boolean requeued =
+                                        handleRetryableFailure(urlQueue, e.getRetryAfterMillis(), "robots.txt unavailable", false);
+                                if (e.isFetchFailed() || !requeued) {
+                                    // report the failed robots.txt request, or the URL that has used up its retries, so that
+                                    // the URL is visible as a failure even while it is retried later
+                                    reportRobotsTxtFailure(urlQueue, e);
+                                }
                             } else {
                                 // robots.txt was not requested because the backoff of the origin has not ended:
                                 // the URL has not been tried, so this does not use up one of its retries
@@ -567,8 +573,67 @@ public class CrawlerThread implements Runnable {
     }
 
     /**
-     * Logs a URL that robots.txt does not allow, telling a Disallow rule from an origin whose robots.txt
-     * stayed unavailable and was given up ({@link HostState.RobotsTxtStatus#DISALLOW_ALL}).
+     * Handles a URL that robots.txt does not allow. A Disallow rule is an expected outcome and is only logged at INFO.
+     * When the robots.txt of the origin stayed unavailable and was given up ({@link HostState.RobotsTxtStatus#DISALLOW_ALL}),
+     * the URL is reported as {@link LogType#CRAWLING_ACCESS_EXCEPTION} with a {@link RobotsTxtUnavailableException} from
+     * {@link #createRobotsTxtGivenUpException(String, HostState)}, so that it is recorded as a failure
+     * (see {@link #reportRobotsTxtFailure(UrlQueue, RobotsTxtUnavailableException)}).
+     *
+     * @param urlQueue the URL queue entry
+     */
+    protected void handleDisallowedByRobotsTxt(final UrlQueue<?> urlQueue) {
+        final String url = urlQueue.getUrl();
+        final HostState hostState = crawlerContext.peekHostState(url);
+        if (hostState != null && hostState.getRobotsTxtStatus() == HostState.RobotsTxtStatus.DISALLOW_ALL) {
+            reportRobotsTxtFailure(urlQueue, createRobotsTxtGivenUpException(url, hostState));
+        } else {
+            logDisallowedByRobotsTxt(url);
+        }
+    }
+
+    /**
+     * Reports an unavailable robots.txt as {@link LogType#CRAWLING_ACCESS_EXCEPTION} for a URL, at most once per URL in a
+     * crawl ({@link CrawlerContext#markRobotsTxtFailureReported(String)}), so that the failed attempts and the give-up of the
+     * origin do not count as several failures of the URL.
+     *
+     * @param urlQueue the URL queue entry
+     * @param e the exception to report
+     */
+    protected void reportRobotsTxtFailure(final UrlQueue<?> urlQueue, final RobotsTxtUnavailableException e) {
+        if (crawlerContext.markRobotsTxtFailureReported(urlQueue.getUrl())) {
+            log(logHelper, LogType.CRAWLING_ACCESS_EXCEPTION, crawlerContext, urlQueue, e);
+        } else if (logger.isDebugEnabled()) {
+            logger.debug("Already reported the robots.txt failure of {}: {}", urlQueue.getUrl(), e.getMessage());
+        }
+    }
+
+    /**
+     * Creates the exception that reports a URL of an origin whose robots.txt stayed unavailable and was given up.
+     * Its cause is the exception of the last failed robots.txt request, if any.
+     *
+     * @param url the URL
+     * @param hostState the state of the origin of the URL
+     * @return the exception
+     */
+    protected RobotsTxtUnavailableException createRobotsTxtGivenUpException(final String url, final HostState hostState) {
+        final StringBuilder message = new StringBuilder();
+        message.append("robots.txt of ").append(HostState.toOrigin(url)).append(" was unavailable; gave up");
+        final int attempts = hostState.getRobotsTxtLastFailureAttempts();
+        if (attempts > 0) {
+            message.append(" after ").append(attempts).append(attempts == 1 ? " attempt" : " attempts");
+        }
+        final String reason = hostState.getRobotsTxtLastFailureReason();
+        if (reason != null) {
+            message.append(" (last failure: ").append(reason).append(')');
+        }
+        message.append(": ").append(url);
+        return new RobotsTxtUnavailableException(message.toString(), 0L, hostState.getRobotsTxtLastFailure(), true, true);
+    }
+
+    /**
+     * Logs a URL that a robots.txt Disallow rule does not allow. A URL of an origin whose robots.txt
+     * stayed unavailable and was given up ({@link HostState.RobotsTxtStatus#DISALLOW_ALL}) is reported as a
+     * crawling failure instead and does not reach this method from this class.
      *
      * @param url the URL
      */

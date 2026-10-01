@@ -17,6 +17,7 @@ package org.codelibs.fess.crawler.client.http;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -24,14 +25,20 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.auth.BasicSchemeFactory;
+import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.NoHttpResponseException;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.codelibs.fess.crawler.client.http.config.CredentialsConfig;
@@ -39,9 +46,13 @@ import org.codelibs.fess.crawler.client.http.config.WebAuthenticationConfig;
 import org.codelibs.fess.crawler.client.http.config.WebAuthenticationConfig.AuthSchemeType;
 import org.codelibs.fess.crawler.CrawlerContext;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
+import org.codelibs.fess.crawler.entity.HostState;
+import org.codelibs.fess.crawler.entity.HostState.RobotsTxtStatus;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
+import org.codelibs.fess.crawler.exception.RobotsTxtDisallowedException;
+import org.codelibs.fess.crawler.exception.RobotsTxtUnavailableException;
 import org.codelibs.fess.crawler.filter.UrlFilter;
 import org.codelibs.fess.crawler.filter.impl.UrlFilterImpl;
 import org.codelibs.fess.crawler.helper.ContentLengthHelper;
@@ -55,7 +66,9 @@ import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.Timeout;
 
+import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
 /**
@@ -108,17 +121,15 @@ public class Hc5HttpClientTest extends PlainTestCase {
 
         final String url = "http://localhost:" + server.getPort() + "/hoge.html";
         try {
-            final CrawlerContext crawlerContext = new CrawlerContext();
-            final String sessionId = "id1";
-            urlFilter.init(sessionId);
-            crawlerContext.setUrlFilter(urlFilter);
-            CrawlingParameterUtil.setCrawlerContext(crawlerContext);
+            final CrawlerContext crawlerContext = setUpCrawlerContext();
             httpClient.init();
             httpClient.processRobotsTxt(url);
-            assertEquals(1, crawlerContext.getRobotsTxtUrlSet().size());
-            assertTrue(crawlerContext.getRobotsTxtUrlSet().contains("http://localhost:" + server.getPort() + "/robots.txt"));
-            assertFalse(urlFilter.match("http://localhost:" + server.getPort() + "/admin/"));
-            assertFalse(urlFilter.match("http://localhost:" + server.getPort() + "/websvn/"));
+            final HostState hostState = crawlerContext.peekHostState(url);
+            assertEquals(RobotsTxtStatus.PARSED, hostState.getRobotsTxtStatus());
+            assertFalse(hostState.isAllowedByRobotsTxt("http://localhost:" + server.getPort() + "/admin/"));
+            assertFalse(hostState.isAllowedByRobotsTxt("http://localhost:" + server.getPort() + "/websvn/"));
+            assertTrue(hostState.isAllowedByRobotsTxt(url));
+            assertTrue(urlFilter.match("http://localhost:" + server.getPort() + "/admin/"));
         } finally {
             server.stop();
         }
@@ -142,6 +153,412 @@ public class Hc5HttpClientTest extends PlainTestCase {
         assertEquals("/.*", httpClient.convertRobotsTxtPatternToRegex("/*"));
         assertEquals(".*\\..*", httpClient.convertRobotsTxtPatternToRegex("."));
         assertEquals(".*", httpClient.convertRobotsTxtPatternToRegex("*"));
+    }
+
+    @Override
+    protected void tearDown(final TestInfo testInfo) throws Exception {
+        CrawlingParameterUtil.setCrawlerContext(null);
+        super.tearDown(testInfo);
+    }
+
+    /** Registers a crawler context for the current thread, as the crawler threads do. */
+    private CrawlerContext setUpCrawlerContext() {
+        final CrawlerContext crawlerContext = new CrawlerContext();
+        urlFilter.init("id1");
+        crawlerContext.setUrlFilter(urlFilter);
+        CrawlingParameterUtil.setCrawlerContext(crawlerContext);
+        return crawlerContext;
+    }
+
+    /** Counts a request per path and returns the path. */
+    private static String countRequest(final Map<String, AtomicInteger> counts, final HttpExchange exchange) {
+        final String path = exchange.getRequestURI().getPath();
+        counts.computeIfAbsent(path, k -> new AtomicInteger()).incrementAndGet();
+        return path;
+    }
+
+    private static int requestCount(final Map<String, AtomicInteger> counts, final String path) {
+        final AtomicInteger count = counts.get(path);
+        return count == null ? 0 : count.get();
+    }
+
+    /** Sends a response; headers are given as name/value pairs. */
+    private static void respond(final HttpExchange exchange, final int status, final String body, final String... headers)
+            throws IOException {
+        for (int i = 0; i + 1 < headers.length; i += 2) {
+            exchange.getResponseHeaders().add(headers[i], headers[i + 1]);
+        }
+        final byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
+        if (bytes.length == 0) {
+            exchange.sendResponseHeaders(status, -1);
+        } else {
+            exchange.sendResponseHeaders(status, bytes.length);
+            try (OutputStream out = exchange.getResponseBody()) {
+                out.write(bytes);
+            }
+        }
+        exchange.close();
+    }
+
+    /** A server whose robots.txt is given and whose other paths return a small HTML page. */
+    private SimpleHttpServer startRobotsServer(final Map<String, AtomicInteger> counts, final int robotsStatus, final String robotsTxt,
+            final String... robotsHeaders) throws IOException {
+        final SimpleHttpServer server = new SimpleHttpServer();
+        server.setHandler(exchange -> {
+            final String path = countRequest(counts, exchange);
+            if ("/robots.txt".equals(path)) {
+                respond(exchange, robotsStatus, robotsTxt, robotsHeaders);
+            } else {
+                respond(exchange, 200, "<html><body>ok</body></html>", "Content-Type", "text/html; charset=UTF-8");
+            }
+        });
+        server.start();
+        return server;
+    }
+
+    @Test
+    public void test_robotsTxt_longestMatchWithoutUrlFilterSideEffect() throws Exception {
+        final Map<String, AtomicInteger> counts = new ConcurrentHashMap<>();
+        final SimpleHttpServer server =
+                startRobotsServer(counts, 200, "User-agent: *\nDisallow: /a/\nAllow: /a/b\n", "Content-Type", "text/plain");
+        try {
+            final CrawlerContext crawlerContext = setUpCrawlerContext();
+            httpClient.init();
+            final String base = "http://127.0.0.1:" + server.port();
+
+            assertEquals(200, httpClient.doGet(base + "/a/b").getHttpStatusCode());
+            try {
+                httpClient.doGet(base + "/a/c");
+                fail();
+            } catch (final RobotsTxtDisallowedException e) {
+                // expected
+            }
+            assertEquals(0, requestCount(counts, "/a/c"));
+            assertEquals(1, requestCount(counts, "/robots.txt"));
+            assertEquals(RobotsTxtStatus.PARSED, crawlerContext.peekHostState(base + "/").getRobotsTxtStatus());
+            // robots.txt rules are not copied into the URL filter of the crawl
+            assertTrue(urlFilter.match("http://other.example/x"));
+            assertTrue(urlFilter.match(base + "/a/c"));
+        } finally {
+            server.stop();
+        }
+    }
+
+    @Test
+    public void test_robotsTxt_seedUrlDisallowed() throws Exception {
+        final Map<String, AtomicInteger> counts = new ConcurrentHashMap<>();
+        final SimpleHttpServer server = startRobotsServer(counts, 200, "User-agent: *\nDisallow: /private/\n");
+        try {
+            setUpCrawlerContext();
+            httpClient.init();
+            try {
+                httpClient.doGet("http://127.0.0.1:" + server.port() + "/private/index.html");
+                fail();
+            } catch (final RobotsTxtDisallowedException e) {
+                // expected
+            }
+            assertEquals(0, requestCount(counts, "/private/index.html"));
+        } finally {
+            server.stop();
+        }
+    }
+
+    @Test
+    @Timeout(value = 60, unit = TimeUnit.SECONDS)
+    public void test_robotsTxt_unavailable() throws Exception {
+        final Map<String, AtomicInteger> counts = new ConcurrentHashMap<>();
+        final SimpleHttpServer server = startRobotsServer(counts, 503, "busy", "Retry-After", "3600");
+        try {
+            final CrawlerContext crawlerContext = setUpCrawlerContext();
+            httpClient.init();
+            final String base = "http://127.0.0.1:" + server.port();
+            try {
+                httpClient.doGet(base + "/index.html");
+                fail();
+            } catch (final RobotsTxtUnavailableException e) {
+                // expected
+            }
+            assertEquals(0, requestCount(counts, "/index.html"));
+            assertEquals(1, requestCount(counts, "/robots.txt"));
+            assertEquals(RobotsTxtStatus.UNAVAILABLE, crawlerContext.peekHostState(base + "/").getRobotsTxtStatus());
+        } finally {
+            server.stop();
+        }
+    }
+
+    @Test
+    public void test_robotsTxt_unavailable_allowOnUnavailable() throws Exception {
+        final Map<String, AtomicInteger> counts = new ConcurrentHashMap<>();
+        final SimpleHttpServer server = startRobotsServer(counts, 503, "busy");
+        try {
+            setUpCrawlerContext();
+            final Map<String, Object> params = new HashMap<>();
+            params.put(HcHttpClient.ROBOTS_TXT_ALLOW_ON_UNAVAILABLE_PROPERTY, Boolean.TRUE);
+            httpClient.setInitParameterMap(params);
+            httpClient.init();
+            assertEquals(200, httpClient.doGet("http://127.0.0.1:" + server.port() + "/index.html").getHttpStatusCode());
+            assertEquals(1, requestCount(counts, "/index.html"));
+        } finally {
+            server.stop();
+        }
+    }
+
+    @Test
+    public void test_robotsTxt_unavailable_maxRetries() throws Exception {
+        final Map<String, AtomicInteger> counts = new ConcurrentHashMap<>();
+        final SimpleHttpServer server = startRobotsServer(counts, 503, "busy");
+        try {
+            setUpCrawlerContext();
+            final Map<String, Object> params = new HashMap<>();
+            params.put(HcHttpClient.ROBOTS_TXT_MAX_RETRIES_PROPERTY, 0);
+            httpClient.setInitParameterMap(params);
+            httpClient.init();
+            // no attempt is retried, so the first failure gives up on the site
+            try {
+                httpClient.doGet("http://127.0.0.1:" + server.port() + "/index.html");
+                fail();
+            } catch (final RobotsTxtDisallowedException e) {
+                // expected
+            }
+            assertEquals(0, requestCount(counts, "/index.html"));
+        } finally {
+            server.stop();
+        }
+    }
+
+    @Test
+    public void test_robotsTxt_redirect() throws Exception {
+        final Map<String, AtomicInteger> counts = new ConcurrentHashMap<>();
+        final SimpleHttpServer server = new SimpleHttpServer();
+        server.setHandler(exchange -> {
+            final String path = countRequest(counts, exchange);
+            if ("/robots.txt".equals(path)) {
+                respond(exchange, 301, "", "Location", "/real-robots.txt");
+            } else if ("/real-robots.txt".equals(path)) {
+                respond(exchange, 200, "User-agent: *\nDisallow: /blocked/\n");
+            } else {
+                respond(exchange, 200, "<html><body>ok</body></html>", "Content-Type", "text/html");
+            }
+        });
+        server.start();
+        try {
+            setUpCrawlerContext();
+            httpClient.init();
+            final String base = "http://127.0.0.1:" + server.port();
+            try {
+                httpClient.doGet(base + "/blocked/a.html");
+                fail();
+            } catch (final RobotsTxtDisallowedException e) {
+                // expected
+            }
+            assertEquals(200, httpClient.doGet(base + "/open/a.html").getHttpStatusCode());
+            assertEquals(1, requestCount(counts, "/robots.txt"));
+            assertEquals(1, requestCount(counts, "/real-robots.txt"));
+        } finally {
+            server.stop();
+        }
+    }
+
+    @Test
+    public void test_robotsTxt_redirectNotFollowedByClient() throws Exception {
+        // robots.txt redirects six times; the last hop disallows everything. When the client itself followed the
+        // redirects, the rules would apply; RFC 9309 stops after five hops and allows everything.
+        final Map<String, AtomicInteger> counts = new ConcurrentHashMap<>();
+        final SimpleHttpServer server = new SimpleHttpServer();
+        server.setHandler(exchange -> {
+            final String path = countRequest(counts, exchange);
+            if ("/robots.txt".equals(path)) {
+                respond(exchange, 302, "", "Location", "/r1");
+            } else if (path.matches("/r[1-5]")) {
+                respond(exchange, 302, "", "Location", "/r" + (Integer.parseInt(path.substring(2)) + 1));
+            } else if ("/r6".equals(path)) {
+                respond(exchange, 200, "User-agent: *\nDisallow: /\n");
+            } else {
+                respond(exchange, 200, "<html><body>ok</body></html>", "Content-Type", "text/html");
+            }
+        });
+        server.start();
+        try {
+            setUpCrawlerContext();
+            final Map<String, Object> params = new HashMap<>();
+            params.put(HcHttpClient.REDIRECTS_ENABLED, Boolean.TRUE);
+            httpClient.setInitParameterMap(params);
+            httpClient.init();
+            assertEquals(200, httpClient.doGet("http://127.0.0.1:" + server.port() + "/index.html").getHttpStatusCode());
+            assertEquals(1, requestCount(counts, "/robots.txt"));
+            assertEquals(1, requestCount(counts, "/r5"));
+            assertEquals(0, requestCount(counts, "/r6"));
+        } finally {
+            server.stop();
+        }
+    }
+
+    @Test
+    public void test_robotsTxt_redirectsDisabledOnlyForRobotsTxt() throws Exception {
+        // The robots.txt request disables redirects; that must not leak into the context shared by the page requests.
+        final Map<String, AtomicInteger> counts = new ConcurrentHashMap<>();
+        final SimpleHttpServer server = new SimpleHttpServer();
+        server.setHandler(exchange -> {
+            final String path = countRequest(counts, exchange);
+            if ("/robots.txt".equals(path)) {
+                respond(exchange, 200, "User-agent: *\nDisallow: /private/\n");
+            } else if ("/start".equals(path)) {
+                respond(exchange, 302, "", "Location", "/target");
+            } else {
+                respond(exchange, 200, "<html><body>target</body></html>", "Content-Type", "text/html");
+            }
+        });
+        server.start();
+        try {
+            setUpCrawlerContext();
+            final Map<String, Object> params = new HashMap<>();
+            params.put(HcHttpClient.REDIRECTS_ENABLED, Boolean.TRUE);
+            httpClient.setInitParameterMap(params);
+            httpClient.init();
+            final ResponseData responseData = httpClient.doGet("http://127.0.0.1:" + server.port() + "/start");
+            assertEquals(200, responseData.getHttpStatusCode());
+            assertNull(responseData.getRedirectLocation());
+            assertEquals(1, requestCount(counts, "/robots.txt"));
+            assertEquals(1, requestCount(counts, "/start"));
+            assertEquals(1, requestCount(counts, "/target"));
+        } finally {
+            server.stop();
+        }
+    }
+
+    @Test
+    public void test_robotsTxt_requestHeaders() throws Exception {
+        final Map<String, String> robotsHeaders = new ConcurrentHashMap<>();
+        final SimpleHttpServer server = new SimpleHttpServer();
+        server.setHandler(exchange -> {
+            if ("/robots.txt".equals(exchange.getRequestURI().getPath())) {
+                robotsHeaders.put("User-Agent", String.valueOf(exchange.getRequestHeaders().getFirst("User-Agent")));
+                robotsHeaders.put("X-Crawler", String.valueOf(exchange.getRequestHeaders().getFirst("X-Crawler")));
+                respond(exchange, 404, "");
+            } else {
+                respond(exchange, 200, "<html><body>ok</body></html>", "Content-Type", "text/html");
+            }
+        });
+        server.start();
+        try {
+            setUpCrawlerContext();
+            final Map<String, Object> params = new HashMap<>();
+            params.put(HcHttpClient.USER_AGENT_PROPERTY, "TestBot/1.0");
+            final RequestHeader requestHeader = new RequestHeader("X-Crawler", "fess");
+            params.put(HcHttpClient.REQUEST_HEADERS_PROPERTY, new RequestHeader[] { requestHeader });
+            httpClient.setInitParameterMap(params);
+            httpClient.init();
+            assertEquals(200, httpClient.doGet("http://127.0.0.1:" + server.port() + "/index.html").getHttpStatusCode());
+            assertEquals("TestBot/1.0", robotsHeaders.get("User-Agent"));
+            assertEquals("fess", robotsHeaders.get("X-Crawler"));
+        } finally {
+            server.stop();
+        }
+    }
+
+    @Test
+    public void test_robotsTxt_oversizedChunkedBodyAllowsAll() throws Exception {
+        final Map<String, AtomicInteger> counts = new ConcurrentHashMap<>();
+        final StringBuilder robotsTxt = new StringBuilder("User-agent: *\nDisallow: /\n");
+        while (robotsTxt.length() < 8192) {
+            robotsTxt.append("# padding padding padding padding\n");
+        }
+        final SimpleHttpServer server = new SimpleHttpServer();
+        server.setHandler(exchange -> {
+            final String path = countRequest(counts, exchange);
+            if ("/robots.txt".equals(path)) {
+                // responseLength == 0 sends the body chunked, without Content-Length
+                exchange.sendResponseHeaders(200, 0);
+                try (OutputStream out = exchange.getResponseBody()) {
+                    out.write(robotsTxt.toString().getBytes(StandardCharsets.UTF_8));
+                }
+                exchange.close();
+            } else {
+                respond(exchange, 200, "<html><body>ok</body></html>", "Content-Type", "text/html");
+            }
+        });
+        server.start();
+        try {
+            final CrawlerContext crawlerContext = setUpCrawlerContext();
+            final ContentLengthHelper helper = new ContentLengthHelper();
+            helper.addMaxLength("text/plain", 1024L);
+            httpClient.contentLengthHelper = helper;
+            httpClient.init();
+            final String base = "http://127.0.0.1:" + server.port();
+            assertEquals(200, httpClient.doGet(base + "/index.html").getHttpStatusCode());
+            assertEquals(RobotsTxtStatus.ALLOW_ALL, crawlerContext.peekHostState(base + "/").getRobotsTxtStatus());
+        } finally {
+            server.stop();
+        }
+    }
+
+    @Test
+    public void test_robotsTxt_oversizedContentLengthAllowsAll() throws Exception {
+        final Map<String, AtomicInteger> counts = new ConcurrentHashMap<>();
+        final StringBuilder robotsTxt = new StringBuilder("User-agent: *\nDisallow: /\n");
+        while (robotsTxt.length() < 8192) {
+            robotsTxt.append("# padding padding padding padding\n");
+        }
+        final SimpleHttpServer server = startRobotsServer(counts, 200, robotsTxt.toString());
+        try {
+            final CrawlerContext crawlerContext = setUpCrawlerContext();
+            final ContentLengthHelper helper = new ContentLengthHelper();
+            helper.addMaxLength("text/plain", 1024L);
+            httpClient.contentLengthHelper = helper;
+            httpClient.init();
+            final String base = "http://127.0.0.1:" + server.port();
+            assertEquals(200, httpClient.doGet(base + "/index.html").getHttpStatusCode());
+            assertEquals(RobotsTxtStatus.ALLOW_ALL, crawlerContext.peekHostState(base + "/").getRobotsTxtStatus());
+        } finally {
+            server.stop();
+        }
+    }
+
+    @Test
+    public void test_ioExceptionRetryStrategy() {
+        final Hc5HttpClient.IoExceptionRetryStrategy strategy = new Hc5HttpClient.IoExceptionRetryStrategy();
+        final HttpClientContext context = HttpClientContext.create();
+        final BasicClassicHttpResponse tooManyRequests = new BasicClassicHttpResponse(429);
+        tooManyRequests.setHeader("Retry-After", "3600");
+        assertFalse(strategy.retryRequest(tooManyRequests, 1, context));
+        assertFalse(strategy.retryRequest(new BasicClassicHttpResponse(503), 1, context));
+        // I/O errors are retried as DefaultHttpRequestRetryStrategy does
+        assertTrue(strategy.retryRequest(new HttpGet("http://localhost/"), new NoHttpResponseException("closed"), 1, context));
+        assertFalse(strategy.retryRequest(new HttpGet("http://localhost/"), new NoHttpResponseException("closed"), 2, context));
+        assertFalse(strategy.retryRequest(new HttpGet("http://localhost/"), new ConnectException("refused"), 1, context));
+    }
+
+    /**
+     * A 429 or 503 page is returned to the caller as is: the client neither retries it nor waits for its Retry-After.
+     * The timeout only stops a client that would wait an hour; the assertion is on the number of requests.
+     */
+    @Test
+    @Timeout(value = 60, unit = TimeUnit.SECONDS)
+    public void test_doGet_tooManyRequestsAndServiceUnavailable_notRetried() throws Exception {
+        final Map<String, AtomicInteger> counts = new ConcurrentHashMap<>();
+        final SimpleHttpServer server = new SimpleHttpServer();
+        server.setHandler(exchange -> {
+            final String path = countRequest(counts, exchange);
+            if ("/robots.txt".equals(path)) {
+                respond(exchange, 404, "");
+            } else if ("/busy".equals(path)) {
+                respond(exchange, 429, "slow down", "Retry-After", "3600");
+            } else {
+                respond(exchange, 503, "maintenance", "Retry-After", "3600");
+            }
+        });
+        server.start();
+        try {
+            setUpCrawlerContext();
+            httpClient.init();
+            final String base = "http://127.0.0.1:" + server.port();
+            assertEquals(429, httpClient.doGet(base + "/busy").getHttpStatusCode());
+            assertEquals(1, requestCount(counts, "/busy"));
+            assertEquals(503, httpClient.doGet(base + "/down").getHttpStatusCode());
+            assertEquals(1, requestCount(counts, "/down"));
+        } finally {
+            server.stop();
+        }
     }
 
     @Test

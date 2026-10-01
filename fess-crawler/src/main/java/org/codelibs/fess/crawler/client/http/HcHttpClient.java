@@ -15,9 +15,13 @@
  */
 package org.codelibs.fess.crawler.client.http;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Locale;
 
+import org.apache.commons.io.input.BoundedInputStream;
 import org.codelibs.fess.crawler.client.AbstractCrawlerClient;
+import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 
 /**
  * HcHttpClient is the abstract base class for HTTP client implementations
@@ -35,6 +39,8 @@ import org.codelibs.fess.crawler.client.AbstractCrawlerClient;
  *   <li>NON_PROXY_HOSTS_PROPERTY: Hosts connected to directly, bypassing the proxy.</li>
  *   <li>USER_AGENT_PROPERTY: User agent string.</li>
  *   <li>ROBOTS_TXT_ENABLED_PROPERTY: Enable or disable robots.txt parsing.</li>
+ *   <li>ROBOTS_TXT_ALLOW_ON_UNAVAILABLE_PROPERTY: Allow every URL of a site whose robots.txt is unavailable.</li>
+ *   <li>ROBOTS_TXT_MAX_RETRIES_PROPERTY: Retries after the first failed robots.txt fetch before giving up on the site.</li>
  *   <li>AUTHENTICATIONS_PROPERTY: Web authentications.</li>
  *   <li>REQUEST_HEADERS_PROPERTY: Custom request headers.</li>
  *   <li>REDIRECTS_ENABLED: Enable or disable HTTP redirects.</li>
@@ -89,6 +95,19 @@ public abstract class HcHttpClient extends AbstractCrawlerClient {
 
     /** Property name for robots.txt enabled setting */
     public static final String ROBOTS_TXT_ENABLED_PROPERTY = "robotsTxtEnabled";
+
+    /**
+     * Property name for whether an unavailable robots.txt (429, 5xx or a network error) allows every URL of the site
+     * at once. The default is false: the URL is retried later and the site is given up when the first fetch and
+     * {@link #ROBOTS_TXT_MAX_RETRIES_PROPERTY} retries after it have all failed.
+     */
+    public static final String ROBOTS_TXT_ALLOW_ON_UNAVAILABLE_PROPERTY = "robotsTxtAllowOnUnavailable";
+
+    /**
+     * Property name for the number of retries after the first failed robots.txt fetch; when they fail as well, no URL of
+     * the site is crawled. The default is the value of the crawler context.
+     */
+    public static final String ROBOTS_TXT_MAX_RETRIES_PROPERTY = "robotsTxtMaxRetries";
 
     /** Property name for web authentications setting */
     public static final String AUTHENTICATIONS_PROPERTY = "webAuthentications";
@@ -166,6 +185,60 @@ public abstract class HcHttpClient extends AbstractCrawlerClient {
         } catch (final NumberFormatException e) {
             return -1L;
         }
+    }
+
+    /**
+     * Reads the body of a robots.txt response, rejecting it once it exceeds {@code maxLength}.
+     * A declared {@code Content-Length} over the limit is rejected before anything is read; a body
+     * without it (chunked) is read only up to one byte over the limit. The stream is not closed:
+     * closing an unfinished response stream would read the rest of it, so the caller aborts the
+     * request when this method throws and releases the entity otherwise.
+     *
+     * @param robotsTxtUrl the robots.txt URL, for the message
+     * @param contentLength the raw {@code Content-Length} header value, may be {@code null}
+     * @param in the response body
+     * @param maxLength the maximum length in bytes
+     * @return the body
+     * @throws IOException if the body cannot be read
+     * @throws MaxLengthExceededException if the body is longer than {@code maxLength}
+     */
+    protected static byte[] readRobotsTxtBody(final String robotsTxtUrl, final String contentLength, final InputStream in,
+            final long maxLength) throws IOException {
+        final long declaredContentLength = parseDeclaredContentLength(contentLength);
+        if (declaredContentLength > maxLength) {
+            throw new MaxLengthExceededException(
+                    "The content length (" + declaredContentLength + " byte) is over " + maxLength + " byte. The url is " + robotsTxtUrl);
+        }
+        if (in == null) {
+            return new byte[0];
+        }
+        final byte[] body =
+                BoundedInputStream.builder().setInputStream(in).setMaxCount(incrementWithoutOverflow(maxLength)).get().readAllBytes();
+        if (body.length > maxLength) {
+            throw new MaxLengthExceededException(
+                    "The content length (" + body.length + " byte) is over " + maxLength + " byte. The url is " + robotsTxtUrl);
+        }
+        return body;
+    }
+
+    /**
+     * Returns the charset parameter of a Content-Type header value.
+     *
+     * @param contentType the Content-Type header value, may be {@code null}
+     * @return the charset, or {@code null} if there is none
+     */
+    protected static String getCharset(final String contentType) {
+        if (contentType == null) {
+            return null;
+        }
+        for (final String param : contentType.split(";")) {
+            final String value = param.trim();
+            if (value.regionMatches(true, 0, "charset=", 0, 8)) {
+                final String charset = value.substring(8).trim().replace("\"", "");
+                return charset.isEmpty() ? null : charset;
+            }
+        }
+        return null;
     }
 
     /**

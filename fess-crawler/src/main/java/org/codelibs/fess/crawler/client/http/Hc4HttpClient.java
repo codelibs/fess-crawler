@@ -119,13 +119,17 @@ import org.codelibs.fess.crawler.client.http.config.WebAuthenticationConfig;
 import org.codelibs.fess.crawler.client.http.conn.IdnDnsResolver;
 import org.codelibs.fess.crawler.client.http.form.Hc4FormScheme;
 import org.codelibs.fess.crawler.entity.ResponseData;
-import org.codelibs.fess.crawler.entity.RobotsTxt;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
+import org.codelibs.fess.crawler.exception.RobotsTxtDisallowedException;
+import org.codelibs.fess.crawler.exception.RobotsTxtUnavailableException;
 import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
+import org.codelibs.fess.crawler.helper.RobotsTxtFetcher;
 import org.codelibs.fess.crawler.helper.RobotsTxtHelper;
+import org.codelibs.fess.crawler.helper.RobotsTxtPolicy;
+import org.codelibs.fess.crawler.helper.RobotsTxtResponse;
 import org.codelibs.fess.crawler.util.CrawlingParameterUtil;
 
 import jakarta.annotation.Resource;
@@ -238,6 +242,15 @@ public class Hc4HttpClient extends HcHttpClient {
     /** Whether to use robots.txt allow rules */
     protected boolean useRobotsTxtAllows = true;
 
+    /** Whether an unavailable robots.txt (429, 5xx or a network error) allows every URL of the site */
+    protected boolean robotsTxtAllowOnUnavailable = false;
+
+    /** Retries after the first failed robots.txt fetch before the site is given up, or null for the crawler context value */
+    protected Integer robotsTxtMaxRetries;
+
+    /** The request configuration for robots.txt: the default one with redirects disabled */
+    protected RequestConfig robotsTxtRequestConfig;
+
     /** Credentials provider for authentication */
     protected CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
 
@@ -287,6 +300,9 @@ public class Hc4HttpClient extends HcHttpClient {
         if (robotsTxtHelper != null) {
             robotsTxtHelper.setEnabled(robotsTxtEnabled);
         }
+        robotsTxtAllowOnUnavailable =
+                getInitParameter(ROBOTS_TXT_ALLOW_ON_UNAVAILABLE_PROPERTY, robotsTxtAllowOnUnavailable, Boolean.class);
+        robotsTxtMaxRetries = getInitParameter(ROBOTS_TXT_MAX_RETRIES_PROPERTY, robotsTxtMaxRetries, Integer.class);
 
         // httpclient
         final RequestConfig.Builder requestConfigBuilder = RequestConfig.custom();
@@ -381,9 +397,13 @@ public class Hc4HttpClient extends HcHttpClient {
                 .addTimeoutTarget(new Hc4ConnectionMonitorTarget(clientConnectionManager, idleConnectionTimeout), connectionCheckInterval,
                         true);
 
+        final RequestConfig requestConfig = requestConfigBuilder.build();
+        // robots.txt redirects are followed by RobotsTxtHelper, which counts them
+        robotsTxtRequestConfig = RequestConfig.copy(requestConfig).setRedirectsEnabled(false).build();
+
         final CloseableHttpClient closeableHttpClient = httpClientBuilder.setDnsResolver(dnsResolver)
                 .setConnectionManager(clientConnectionManager)
-                .setDefaultRequestConfig(requestConfigBuilder.build())
+                .setDefaultRequestConfig(requestConfig)
                 .build();
         if (!httpClientPropertyMap.isEmpty()) {
             final BeanDesc beanDesc = BeanDescFactory.getBeanDesc(closeableHttpClient.getClass());
@@ -554,11 +574,14 @@ public class Hc4HttpClient extends HcHttpClient {
     }
 
     /**
-     * Processes robots.txt for the given URL.
-     * This method fetches and parses the robots.txt file to extract disallow/allow rules
-     * and sitemap information.
+     * Checks the given URL against the robots.txt of its origin.
+     * robots.txt is fetched once per origin through {@link #fetchRobotsTxt(String)} and resolved by
+     * {@link RobotsTxtHelper#checkRobotsTxt(CrawlerContext, String, String, RobotsTxtFetcher, RobotsTxtPolicy)};
+     * nothing is done without a crawler context for the current thread.
      *
-     * @param url The URL to process robots.txt for
+     * @param url The URL to check
+     * @throws RobotsTxtDisallowedException if robots.txt does not allow the URL
+     * @throws RobotsTxtUnavailableException if robots.txt is unavailable and the URL should be retried later
      */
     protected void processRobotsTxt(final String url) {
         if (StringUtil.isBlank(url)) {
@@ -577,107 +600,52 @@ public class Hc4HttpClient extends HcHttpClient {
             return;
         }
 
-        final int idx = url.indexOf('/', url.indexOf("://") + 3);
-        String hostUrl;
-        if (idx >= 0) {
-            hostUrl = url.substring(0, idx);
-        } else {
-            hostUrl = url;
-        }
-        final String robotTxtUrl = hostUrl + "/robots.txt";
+        final RobotsTxtPolicy policy = new RobotsTxtPolicy(useRobotsTxtAllows, useRobotsTxtDisallows, robotsTxtAllowOnUnavailable,
+                robotsTxtMaxRetries != null ? robotsTxtMaxRetries : crawlerContext.getRobotsTxtMaxRetries());
+        robotsTxtHelper.checkRobotsTxt(crawlerContext, url, userAgent, this::fetchRobotsTxt, policy);
+    }
 
-        // Atomically check-and-add: LruHashSet#add() (via the synchronized set wrapping it in
-        // CrawlerContext) returns false when robotTxtUrl was already present, so a single add()
-        // call replaces the previous contains()-then-add() pair. That avoided a race where two
-        // threads could both observe "not present" and both fetch robots.txt for the same host.
-        if (!crawlerContext.getRobotsTxtUrlSet().add(robotTxtUrl)) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("{} is already visited.", robotTxtUrl);
-            }
-            return;
-        }
-
-        if (logger.isInfoEnabled()) {
-            logger.info("Checking URL: {}", robotTxtUrl);
-        }
-
-        final HttpGet httpGet = new HttpGet(robotTxtUrl);
-
-        // request header
+    /**
+     * Fetches a robots.txt URL once with the request headers of this client, without following redirects.
+     * The body of a 2xx response is read up to the maximum length for {@code text/plain}.
+     *
+     * @param robotsTxtUrl The robots.txt URL
+     * @return The response
+     * @throws IOException If the request fails
+     * @throws MaxLengthExceededException If the body is too large
+     */
+    protected RobotsTxtResponse fetchRobotsTxt(final String robotsTxtUrl) throws IOException {
+        final HttpGet httpGet = new HttpGet(robotsTxtUrl);
         for (final Header header : requestHeaderList) {
             httpGet.addHeader(header);
         }
+        httpGet.setConfig(robotsTxtRequestConfig);
 
         HttpEntity httpEntity = null;
         try {
-            // get a content
             final HttpResponse response = executeHttpClient(httpGet);
             httpEntity = response.getEntity();
-
-            final int httpStatusCode = response.getStatusLine().getStatusCode();
-            if (httpStatusCode == 200) {
-
-                // check file size
-                final Header contentLengthHeader = response.getFirstHeader("Content-Length");
-                if (contentLengthHeader != null) {
-                    final String value = contentLengthHeader.getValue();
-                    final long contentLength = Long.parseLong(value);
-                    if (contentLengthHelper != null) {
-                        final long maxLength = contentLengthHelper.getMaxLength("text/plain");
-                        if (contentLength > maxLength) {
-                            throw new MaxLengthExceededException("The content length (" + contentLength + " byte) is over " + maxLength
-                                    + " byte. The url is " + robotTxtUrl);
-                        }
-                    }
-                }
-
-                if (httpEntity != null) {
-                    final RobotsTxt robotsTxt = robotsTxtHelper.parse(httpEntity.getContent());
-                    if (robotsTxt != null) {
-                        final String[] sitemaps = robotsTxt.getSitemaps();
-                        if (sitemaps.length > 0) {
-                            crawlerContext.addSitemaps(sitemaps);
-                        }
-
-                        final RobotsTxt.Directive directive = robotsTxt.getMatchedDirective(userAgent);
-                        if (directive != null) {
-                            if (useRobotsTxtDisallows) {
-                                for (String urlPattern : directive.getDisallows()) {
-                                    if (StringUtil.isNotBlank(urlPattern)) {
-                                        urlPattern = convertRobotsTxtPatternToRegex(urlPattern);
-                                        final String urlValue = hostUrl + urlPattern;
-                                        crawlerContext.getUrlFilter().addExclude(urlValue);
-                                        if (logger.isInfoEnabled()) {
-                                            logger.info("Excluded URL: {}", urlValue);
-                                        }
-                                    }
-                                }
-                            }
-                            if (useRobotsTxtAllows) {
-                                for (String urlPattern : directive.getAllows()) {
-                                    if (StringUtil.isNotBlank(urlPattern)) {
-                                        urlPattern = convertRobotsTxtPatternToRegex(urlPattern);
-                                        final String urlValue = hostUrl + urlPattern;
-                                        crawlerContext.getUrlFilter().addInclude(urlValue);
-                                        if (logger.isInfoEnabled()) {
-                                            logger.info("Included URL: {}", urlValue);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+            final int statusCode = response.getStatusLine().getStatusCode();
+            byte[] body = null;
+            String charset = null;
+            if (statusCode >= 200 && statusCode < 300 && httpEntity != null) {
+                final long maxLength = contentLengthHelper != null ? contentLengthHelper.getMaxLength("text/plain") : Long.MAX_VALUE;
+                body = readRobotsTxtBody(robotsTxtUrl, getHeaderValue(response, "Content-Length"), httpEntity.getContent(), maxLength);
+                charset = getCharset(getHeaderValue(response, "Content-Type"));
             }
-        } catch (final CrawlerSystemException e) {
+            return new RobotsTxtResponse(statusCode, getHeaderValue(response, "Location"), getHeaderValue(response, "Retry-After"), body,
+                    charset);
+        } catch (final IOException | RuntimeException e) {
             httpGet.abort();
             throw e;
-        } catch (final Exception e) {
-            httpGet.abort();
-            throw new CrawlingAccessException("Could not process " + robotTxtUrl + ". ", e);
         } finally {
             EntityUtils.consumeQuietly(httpEntity);
         }
+    }
+
+    private static String getHeaderValue(final HttpResponse response, final String name) {
+        final Header header = response.getFirstHeader(name);
+        return header != null ? header.getValue() : null;
     }
 
     /**
@@ -685,7 +653,10 @@ public class Hc4HttpClient extends HcHttpClient {
      *
      * @param path The robots.txt pattern to convert
      * @return The equivalent regular expression
+     * @deprecated robots.txt rules are no longer converted into URL filter patterns; they are matched by
+     *             {@link RobotsTxtHelper#checkRobotsTxt(CrawlerContext, String, String, RobotsTxtFetcher, RobotsTxtPolicy)}.
      */
+    @Deprecated
     protected String convertRobotsTxtPatternToRegex(final String path) {
         String newPath = path.replace(".", "\\.").replace("?", "\\?").replace("*", ".*");
         if (newPath.charAt(0) != '/') {
@@ -777,6 +748,8 @@ public class Hc4HttpClient extends HcHttpClient {
     protected ResponseData processHttpMethod(final String url, final HttpUriRequest httpRequest) {
         try {
             processRobotsTxt(url);
+        } catch (final RobotsTxtDisallowedException | RobotsTxtUnavailableException e) {
+            throw e;
         } catch (final CrawlingAccessException e) {
             if (logger.isInfoEnabled()) {
                 final StringBuilder buf = new StringBuilder(100);
@@ -869,8 +842,9 @@ public class Hc4HttpClient extends HcHttpClient {
                 final boolean lengthLimited = maxLength < Long.MAX_VALUE;
 
                 // Content-Length precheck: reject an oversized response before downloading
-                // anything, mirroring the robots.txt Content-Length check above. A malformed or
-                // unparseable declared length (e.g. "Content-Length: abc") must not fail the URL --
+                // anything, mirroring the robots.txt Content-Length check in
+                // HcHttpClient#readRobotsTxtBody. A malformed or unparseable declared length
+                // (e.g. "Content-Length: abc") must not fail the URL --
                 // it is treated as unknown so this precheck is skipped for that response, relying on
                 // the BoundedInputStream cap and the authoritative post-copy check below instead.
                 if (lengthLimited) {

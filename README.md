@@ -18,7 +18,8 @@ embedded in any JVM application on its own.
 - **Multi-threaded** crawling with configurable thread pools, depth limits and access-count limits
 - **Fault tolerant**: retry wrapper (`FaultTolerantClient`) and an HTTP client that can fall back
   between Apache HttpComponents 5.x and 4.x
-- **Polite**: `robots.txt` (RFC 9309) and sitemap support, plus configurable request intervals
+- **Polite**: `robots.txt` (RFC 9309) and sitemap support, per-site `Crawl-delay` and 429/503
+  backoff, plus configurable request intervals
 - **Bounded by design**: content-length caps enforced *while* downloading, archive-bomb and Zip Slip
   defenses, and bounded recursion in nested extractors
 - **Pluggable**: clients, extractors, transformers, rules and filters are all replaceable via DI
@@ -262,6 +263,8 @@ what you might guess:
 | Proxy | `setProxyHost(String)` / `setProxyPort(Integer)` | `proxyHost` / `proxyPort` |
 | Follow redirects | `setRedirectsEnabled(boolean)` | `redirectsEnabled` |
 | Honour robots.txt | `setUseRobotsTxtDisallows(boolean)` / `setUseRobotsTxtAllows(boolean)` | — |
+| Allow a site whose robots.txt is unavailable | — | `robotsTxtAllowOnUnavailable` (default `false`) |
+| robots.txt retries before giving up a site | — | `robotsTxtMaxRetries` (default from `CrawlerContext`, 3) |
 
 Disable TLS verification only against hosts you control.
 
@@ -289,20 +292,47 @@ Application Default Credentials.
 
 ### Politeness and Intervals
 
-`DefaultIntervalController` exposes four independent delays, all in milliseconds:
+`robots.txt` is fetched once per origin (`scheme://host[:port]`) and applied as RFC 9309 describes:
+
+- `Allow` / `Disallow` use the longest match (`Allow` wins a tie; `*` and `$` are supported). The
+  rules apply to their own origin only — they are no longer added to the crawl's `UrlFilter`.
+- 2xx applies the rules; 3xx is followed up to 5 hops; any other 4xx (401 and 403 included) allows
+  everything.
+- 429, 5xx or an unreachable robots.txt defers the URL: it is re-queued and the origin is backed
+  off before robots.txt is fetched again. When the first fetch and `robotsTxtMaxRetries` retries
+  have all failed, nothing on that origin is crawled; the log says
+  `Disallowed by robots.txt (unavailable, given up)`. `robotsTxtAllowOnUnavailable=true` allows
+  everything at once instead.
+
+A 429 or 503 page response is not processed: the URL is re-queued (up to `maxRetryCount` times,
+then the response is processed as is) and its origin is backed off for `Retry-After`, or
+exponentially from `backoffBaseMillis` without it. `Hc5HttpClient` no longer retries 429/503 itself.
+The limits live on `CrawlerContext` (`crawler.getCrawlerContext()`):
+
+| Setter | Default | Meaning |
+| --- | --- | --- |
+| `setBackoffBaseMillis(long)` | 10000 | First exponential backoff |
+| `setMaxBackoffMillis(long)` | 300000 | Upper limit of a backoff, `Retry-After` included |
+| `setMaxRetryCount(int)` | 3 | Re-queues of one URL after 429/503 or a failed robots.txt fetch |
+| `setMaxCrawlDelayMillis(long)` | 60000 | Upper limit of `Crawl-delay`; 0 disables it |
+| `setRobotsTxtMaxRetries(int)` | 3 | robots.txt retries after the first failed fetch of an origin |
+
+The waiting is done by `HostIntervalController`, which `fess-crawler-lasta`'s `interval.xml` wires
+by default: before each request it waits for the origin's `Crawl-delay` and backoff, plus
+`delayMillisBeforeProcessing` since the last request to the same host. `DefaultIntervalController`
+waits for neither, so re-queued URLs come back at once; a custom interval controller must extend
+`HostIntervalController` to keep `Crawl-delay` and backoff waiting. Both expose four delays, in
+milliseconds:
 
 ```xml
 <component name="intervalController"
-    class="org.codelibs.fess.crawler.interval.impl.DefaultIntervalController">
+    class="org.codelibs.fess.crawler.interval.impl.HostIntervalController">
     <property name="delayMillisBeforeProcessing">1000</property>
     <property name="delayMillisAfterProcessing">0</property>
     <property name="delayMillisAtNoUrlInQueue">500</property>
     <property name="delayMillisForWaitingNewUrl">1000</property>
 </component>
 ```
-
-Use `delayMillisBeforeProcessing` for a fixed per-request delay. `robots.txt` `Crawl-delay` is
-handled separately by `RobotsTxtHelper`.
 
 ### Content Size Limits
 
@@ -539,6 +569,8 @@ crawler to follow links; add `crawler.addIncludeFilter(url + ".*")`. Also check 
 **Crawl stops early**
 Check `setMaxAccessCount` and `setMaxDepth`, and whether `robots.txt` disallows the paths — set
 `useRobotsTxtDisallows` to `false` on the HTTP client only when you are authorized to ignore it.
+`Disallowed by robots.txt (unavailable, given up)` means the site's robots.txt kept failing; see
+[Politeness and Intervals](#politeness-and-intervals).
 
 **Timeouts on slow servers**
 Raise `connectionTimeout` and `soTimeout` on the HTTP client, and `accessTimeout` on the client base.

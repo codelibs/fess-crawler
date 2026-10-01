@@ -16,8 +16,15 @@
 package org.codelibs.fess.crawler.helper;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.InterruptedIOException;
+import java.net.URI;
+import java.nio.charset.Charset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -25,11 +32,20 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.input.BOMInputStream;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.codelibs.core.lang.StringUtil;
+import org.codelibs.core.lang.SystemUtil;
 import org.codelibs.fess.crawler.Constants;
+import org.codelibs.fess.crawler.CrawlerContext;
+import org.codelibs.fess.crawler.entity.HostState;
+import org.codelibs.fess.crawler.entity.HostState.RobotsTxtStatus;
 import org.codelibs.fess.crawler.entity.RobotsTxt;
 import org.codelibs.fess.crawler.entity.RobotsTxt.Directive;
+import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
+import org.codelibs.fess.crawler.exception.RobotsTxtDisallowedException;
 import org.codelibs.fess.crawler.exception.RobotsTxtException;
+import org.codelibs.fess.crawler.exception.RobotsTxtUnavailableException;
 
 /**
  * Robots.txt Parser following RFC 9309 specification.
@@ -45,6 +61,9 @@ import org.codelibs.fess.crawler.exception.RobotsTxtException;
  * <li>Comment support (#)</li>
  * <li>Priority-based matching (longest match wins, Allow beats Disallow at equal length)</li>
  * </ul>
+ *
+ * <p>{@link #checkRobotsTxt(CrawlerContext, String, String, RobotsTxtFetcher, RobotsTxtPolicy)} fetches and applies
+ * robots.txt per origin for the crawler clients, following the RFC 9309 status code and redirect rules.</p>
  *
  * <p>References:</p>
  * <ul>
@@ -76,6 +95,11 @@ public class RobotsTxtHelper {
      * Pattern for Sitemap record.
      */
     protected static final Pattern SITEMAP_RECORD = Pattern.compile("^sitemap:\\s*([^\\s]+)\\s*$", Pattern.CASE_INSENSITIVE);
+
+    /** The maximum number of redirects followed when fetching robots.txt (RFC 9309 section 2.3.1.2). */
+    public static final int MAX_REDIRECTS = 5;
+
+    private static final Logger logger = LogManager.getLogger(RobotsTxtHelper.class);
 
     /** Whether robots.txt processing is enabled. */
     protected boolean enabled = true;
@@ -195,9 +219,12 @@ public class RobotsTxtHelper {
                         isGroupRecordStarted = true;
                         if (!currentDirectiveList.isEmpty() && !StringUtil.isEmpty(value)) {
                             try {
-                                final int crawlDelay = Integer.parseInt(value);
-                                for (final Directive directive : currentDirectiveList) {
-                                    directive.setCrawlDelay(Math.max(0, crawlDelay));
+                                final double crawlDelay = Double.parseDouble(value);
+                                if (!Double.isNaN(crawlDelay) && !Double.isInfinite(crawlDelay)) {
+                                    final long crawlDelayMillis = Math.round(Math.max(0, crawlDelay) * 1000);
+                                    for (final Directive directive : currentDirectiveList) {
+                                        directive.setCrawlDelayMillis(crawlDelayMillis);
+                                    }
                                 }
                             } catch (final NumberFormatException e) {
                                 // Ignore invalid crawl-delay values (non-numeric)
@@ -261,6 +288,300 @@ public class RobotsTxtHelper {
             return line.substring(0, commentIndex);
         }
         return line;
+    }
+
+    /**
+     * Fetches, resolves and applies the robots.txt of the origin of a URL.
+     *
+     * <p>robots.txt is resolved once per origin and the result is kept on the {@link HostState} of the
+     * {@link CrawlerContext}. Threads of the same origin wait for the thread that is fetching it.
+     * The status code is interpreted as RFC 9309 section 2.3.1 describes:</p>
+     * <ul>
+     * <li>2xx: the rules are parsed and applied; Sitemap lines are passed to {@link CrawlerContext#addSitemaps(String[])}.</li>
+     * <li>3xx: the Location is followed up to {@link #MAX_REDIRECTS} times; beyond that, or without a usable Location,
+     * everything is allowed.</li>
+     * <li>4xx other than 429: everything is allowed.</li>
+     * <li>429, 5xx or a network error: robots.txt is unavailable. The backoff of the origin is recorded on the
+     * {@link HostState} (honouring Retry-After) and the URL fails with {@link RobotsTxtUnavailableException} so that it
+     * can be retried later; robots.txt is not fetched again before the backoff ends, and a URL checked before then fails
+     * at once with {@link RobotsTxtUnavailableException#isFetchAttempted()} false. When the first fetch and
+     * {@link RobotsTxtPolicy#maxRetries()} retries after it have all failed, nothing of the origin is allowed.
+     * With {@link RobotsTxtPolicy#allowOnUnavailable()}, everything is allowed at once.</li>
+     * </ul>
+     * <p>A robots.txt that is too large or cannot be parsed allows everything. A body in an unknown charset is read as UTF-8.
+     * A fetch that ends because the thread was interrupted (see {@link #isInterruptedFetch(Throwable)}) is not counted as a failed
+     * fetch and records no backoff; the URL fails with {@link RobotsTxtUnavailableException}.</p>
+     *
+     * @param context the crawler context that holds the per-origin state
+     * @param url the URL to check
+     * @param userAgent the User-Agent used to select the group of rules
+     * @param fetcher fetches robots.txt without following redirects
+     * @param policy how the rules are applied
+     * @throws RobotsTxtDisallowedException if robots.txt does not allow the URL
+     * @throws RobotsTxtUnavailableException if robots.txt is unavailable and the URL should be retried later
+     */
+    public void checkRobotsTxt(final CrawlerContext context, final String url, final String userAgent, final RobotsTxtFetcher fetcher,
+            final RobotsTxtPolicy policy) {
+        if (!enabled) {
+            return;
+        }
+        final HostState hostState = context.getHostState(url);
+        if (hostState == null) {
+            return;
+        }
+
+        synchronized (hostState) {
+            final RobotsTxtStatus status = hostState.getRobotsTxtStatus();
+            if (status == RobotsTxtStatus.UNAVAILABLE && SystemUtil.currentTimeMillis() < hostState.getBackoffUntil()) {
+                // robots.txt is not requested, so the URL has not been tried
+                throw new RobotsTxtUnavailableException(url, 0L, null, false);
+            }
+            if (status == null || status == RobotsTxtStatus.UNAVAILABLE) {
+                final Unavailable unavailable = resolveRobotsTxt(context, HostState.toOrigin(url), userAgent, fetcher, policy, hostState);
+                if (unavailable != null) {
+                    if (isInterruptedFetch(unavailable.cause())) {
+                        // not a failure of the site: keep the state as it was and let the URL be re-queued
+                        if (unavailable.cause() instanceof InterruptedException) {
+                            Thread.currentThread().interrupt();
+                        }
+                        throw new RobotsTxtUnavailableException(url, 0L, unavailable.cause());
+                    }
+                    hostState.setRobotsTxt(RobotsTxtStatus.UNAVAILABLE, null, 0L);
+                    final int failureCount = hostState.incrementAndGetRobotsTxtFailureCount();
+                    if (policy.allowOnUnavailable()) {
+                        if (logger.isInfoEnabled()) {
+                            logger.info("{} is unavailable ({}); all URLs of the site are allowed.", unavailable.robotsTxtUrl(),
+                                    unavailable.reason());
+                        }
+                        hostState.setRobotsTxt(RobotsTxtStatus.ALLOW_ALL, null, 0L);
+                    } else if (failureCount > policy.maxRetries()) {
+                        logger.warn("Gave up fetching {} after {} attempts (last failure: {}); no URL of the site is crawled.",
+                                unavailable.robotsTxtUrl(), failureCount, unavailable.reason());
+                        hostState.setRobotsTxt(RobotsTxtStatus.DISALLOW_ALL, null, 0L);
+                    } else {
+                        final long now = SystemUtil.currentTimeMillis();
+                        final long retryAfterMillis = parseRetryAfter(unavailable.retryAfter(), now);
+                        // stamp the backoff here so that the next attempt waits, whoever calls next
+                        final long wait = hostState.recordFailure(now, retryAfterMillis, context.getBackoffBaseMillis(),
+                                context.getMaxBackoffMillis());
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("{} is unavailable ({}, attempt {}); retrying in {} ms.", unavailable.robotsTxtUrl(),
+                                    unavailable.reason(), failureCount, wait, unavailable.cause());
+                        }
+                        throw new RobotsTxtUnavailableException(url, retryAfterMillis, unavailable.cause());
+                    }
+                }
+            }
+        }
+
+        if (!hostState.isAllowedByRobotsTxt(url)) {
+            throw new RobotsTxtDisallowedException(url);
+        }
+    }
+
+    /**
+     * Returns whether a robots.txt request ended because the crawler thread was interrupted rather than because the site
+     * failed: the thread is interrupted, or the cause is an {@link InterruptedException} or an {@link InterruptedIOException}
+     * that is not a timeout. A timeout ({@link java.net.SocketTimeoutException}, or an {@link InterruptedIOException} named
+     * {@code *TimeoutException} such as a connect or connection-pool timeout of HttpClient) is a failure of the site.
+     *
+     * @param cause the exception of the request, or null
+     * @return true if the request was interrupted
+     */
+    protected static boolean isInterruptedFetch(final Throwable cause) {
+        if (Thread.currentThread().isInterrupted() || cause instanceof InterruptedException) {
+            return true;
+        }
+        if (!(cause instanceof InterruptedIOException)) {
+            return false;
+        }
+        for (Class<?> clazz = cause.getClass(); clazz != null; clazz = clazz.getSuperclass()) {
+            if (clazz.getSimpleName().endsWith("TimeoutException")) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Why robots.txt could not be retrieved.
+     *
+     * @param robotsTxtUrl the URL that failed
+     * @param reason the failure for log messages, such as "HTTP 503" or the exception
+     * @param retryAfter the Retry-After header, or null
+     * @param cause the exception, or null
+     */
+    private record Unavailable(String robotsTxtUrl, String reason, String retryAfter, Throwable cause) {
+    }
+
+    /**
+     * Fetches robots.txt, following redirects, and stores the outcome on the host state.
+     *
+     * @return null when the status was stored, or the reason when robots.txt is unavailable
+     */
+    private Unavailable resolveRobotsTxt(final CrawlerContext context, final String origin, final String userAgent,
+            final RobotsTxtFetcher fetcher, final RobotsTxtPolicy policy, final HostState hostState) {
+        String robotsTxtUrl = origin + "/robots.txt";
+        for (int redirects = 0;; redirects++) {
+            if (logger.isInfoEnabled()) {
+                logger.info("Checking URL: {}", robotsTxtUrl);
+            }
+            final RobotsTxtResponse response;
+            try {
+                response = fetcher.fetch(robotsTxtUrl);
+            } catch (final MaxLengthExceededException e) {
+                if (logger.isInfoEnabled()) {
+                    logger.info("{} is too large; all URLs of the site are allowed: {}", robotsTxtUrl, e.getMessage());
+                }
+                hostState.setRobotsTxt(RobotsTxtStatus.ALLOW_ALL, null, 0L);
+                return null;
+            } catch (final Exception e) {
+                return new Unavailable(robotsTxtUrl, e.getClass().getSimpleName() + ": " + e.getMessage(), null, e);
+            }
+            if (response == null) {
+                return new Unavailable(robotsTxtUrl, "no response", null, null);
+            }
+
+            final int statusCode = response.statusCode();
+            if (statusCode >= 200 && statusCode < 300) {
+                applyRobotsTxt(context, robotsTxtUrl, userAgent, response, policy, hostState);
+                return null;
+            }
+            if (statusCode >= 300 && statusCode < 400) {
+                final String location = resolveLocation(robotsTxtUrl, response.location());
+                if (location == null) {
+                    if (logger.isInfoEnabled()) {
+                        logger.info("{} returned {} without a valid Location ({}); all URLs of the site are allowed.", robotsTxtUrl,
+                                statusCode, response.location());
+                    }
+                    hostState.setRobotsTxt(RobotsTxtStatus.ALLOW_ALL, null, 0L);
+                    return null;
+                }
+                if (redirects >= MAX_REDIRECTS) {
+                    if (logger.isInfoEnabled()) {
+                        logger.info("{} redirects more than {} times; all URLs of the site are allowed.", origin + "/robots.txt",
+                                MAX_REDIRECTS);
+                    }
+                    hostState.setRobotsTxt(RobotsTxtStatus.ALLOW_ALL, null, 0L);
+                    return null;
+                }
+                robotsTxtUrl = location;
+                continue;
+            }
+            if (statusCode >= 400 && statusCode < 500 && statusCode != 429) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("{} returned {}; all URLs of the site are allowed.", robotsTxtUrl, statusCode);
+                }
+                hostState.setRobotsTxt(RobotsTxtStatus.ALLOW_ALL, null, 0L);
+                return null;
+            }
+            return new Unavailable(robotsTxtUrl, "HTTP " + statusCode, response.retryAfter(), null);
+        }
+    }
+
+    /**
+     * Parses a successful robots.txt response and stores its rules on the host state.
+     */
+    private void applyRobotsTxt(final CrawlerContext context, final String robotsTxtUrl, final String userAgent,
+            final RobotsTxtResponse response, final RobotsTxtPolicy policy, final HostState hostState) {
+        final String charset = isSupportedCharset(response.charset()) ? response.charset() : Constants.UTF_8;
+        final byte[] body = response.body() == null ? new byte[0] : response.body();
+        final RobotsTxt robotsTxt;
+        try {
+            robotsTxt = parse(new ByteArrayInputStream(body), charset);
+        } catch (final Exception e) {
+            if (logger.isInfoEnabled()) {
+                logger.info("Could not parse {}; all URLs of the site are allowed: {}", robotsTxtUrl, e.getMessage());
+            }
+            hostState.setRobotsTxt(RobotsTxtStatus.ALLOW_ALL, null, 0L);
+            return;
+        }
+        if (robotsTxt == null) {
+            hostState.setRobotsTxt(RobotsTxtStatus.ALLOW_ALL, null, 0L);
+            return;
+        }
+
+        final String[] sitemaps = robotsTxt.getSitemaps();
+        if (sitemaps.length > 0) {
+            context.addSitemaps(sitemaps);
+        }
+
+        if (!policy.useDisallows()) {
+            hostState.setRobotsTxt(RobotsTxtStatus.ALLOW_ALL, null, 0L);
+            return;
+        }
+        Directive directive = robotsTxt.getMatchedDirective(userAgent);
+        if (directive != null && !policy.useAllows()) {
+            final Directive disallowsOnly = new Directive(directive.getUserAgent());
+            for (final String disallow : directive.getDisallows()) {
+                disallowsOnly.addDisallow(disallow);
+            }
+            disallowsOnly.setCrawlDelayMillis(directive.getCrawlDelayMillis());
+            directive = disallowsOnly;
+        }
+        hostState.setRobotsTxt(RobotsTxtStatus.PARSED, directive, directive == null ? 0L : directive.getCrawlDelayMillis());
+    }
+
+    /**
+     * Checks a charset name from Content-Type. robots.txt is UTF-8 (RFC 9309 section 2.3), which is used for anything else.
+     */
+    private static boolean isSupportedCharset(final String charset) {
+        if (StringUtil.isBlank(charset)) {
+            return false;
+        }
+        try {
+            return Charset.isSupported(charset);
+        } catch (final IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Resolves a Location header against the URL that returned it.
+     *
+     * @return the absolute http(s) URL, or null if the Location is missing or unusable
+     */
+    private static String resolveLocation(final String currentUrl, final String location) {
+        if (StringUtil.isBlank(location)) {
+            return null;
+        }
+        try {
+            final URI resolved = new URI(currentUrl).resolve(location.trim());
+            final String scheme = resolved.getScheme();
+            if (resolved.getHost() == null || !("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme))) {
+                return null;
+            }
+            return resolved.toString();
+        } catch (final Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Parses a Retry-After header value (RFC 9110 section 10.2.3).
+     *
+     * @param value delta-seconds (a non-negative integer) or an HTTP-date in the IMF-fixdate format
+     * @param now the current time in milliseconds
+     * @return the wait in milliseconds from {@code now}; 0 if the value is missing, unparsable, zero or in the past
+     */
+    public static long parseRetryAfter(final String value, final long now) {
+        if (StringUtil.isBlank(value)) {
+            return 0L;
+        }
+        final String trimmed = value.trim();
+        if (trimmed.chars().allMatch(c -> c >= '0' && c <= '9')) {
+            try {
+                return Math.multiplyExact(Long.parseLong(trimmed), 1000L);
+            } catch (final NumberFormatException | ArithmeticException e) {
+                return Long.MAX_VALUE;
+            }
+        }
+        try {
+            final long time = ZonedDateTime.parse(trimmed, DateTimeFormatter.RFC_1123_DATE_TIME).toInstant().toEpochMilli();
+            return Math.max(0L, time - now);
+        } catch (final DateTimeParseException e) {
+            return 0L;
+        }
     }
 
     /**

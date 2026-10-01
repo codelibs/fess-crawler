@@ -18,6 +18,7 @@ package org.codelibs.fess.crawler;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
@@ -30,12 +31,16 @@ import org.codelibs.fess.crawler.client.CrawlerClient;
 import org.codelibs.fess.crawler.client.CrawlerClientFactory;
 import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.entity.AccessResult;
+import org.codelibs.fess.crawler.entity.HostState;
 import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.entity.UrlQueue;
 import org.codelibs.fess.crawler.exception.ChildUrlsException;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
+import org.codelibs.fess.crawler.exception.RobotsTxtDisallowedException;
+import org.codelibs.fess.crawler.exception.RobotsTxtUnavailableException;
 import org.codelibs.fess.crawler.helper.LogHelper;
+import org.codelibs.fess.crawler.helper.RobotsTxtHelper;
 import org.codelibs.fess.crawler.interval.IntervalController;
 import org.codelibs.fess.crawler.log.LogType;
 import org.codelibs.fess.crawler.processor.ResponseProcessor;
@@ -209,6 +214,11 @@ public class CrawlerThread implements Runnable {
         try {
             while (crawlerContext.getStatus() != CrawlerStatus.DONE && isContinue(threadCheckCount)) {
                 final UrlQueue<?> urlQueue = urlQueueService.poll(crawlerContext.sessionId);
+                if (urlQueue != null && isDisallowedByRobotsTxt(urlQueue.getUrl())) {
+                    // a URL was dequeued, so this is not an empty poll; no request is made either
+                    logDisallowedByRobotsTxt(urlQueue.getUrl());
+                    continue;
+                }
                 if (isValid(urlQueue)) {
                     ResponseData responseData = null;
                     log(logHelper, LogType.START_CRAWLING, crawlerContext, urlQueue);
@@ -239,7 +249,25 @@ public class CrawlerThread implements Runnable {
                             responseData.setParentUrl(urlQueue.getParentUrl());
                             responseData.setSessionId(crawlerContext.sessionId);
 
-                            if (responseData.getRedirectLocation() == null) {
+                            boolean requeued = false;
+                            final int httpStatusCode = responseData.getHttpStatusCode();
+                            if (isRetryableStatus(httpStatusCode)) {
+                                final long retryAfterMillis =
+                                        RobotsTxtHelper.parseRetryAfter(getRetryAfter(responseData), SystemUtil.currentTimeMillis());
+                                requeued = handleRetryableFailure(urlQueue, retryAfterMillis, "HTTP " + httpStatusCode, true);
+                            } else if (httpStatusCode > 0) {
+                                final HostState hostState = crawlerContext.peekHostState(urlQueue.getUrl());
+                                if (hostState != null) {
+                                    hostState.recordSuccess();
+                                }
+                            }
+
+                            if (requeued) {
+                                // retried later; the response is not processed
+                                if (logger.isDebugEnabled()) {
+                                    logger.debug("Skipped processing the response of {} until it is retried.", urlQueue.getUrl());
+                                }
+                            } else if (responseData.getRedirectLocation() == null) {
                                 log(logHelper, LogType.PROCESS_RESPONSE, crawlerContext, urlQueue, responseData);
                                 processResponse(urlQueue, responseData);
                             } else {
@@ -262,6 +290,24 @@ public class CrawlerThread implements Runnable {
                         }
                         if (noWaitOnFolder) {
                             continue;
+                        }
+                    } catch (final RobotsTxtDisallowedException e) {
+                        logDisallowedByRobotsTxt(urlQueue.getUrl());
+                    } catch (final RobotsTxtUnavailableException e) {
+                        try {
+                            if (e.isFetchAttempted()) {
+                                // checkRobotsTxt has already recorded the backoff of the origin
+                                handleRetryableFailure(urlQueue, e.getRetryAfterMillis(), "robots.txt unavailable", false);
+                            } else {
+                                // robots.txt was not requested because the backoff of the origin has not ended:
+                                // the URL has not been tried, so this does not use up one of its retries
+                                requeue(urlQueue);
+                                if (logger.isDebugEnabled()) {
+                                    logger.debug("Re-queued {} until the robots.txt backoff of the host ends.", urlQueue.getUrl());
+                                }
+                            }
+                        } catch (final Exception e1) {
+                            log(logHelper, LogType.CRAWLING_EXCEPTION, crawlerContext, urlQueue, e1);
                         }
                     } catch (final CrawlingAccessException e) {
                         log(logHelper, LogType.CRAWLING_ACCESS_EXCEPTION, crawlerContext, urlQueue, e);
@@ -424,7 +470,8 @@ public class CrawlerThread implements Runnable {
         final List<UrlQueue<?>> childList = new ArrayList<>(childUrlList.size());
         for (final RequestData d : childUrlList) {
             final String childUrl = d.getUrl();
-            if (StringUtil.isBlank(childUrl) || !urlSet.add(childUrl) || !crawlerContext.urlFilter.match(childUrl)) {
+            if (StringUtil.isBlank(childUrl) || !urlSet.add(childUrl) || !crawlerContext.urlFilter.match(childUrl)
+                    || isDisallowedByRobotsTxt(childUrl)) {
                 continue;
             }
             final UrlQueue<?> uq = crawlerContainer.getComponent("urlQueue");
@@ -453,7 +500,7 @@ public class CrawlerThread implements Runnable {
         }
 
         // add url and filter
-        if (StringUtil.isNotBlank(childUrl) && crawlerContext.urlFilter.match(childUrl)) {
+        if (StringUtil.isNotBlank(childUrl) && crawlerContext.urlFilter.match(childUrl) && !isDisallowedByRobotsTxt(childUrl)) {
             final List<UrlQueue<?>> childList = new ArrayList<>(1);
             final UrlQueue<?> uq = crawlerContainer.getComponent("urlQueue");
             uq.setCreateTime(SystemUtil.currentTimeMillis());
@@ -500,11 +547,127 @@ public class CrawlerThread implements Runnable {
         }
 
         // url filter
-        if (crawlerContext.urlFilter.match(urlQueue.getUrl())) {
-            return true;
+        if (!crawlerContext.urlFilter.match(urlQueue.getUrl())) {
+            return false;
         }
 
-        return false;
+        return !isDisallowedByRobotsTxt(urlQueue.getUrl());
+    }
+
+    /**
+     * Returns whether the robots.txt already resolved for the origin of a URL disallows it.
+     * A URL whose origin has no state yet is not disallowed; no state is created for it.
+     *
+     * @param url the URL
+     * @return true if the URL must not be crawled
+     */
+    protected boolean isDisallowedByRobotsTxt(final String url) {
+        final HostState hostState = crawlerContext.peekHostState(url);
+        return hostState != null && !hostState.isAllowedByRobotsTxt(url);
+    }
+
+    /**
+     * Logs a URL that robots.txt does not allow, telling a Disallow rule from an origin whose robots.txt
+     * stayed unavailable and was given up ({@link HostState.RobotsTxtStatus#DISALLOW_ALL}).
+     *
+     * @param url the URL
+     */
+    protected void logDisallowedByRobotsTxt(final String url) {
+        final HostState hostState = crawlerContext.peekHostState(url);
+        if (hostState != null && hostState.getRobotsTxtStatus() == HostState.RobotsTxtStatus.DISALLOW_ALL) {
+            logger.info("Disallowed by robots.txt (unavailable, given up): {}", url);
+        } else {
+            logger.info("Disallowed by robots.txt: {}", url);
+        }
+    }
+
+    /**
+     * Returns whether an HTTP status asks the crawler to come back later: 429 (Too Many Requests)
+     * and 503 (Service Unavailable).
+     *
+     * @param httpStatusCode the HTTP status code
+     * @return true if the URL should be retried after a backoff
+     */
+    protected boolean isRetryableStatus(final int httpStatusCode) {
+        return httpStatusCode == 429 || httpStatusCode == 503;
+    }
+
+    /**
+     * Returns the Retry-After header of a response. The header name is matched case-insensitively.
+     *
+     * @param responseData the response
+     * @return the header value, or null if absent
+     */
+    protected String getRetryAfter(final ResponseData responseData) {
+        for (final Map.Entry<String, Object> entry : responseData.getMetaDataMap().entrySet()) {
+            if ("Retry-After".equalsIgnoreCase(entry.getKey()) && entry.getValue() != null) {
+                return entry.getValue().toString();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Handles a URL that must be retried later (429, 503 or an unavailable robots.txt): optionally extends the
+     * backoff of its origin, then re-queues a copy of the entry unless the URL has used up its retries.
+     * This method does not wait; the interval controller waits for the backoff before the next access.
+     *
+     * @param urlQueue the URL queue entry
+     * @param retryAfterMillis the wait requested by the server in milliseconds, 0 or less if none
+     * @param reason the failure for log messages, such as "HTTP 503"
+     * @param recordHostFailure true to record the failure on the origin; false when it has already been recorded
+     * @return true if the URL was re-queued, false if its retries are exhausted
+     */
+    protected boolean handleRetryableFailure(final UrlQueue<?> urlQueue, final long retryAfterMillis, final String reason,
+            final boolean recordHostFailure) {
+        final String url = urlQueue.getUrl();
+        final long now = SystemUtil.currentTimeMillis();
+        long wait = 0L;
+        final HostState hostState = recordHostFailure ? crawlerContext.getHostState(url) : crawlerContext.peekHostState(url);
+        if (hostState != null) {
+            if (recordHostFailure) {
+                wait = hostState.recordFailure(now, retryAfterMillis, crawlerContext.getBackoffBaseMillis(),
+                        crawlerContext.getMaxBackoffMillis());
+            } else {
+                wait = Math.max(0L, hostState.getBackoffUntil() - now);
+            }
+        }
+
+        final int retryCount = crawlerContext.incrementAndGetRetryCount(url);
+        final int maxRetryCount = crawlerContext.getMaxRetryCount();
+        if (retryCount > maxRetryCount) {
+            logger.warn("Gave up retrying {} ({}) after {} attempt(s).", url, reason, retryCount);
+            return false;
+        }
+
+        requeue(urlQueue);
+        logger.info("Re-queued {} ({}; retry {}/{}); the host is backed off for {} ms.", url, reason, retryCount, maxRetryCount, wait);
+        return true;
+    }
+
+    /**
+     * Inserts a copy of a URL queue entry back into the queue, without counting a retry.
+     *
+     * @param urlQueue the URL queue entry
+     */
+    protected void requeue(final UrlQueue<?> urlQueue) {
+        final String url = urlQueue.getUrl();
+        @SuppressWarnings("unchecked")
+        final UrlQueue<Object> copy = (UrlQueue<Object>) crawlerContainer.getComponent("urlQueue");
+        if (urlQueue.getId() != null) {
+            copy.setId(urlQueue.getId());
+        }
+        copy.setMethod(urlQueue.getMethod());
+        copy.setUrl(url);
+        copy.setMetaData(urlQueue.getMetaData());
+        copy.setEncoding(urlQueue.getEncoding());
+        copy.setParentUrl(urlQueue.getParentUrl());
+        copy.setDepth(urlQueue.getDepth());
+        copy.setLastModified(urlQueue.getLastModified());
+        copy.setWeight(urlQueue.getWeight());
+        copy.setSessionId(urlQueue.getSessionId());
+        copy.setCreateTime(urlQueue.getCreateTime());
+        urlQueueService.insert(copy);
     }
 
     /**

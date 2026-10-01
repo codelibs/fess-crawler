@@ -486,4 +486,67 @@ public class PdfExtractorTest extends PlainTestCase {
         }
         return names;
     }
+
+    @Test
+    public void test_getText_fallback_blankPdf() throws Exception {
+        final AtomicReference<Map<String, String>> fallbackParams = new AtomicReference<>();
+        pdfExtractor.setFallbackExtractor((in, params) -> {
+            fallbackParams.set(params);
+            return new ExtractData("ocr text");
+        });
+        final Map<String, String> params = new HashMap<>();
+        params.put(ExtractData.URL, "http://example.com/scanned.pdf");
+        final ExtractData extractData = pdfExtractor.getText(new java.io.ByteArrayInputStream(createBlankPdf()), params);
+        assertEquals("ocr text", extractData.getContent());
+        assertEquals("blank", extractData.getValues("Title")[0]);
+        assertEquals("http://example.com/scanned.pdf", fallbackParams.get().get(ExtractData.URL));
+    }
+
+    @Test
+    public void test_getText_fallback_textPdf() {
+        pdfExtractor.setFallbackExtractor((in, params) -> {
+            throw new AssertionError("fallback must not be called");
+        });
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test.pdf");
+        try {
+            assertTrue(pdfExtractor.getText(in, null).getContent().contains("テスト"));
+        } finally {
+            CloseableUtil.closeQuietly(in);
+        }
+    }
+
+    @Test
+    public void test_getText_fallback_failure() throws Exception {
+        pdfExtractor.setFallbackExtractor((in, params) -> {
+            throw new ExtractException("OCR failed");
+        });
+        final ExtractData extractData = pdfExtractor.getText(new java.io.ByteArrayInputStream(createBlankPdf()), null);
+        assertTrue(extractData.getContent().isBlank());
+        assertEquals("blank", extractData.getValues("Title")[0]);
+    }
+
+    @Test
+    public void test_getText_noFallback_blankPdf() throws Exception {
+        final ExtractData extractData = pdfExtractor.getText(new java.io.ByteArrayInputStream(createBlankPdf()), null);
+        assertTrue(extractData.getContent().isBlank());
+    }
+
+    @Test
+    public void test_getText_fallback_maxTextLength() throws Exception {
+        pdfExtractor.setMaxTextLength(3);
+        pdfExtractor.setFallbackExtractor((in, params) -> new ExtractData("ocr text"));
+        final ExtractData extractData = pdfExtractor.getText(new java.io.ByteArrayInputStream(createBlankPdf()), null);
+        assertEquals("ocr", extractData.getContent());
+        assertEquals("true", extractData.getValues("truncated")[0]);
+        assertEquals("3", extractData.getValues("maxTextLength")[0]);
+    }
+
+    private static byte[] createBlankPdf() throws IOException {
+        try (PDDocument document = new PDDocument(); java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream()) {
+            document.addPage(new org.apache.pdfbox.pdmodel.PDPage());
+            document.getDocumentInformation().setTitle("blank");
+            document.save(out);
+            return out.toByteArray();
+        }
+    }
 }

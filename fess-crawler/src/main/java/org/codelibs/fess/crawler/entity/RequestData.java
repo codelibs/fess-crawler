@@ -15,13 +15,17 @@
  */
 package org.codelibs.fess.crawler.entity;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 
+import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.Constants;
 
 /**
  * Represents a request data for crawling.
- * This class encapsulates the HTTP method, URL, and weight associated with a crawling request.
+ * This class encapsulates the HTTP method, URL, weight and request headers associated with a crawling request.
  */
 public class RequestData {
     /**
@@ -44,6 +48,9 @@ public class RequestData {
 
     /** The weight/priority of this request (default: 1.0). */
     private float weight = 1.0f;
+
+    /** The request headers for this request, in the order they were added. */
+    private final Map<String, String> headers = new LinkedHashMap<>();
 
     /**
      * Creates a new RequestData instance.
@@ -118,12 +125,34 @@ public class RequestData {
     }
 
     /**
+     * Gets the request headers for this request.
+     * Clients that do not support request headers ignore them.
+     * @return an unmodifiable view of the headers, never null
+     */
+    public Map<String, String> getHeaders() {
+        return Collections.unmodifiableMap(headers);
+    }
+
+    /**
+     * Adds a request header. A header with the same name replaces the previous value.
+     * The header is ignored when the name or the value is blank.
+     * @param name the header name
+     * @param value the header value
+     */
+    public void addHeader(final String name, final String value) {
+        if (StringUtil.isBlank(name) || StringUtil.isBlank(value)) {
+            return;
+        }
+        headers.put(name, value);
+    }
+
+    /**
      * Returns the hash code for this RequestData.
      * @return the hash code
      */
     @Override
     public int hashCode() {
-        return Objects.hash(method, url, weight);
+        return Objects.hash(method, url, weight, headers);
     }
 
     /**
@@ -141,7 +170,7 @@ public class RequestData {
             return false;
         RequestData other = (RequestData) obj;
         return method == other.method && Objects.equals(url, other.url)
-                && Float.floatToIntBits(weight) == Float.floatToIntBits(other.weight);
+                && Float.floatToIntBits(weight) == Float.floatToIntBits(other.weight) && headers.equals(other.headers);
     }
 
     /**
@@ -150,7 +179,7 @@ public class RequestData {
      */
     @Override
     public String toString() {
-        return "RequestData [method=" + method + ", url=" + url + ", weight=" + weight + "]";
+        return "RequestData [method=" + method + ", url=" + url + ", weight=" + weight + ", headers=" + headers + "]";
     }
 
 }

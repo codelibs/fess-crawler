@@ -48,6 +48,7 @@ import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
+import org.mockito.ArgumentCaptor;
 
 /**
  * Test case for CrawlerThread class.
@@ -583,5 +584,54 @@ public class CrawlerThreadTest extends PlainTestCase {
         final boolean result = (boolean) method.invoke(crawlerThread, 15); // Exceeds maxThreadCheckCount
 
         assertTrue(result); // Should continue because active threads > 0
+    }
+
+    /**
+     * A subclass can attach headers through createRequestData, and the client receives them.
+     */
+    @Test
+    @SuppressWarnings("unchecked")
+    public void test_run_createRequestDataOverrideAddsHeader() throws Exception {
+        final CrawlerThread thread = new CrawlerThread() {
+            @Override
+            protected RequestData createRequestData(final UrlQueue<?> urlQueue) {
+                final RequestData requestData = super.createRequestData(urlQueue);
+                requestData.addHeader("If-None-Match", "\"v1\"");
+                return requestData;
+            }
+        };
+        thread.urlQueueService = urlQueueService;
+        thread.urlQueueWeigher = new DefaultUrlQueueWeigher();
+        thread.dataService = dataService;
+        thread.crawlerContainer = crawlerContainer;
+        thread.logHelper = logHelper;
+        thread.setClientFactory(clientFactory);
+        thread.setCrawlerContext(crawlerContext);
+
+        final UrlQueue<?> urlQueue = new UrlQueueImpl<>();
+        urlQueue.setUrl("http://example.com/");
+        urlQueue.setMethod(Constants.GET_METHOD);
+        urlQueue.setDepth(0);
+        urlQueue.setWeight(2.0f);
+        when(urlQueueService.poll(anyString())).thenReturn((UrlQueue) urlQueue, (UrlQueue) null);
+        when(urlFilter.match(anyString())).thenReturn(true);
+        final CrawlerClient client = mock(CrawlerClient.class);
+        when(clientFactory.getClient("http://example.com/")).thenReturn(client);
+        final ResponseData responseData = new ResponseData();
+        responseData.setUrl("http://example.com/");
+        responseData.setHttpStatusCode(304);
+        when(client.execute(any(RequestData.class))).thenReturn(responseData);
+        crawlerContext.setStatus(CrawlerStatus.RUNNING);
+        crawlerContext.maxThreadCheckCount = 1;
+
+        thread.run();
+
+        final ArgumentCaptor<RequestData> captor = ArgumentCaptor.forClass(RequestData.class);
+        verify(client, times(1)).execute(captor.capture());
+        final RequestData sent = captor.getValue();
+        assertEquals(RequestData.Method.GET, sent.getMethod());
+        assertEquals("http://example.com/", sent.getUrl());
+        assertEquals(Float.valueOf(2.0f), Float.valueOf(sent.getWeight()));
+        assertEquals("\"v1\"", sent.getHeaders().get("If-None-Match"));
     }
 }

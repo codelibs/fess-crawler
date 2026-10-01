@@ -279,4 +279,68 @@ public class RequestDataTest extends PlainTestCase {
         assertTrue(data.equals(copy));
         assertEquals(data.hashCode(), copy.hashCode());
     }
+
+    @Test
+    public void test_headers_defaultEmptyAndUnmodifiable() {
+        final RequestData data = new RequestData();
+        assertNotNull(data.getHeaders());
+        assertTrue(data.getHeaders().isEmpty());
+        try {
+            data.getHeaders().put("X-Test", "value");
+            fail();
+        } catch (final UnsupportedOperationException e) {
+            // expected
+        }
+    }
+
+    @Test
+    public void test_addHeader() {
+        final RequestData data = new RequestData();
+        data.addHeader("If-None-Match", "\"x\"");
+        data.addHeader("If-Modified-Since", "Mon, 01 Jun 2009 21:02:45 GMT");
+        // the same name replaces the value; the case of the name is kept
+        data.addHeader("If-None-Match", "\"y\"");
+
+        assertEquals(2, data.getHeaders().size());
+        assertEquals("\"y\"", data.getHeaders().get("If-None-Match"));
+        assertEquals("Mon, 01 Jun 2009 21:02:45 GMT", data.getHeaders().get("If-Modified-Since"));
+        assertEquals("[If-None-Match, If-Modified-Since]", data.getHeaders().keySet().toString());
+    }
+
+    @Test
+    public void test_addHeader_blankIgnored() {
+        final RequestData data = new RequestData();
+        data.addHeader(null, "value");
+        data.addHeader(" ", "value");
+        data.addHeader("X-Test", null);
+        data.addHeader("X-Test", "");
+        data.addHeader("X-Test", " ");
+        assertTrue(data.getHeaders().isEmpty());
+    }
+
+    @Test
+    public void test_equalsWithDifferentHeaders() {
+        final RequestData data1 = new RequestData();
+        data1.setMethod(Method.GET);
+        data1.setUrl("https://example.com");
+        final RequestData data2 = new RequestData();
+        data2.setMethod(Method.GET);
+        data2.setUrl("https://example.com");
+        assertEquals(data1, data2);
+
+        data1.addHeader("If-None-Match", "\"x\"");
+        assertFalse(data1.equals(data2));
+
+        data2.addHeader("If-None-Match", "\"x\"");
+        assertEquals(data1, data2);
+        assertEquals(data1.hashCode(), data2.hashCode());
+    }
+
+    @Test
+    public void test_toStringWithHeaders() {
+        final RequestData data = new RequestData();
+        data.setUrl("https://example.com");
+        data.addHeader("If-None-Match", "\"x\"");
+        assertTrue(data.toString().contains("If-None-Match"));
+    }
 }

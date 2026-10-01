@@ -26,6 +26,8 @@ import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.MultipleCrawlingAccessException;
+import org.codelibs.fess.crawler.exception.RobotsTxtDisallowedException;
+import org.codelibs.fess.crawler.exception.RobotsTxtUnavailableException;
 import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
@@ -277,6 +279,38 @@ public class FaultTolerantClientTest extends PlainTestCase {
         assertEquals(5, testClient.count);
         assertEquals(url, response.getUrl());
         assertEquals(Constants.HEAD_METHOD, response.getMethod());
+    }
+
+    @Test
+    public void test_robotsTxtExceptionsNotRetried() {
+        for (final RuntimeException exception : new RuntimeException[] { new RobotsTxtDisallowedException("http://test.com/a"),
+                new RobotsTxtUnavailableException("http://test.com/a", 1000L, null) }) {
+            final FaultTolerantClient client = new FaultTolerantClient();
+            client.setRetryInterval(10L);
+            final int[] count = { 0 };
+            client.setCrawlerClient(new CrawlerClient() {
+                @Override
+                public void setInitParameterMap(final Map<String, Object> params) {
+                }
+
+                @Override
+                public ResponseData execute(final RequestData request) {
+                    count[0]++;
+                    throw exception;
+                }
+            });
+            final TestListener testListener = new TestListener();
+            client.setRequestListener(testListener);
+            try {
+                client.execute(RequestDataBuilder.newRequestData().get().url("http://test.com/a").build());
+                fail();
+            } catch (final RuntimeException e) {
+                assertTrue(e == exception);
+            }
+            assertEquals(1, count[0]);
+            assertEquals(1, testListener.requestCount);
+            assertEquals(1, testListener.endCount);
+        }
     }
 
     static class TestClient implements CrawlerClient {

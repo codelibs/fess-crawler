@@ -122,7 +122,8 @@ public class HostState {
     }
 
     /**
-     * Stores the resolved robots.txt.
+     * Stores the resolved robots.txt. Any status other than {@link RobotsTxtStatus#UNAVAILABLE}
+     * resets the count of failed attempts.
      *
      * @param status the status
      * @param directive the directive that applies to this crawler, or null
@@ -132,6 +133,9 @@ public class HostState {
         this.robotsTxtStatus = status;
         this.directive = directive;
         this.crawlDelayMillis = crawlDelayMillis;
+        if (status != RobotsTxtStatus.UNAVAILABLE) {
+            robotsTxtFailureCount = 0;
+        }
     }
 
     /**

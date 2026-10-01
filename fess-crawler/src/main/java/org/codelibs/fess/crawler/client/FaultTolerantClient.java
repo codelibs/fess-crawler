@@ -27,6 +27,8 @@ import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.exception.MultipleCrawlingAccessException;
+import org.codelibs.fess.crawler.exception.RobotsTxtDisallowedException;
+import org.codelibs.fess.crawler.exception.RobotsTxtUnavailableException;
 
 /**
  * A fault-tolerant wrapper for CrawlerClient that implements retry logic for failed requests.
@@ -106,7 +108,8 @@ public class FaultTolerantClient implements CrawlerClient {
 
                 try {
                     return client.execute(request);
-                } catch (final MaxLengthExceededException e) {
+                } catch (final MaxLengthExceededException | RobotsTxtDisallowedException | RobotsTxtUnavailableException e) {
+                    // not transient within this request: retrying here would only repeat the same outcome
                     throw e;
                 } catch (final Exception e) {
                     if (logger.isDebugEnabled()) {

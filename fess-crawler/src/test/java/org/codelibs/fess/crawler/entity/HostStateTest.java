@@ -165,6 +165,20 @@ public class HostStateTest extends PlainTestCase {
     }
 
     @Test
+    public void test_setRobotsTxt_resolvedStatusResetsFailureCount() {
+        final HostState state = new HostState();
+        assertEquals(1, state.incrementAndGetRobotsTxtFailureCount());
+        state.setRobotsTxt(RobotsTxtStatus.UNAVAILABLE, null, 0L);
+        assertEquals(2, state.incrementAndGetRobotsTxtFailureCount());
+        state.setRobotsTxt(RobotsTxtStatus.PARSED, null, 0L);
+        assertEquals(1, state.incrementAndGetRobotsTxtFailureCount());
+        state.setRobotsTxt(RobotsTxtStatus.ALLOW_ALL, null, 0L);
+        assertEquals(1, state.incrementAndGetRobotsTxtFailureCount());
+        state.setRobotsTxt(RobotsTxtStatus.DISALLOW_ALL, null, 0L);
+        assertEquals(1, state.incrementAndGetRobotsTxtFailureCount());
+    }
+
+    @Test
     public void test_lastAccessTime() {
         final HostState state = new HostState();
         assertEquals(0L, state.getLastAccessTime());

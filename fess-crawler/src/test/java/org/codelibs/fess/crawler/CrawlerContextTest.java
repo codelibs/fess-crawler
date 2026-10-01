@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.codelibs.core.collection.LruHashSet;
+import org.codelibs.fess.crawler.entity.HostState;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.filter.UrlFilter;
 import org.codelibs.fess.crawler.interval.IntervalController;
@@ -850,5 +851,56 @@ public class CrawlerContextTest extends PlainTestCase {
 
         assertEquals(1, successCount.get());
         assertEquals(CrawlerStatus.DONE, crawlerContext.getStatus());
+    }
+
+    @Test
+    public void test_getHostState_sameInstancePerOrigin() {
+        final HostState a = crawlerContext.getHostState("http://Example.com/a");
+        final HostState b = crawlerContext.getHostState("http://example.com/b?c=d");
+        assertNotNull(a);
+        assertTrue(a == b);
+        assertTrue(a != crawlerContext.getHostState("http://example.com:8080/a"));
+        assertTrue(a != crawlerContext.getHostState("https://example.com/a"));
+    }
+
+    @Test
+    public void test_getHostState_nullWithoutHost() {
+        assertNull(crawlerContext.getHostState("file:/tmp/x"));
+        assertNull(crawlerContext.getHostState("mailto:a@b"));
+        assertNull(crawlerContext.getHostState(null));
+    }
+
+    @Test
+    public void test_peekHostState_doesNotCreate() {
+        assertNull(crawlerContext.peekHostState("http://example.com/a"));
+        final HostState created = crawlerContext.getHostState("http://example.com/a");
+        assertTrue(created == crawlerContext.peekHostState("http://example.com/z"));
+        assertNull(crawlerContext.peekHostState("file:/tmp/x"));
+    }
+
+    @Test
+    public void test_incrementAndGetRetryCount() {
+        assertEquals(1, crawlerContext.incrementAndGetRetryCount("http://example.com/a"));
+        assertEquals(2, crawlerContext.incrementAndGetRetryCount("http://example.com/a"));
+        assertEquals(1, crawlerContext.incrementAndGetRetryCount("http://example.com/b"));
+    }
+
+    @Test
+    public void test_politenessDefaults() {
+        assertEquals(60000L, crawlerContext.getMaxCrawlDelayMillis());
+        assertEquals(10000L, crawlerContext.getBackoffBaseMillis());
+        assertEquals(300000L, crawlerContext.getMaxBackoffMillis());
+        assertEquals(3, crawlerContext.getMaxRetryCount());
+        assertEquals(3, crawlerContext.getRobotsTxtMaxRetries());
+        crawlerContext.setMaxCrawlDelayMillis(1L);
+        crawlerContext.setBackoffBaseMillis(2L);
+        crawlerContext.setMaxBackoffMillis(3L);
+        crawlerContext.setMaxRetryCount(4);
+        crawlerContext.setRobotsTxtMaxRetries(5);
+        assertEquals(1L, crawlerContext.getMaxCrawlDelayMillis());
+        assertEquals(2L, crawlerContext.getBackoffBaseMillis());
+        assertEquals(3L, crawlerContext.getMaxBackoffMillis());
+        assertEquals(4, crawlerContext.getMaxRetryCount());
+        assertEquals(5, crawlerContext.getRobotsTxtMaxRetries());
     }
 }

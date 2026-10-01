@@ -16,11 +16,14 @@
 package org.codelibs.fess.crawler;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.codelibs.core.collection.LruHashMap;
 import org.codelibs.core.collection.LruHashSet;
+import org.codelibs.fess.crawler.entity.HostState;
 import org.codelibs.fess.crawler.filter.UrlFilter;
 import org.codelibs.fess.crawler.interval.IntervalController;
 import org.codelibs.fess.crawler.rule.RuleManager;
@@ -96,6 +99,39 @@ public class CrawlerContext {
      * </p>
      */
     protected Set<String> robotsTxtUrlSet = Collections.synchronizedSet(new LruHashSet<>(10000));
+
+    /**
+     * Politeness state (robots.txt, Crawl-delay, backoff) per origin.
+     * <p>
+     * Wrapped with {@link Collections#synchronizedMap(Map)} because {@link LruHashMap} is not thread-safe
+     * and is shared across all crawler threads. The 10000-entry LRU bound evicts the least recently used origin.
+     * </p>
+     */
+    protected Map<String, HostState> hostStateMap = Collections.synchronizedMap(new LruHashMap<>(10000));
+
+    /**
+     * Number of retries performed so far per URL, for 429/503 responses.
+     * Wrapped with {@link Collections#synchronizedMap(Map)} for the same reason as {@link #hostStateMap}.
+     */
+    protected Map<String, Integer> retryCountMap = Collections.synchronizedMap(new LruHashMap<>(10000));
+
+    /** The upper limit of the robots.txt Crawl-delay in milliseconds. */
+    protected long maxCrawlDelayMillis = 60000L;
+
+    /** The first exponential backoff wait in milliseconds. */
+    protected long backoffBaseMillis = 10000L;
+
+    /** The upper limit of a backoff wait in milliseconds. */
+    protected long maxBackoffMillis = 300000L;
+
+    /** The maximum number of retries of one URL after a 429/503 response. */
+    protected int maxRetryCount = 3;
+
+    /**
+     * The number of retries after the first failed robots.txt fetch of one origin; when they fail as well,
+     * no URL of the origin is crawled.
+     */
+    protected int robotsTxtMaxRetries = 3;
 
     /**
      * Thread-local storage for sitemaps.
@@ -256,6 +292,156 @@ public class CrawlerContext {
      */
     public void setRobotsTxtUrlSet(final Set<String> robotsTxtUrlSet) {
         this.robotsTxtUrlSet = robotsTxtUrlSet;
+    }
+
+    /**
+     * Returns the politeness state of the origin of a URL, creating it if absent.
+     * @param url The URL.
+     * @return The HostState, or null if the URL has no host.
+     */
+    public HostState getHostState(final String url) {
+        final String origin = HostState.toOrigin(url);
+        if (origin == null) {
+            return null;
+        }
+        synchronized (hostStateMap) {
+            return hostStateMap.computeIfAbsent(origin, k -> new HostState());
+        }
+    }
+
+    /**
+     * Returns the politeness state of the origin of a URL without creating it.
+     * @param url The URL.
+     * @return The HostState, or null if there is none or the URL has no host.
+     */
+    public HostState peekHostState(final String url) {
+        final String origin = HostState.toOrigin(url);
+        return origin == null ? null : hostStateMap.get(origin);
+    }
+
+    /**
+     * Returns the map of politeness states by origin.
+     * @return The map of HostState.
+     */
+    public Map<String, HostState> getHostStateMap() {
+        return hostStateMap;
+    }
+
+    /**
+     * Sets the map of politeness states by origin.
+     * @param hostStateMap The map of HostState.
+     */
+    public void setHostStateMap(final Map<String, HostState> hostStateMap) {
+        this.hostStateMap = hostStateMap;
+    }
+
+    /**
+     * Increments the retry count of a URL and returns the new value.
+     * @param url The URL.
+     * @return The incremented retry count.
+     */
+    public int incrementAndGetRetryCount(final String url) {
+        synchronized (retryCountMap) {
+            final int count = retryCountMap.getOrDefault(url, 0) + 1;
+            retryCountMap.put(url, count);
+            return count;
+        }
+    }
+
+    /**
+     * Returns the map of retry counts by URL.
+     * @return The map of retry counts.
+     */
+    public Map<String, Integer> getRetryCountMap() {
+        return retryCountMap;
+    }
+
+    /**
+     * Sets the map of retry counts by URL.
+     * @param retryCountMap The map of retry counts.
+     */
+    public void setRetryCountMap(final Map<String, Integer> retryCountMap) {
+        this.retryCountMap = retryCountMap;
+    }
+
+    /**
+     * Returns the upper limit of the robots.txt Crawl-delay.
+     * @return The maximum Crawl-delay in milliseconds.
+     */
+    public long getMaxCrawlDelayMillis() {
+        return maxCrawlDelayMillis;
+    }
+
+    /**
+     * Sets the upper limit of the robots.txt Crawl-delay.
+     * @param maxCrawlDelayMillis The maximum Crawl-delay in milliseconds.
+     */
+    public void setMaxCrawlDelayMillis(final long maxCrawlDelayMillis) {
+        this.maxCrawlDelayMillis = maxCrawlDelayMillis;
+    }
+
+    /**
+     * Returns the first exponential backoff wait.
+     * @return The backoff base in milliseconds.
+     */
+    public long getBackoffBaseMillis() {
+        return backoffBaseMillis;
+    }
+
+    /**
+     * Sets the first exponential backoff wait.
+     * @param backoffBaseMillis The backoff base in milliseconds.
+     */
+    public void setBackoffBaseMillis(final long backoffBaseMillis) {
+        this.backoffBaseMillis = backoffBaseMillis;
+    }
+
+    /**
+     * Returns the upper limit of a backoff wait.
+     * @return The maximum backoff in milliseconds.
+     */
+    public long getMaxBackoffMillis() {
+        return maxBackoffMillis;
+    }
+
+    /**
+     * Sets the upper limit of a backoff wait.
+     * @param maxBackoffMillis The maximum backoff in milliseconds.
+     */
+    public void setMaxBackoffMillis(final long maxBackoffMillis) {
+        this.maxBackoffMillis = maxBackoffMillis;
+    }
+
+    /**
+     * Returns the maximum number of retries of one URL.
+     * @return The maximum retry count.
+     */
+    public int getMaxRetryCount() {
+        return maxRetryCount;
+    }
+
+    /**
+     * Sets the maximum number of retries of one URL.
+     * @param maxRetryCount The maximum retry count.
+     */
+    public void setMaxRetryCount(final int maxRetryCount) {
+        this.maxRetryCount = maxRetryCount;
+    }
+
+    /**
+     * Returns the number of retries after the first failed robots.txt fetch of an origin.
+     * @return The number of robots.txt retries.
+     */
+    public int getRobotsTxtMaxRetries() {
+        return robotsTxtMaxRetries;
+    }
+
+    /**
+     * Sets the number of retries after the first failed robots.txt fetch of an origin.
+     * @param robotsTxtMaxRetries The number of robots.txt retries.
+     */
+    public void setRobotsTxtMaxRetries(final int robotsTxtMaxRetries) {
+        this.robotsTxtMaxRetries = robotsTxtMaxRetries;
     }
 
     /**

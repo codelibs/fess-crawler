@@ -16,6 +16,7 @@
 package org.codelibs.fess.crawler.extractor.impl;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
@@ -49,6 +50,7 @@ import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationFileAttachme
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.codelibs.core.io.CopyUtil;
 import org.codelibs.core.io.FileUtil;
+import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
@@ -157,6 +159,12 @@ public class PdfExtractor extends PasswordBasedExtractor {
     protected long maxContentLength = 0;
 
     /**
+     * Extractor used when PDFBox extracts no text from a PDF, such as a scanned PDF.
+     * For example, a {@link TikaExtractor} with Tesseract OCR enabled. If null, no fallback is performed.
+     */
+    protected Extractor fallbackExtractor;
+
+    /**
      * Creates a new PdfExtractor instance.
      */
     public PdfExtractor() {
@@ -234,8 +242,16 @@ public class PdfExtractor extends PasswordBasedExtractor {
                     }
                 }
 
-                final ExtractData extractData = new ExtractData(writer.getContent());
-                if (writer.isTruncated()) {
+                String content = writer.getContent();
+                boolean truncated = writer.isTruncated();
+                if (fallbackExtractor != null && StringUtil.isBlank(content)) {
+                    final BoundedTextWriter fallbackWriter = new BoundedTextWriter(maxTextLength);
+                    fallbackWriter.write(extractTextByFallback(tempFile, params, content));
+                    content = fallbackWriter.getContent();
+                    truncated = fallbackWriter.isTruncated();
+                }
+                final ExtractData extractData = new ExtractData(content);
+                if (truncated) {
                     if (logger.isWarnEnabled()) {
                         logger.warn("Extracted PDF content truncated: maxTextLength={}", maxTextLength);
                     }
@@ -258,6 +274,31 @@ public class PdfExtractor extends PasswordBasedExtractor {
                 FileUtil.deleteInBackground(tempFile);
             }
         }
+    }
+
+    /**
+     * Extracts the text of a PDF with {@link #fallbackExtractor}.
+     * If the extraction fails, the given content is returned.
+     *
+     * @param file the spooled PDF file
+     * @param params the extraction parameters
+     * @param content the content extracted by PDFBox
+     * @return the extracted text
+     */
+    protected String extractTextByFallback(final File file, final Map<String, String> params, final String content) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("No text is extracted by PDFBox. Retrying with {}.", fallbackExtractor.getClass().getSimpleName());
+        }
+        try (InputStream in = new FileInputStream(file)) {
+            final ExtractData extractData = fallbackExtractor.getText(in, params);
+            if (extractData != null && extractData.getContent() != null) {
+                return extractData.getContent();
+            }
+        } catch (final Exception e) {
+            logger.warn("Failed to extract PDF text with the fallback extractor: url={}",
+                    params != null ? params.get(ExtractData.URL) : null, e);
+        }
+        return content;
     }
 
     /**
@@ -605,5 +646,14 @@ public class PdfExtractor extends PasswordBasedExtractor {
      */
     public void setMaxContentLength(final long maxContentLength) {
         this.maxContentLength = maxContentLength;
+    }
+
+    /**
+     * Sets the extractor used when PDFBox extracts no text from a PDF, such as a scanned PDF.
+     *
+     * @param fallbackExtractor the fallback extractor, or null to disable the fallback
+     */
+    public void setFallbackExtractor(final Extractor fallbackExtractor) {
+        this.fallbackExtractor = fallbackExtractor;
     }
 }

@@ -170,6 +170,13 @@ public class TikaExtractor extends PasswordBasedExtractor {
     /** Precompiled pattern for collapsing whitespace runs in {@link #stripHtmlTags(String)}. */
     private static final Pattern HTML_WHITESPACE_PATTERN = Pattern.compile("\\s+");
 
+    /** Tesseract OCR config that skips OCR, used when a blank content is parsed again. */
+    private static final TesseractOCRConfig SKIP_OCR_CONFIG = new TesseractOCRConfig();
+
+    static {
+        SKIP_OCR_CONFIG.setSkipOcr(true);
+    }
+
     /**
      * Output encoding used when materializing extracted content into a byte
      * stream (e.g. read-as-text fallbacks). This setter intentionally does
@@ -228,6 +235,13 @@ public class TikaExtractor extends PasswordBasedExtractor {
      * Tika config.
      */
     protected TikaConfig tikaConfig;
+
+    /**
+     * Default Tesseract OCR config, used when the {@link #TIKA_TESSERACT_CONFIG} parameter is not given.
+     * If not set, the tesseractOCRConfig component is used when the container has one.
+     * If null, Tika's default config is used.
+     */
+    protected TesseractOCRConfig tesseractOCRConfig;
 
     /**
      * If true, System.out/System.err are muted during Tika parsing to suppress
@@ -301,6 +315,14 @@ public class TikaExtractor extends PasswordBasedExtractor {
             tikaConfig = TikaConfig.getDefaultConfig();
         }
 
+        if (tesseractOCRConfig == null && crawlerContainer != null) {
+            try {
+                tesseractOCRConfig = crawlerContainer.getComponent("tesseractOCRConfig");
+            } catch (final Exception e) {
+                logger.debug("tesseractOCRConfig component is not found.", e);
+            }
+        }
+
         if (logger.isDebugEnabled()) {
             final Parser parser = tikaConfig.getParser();
             logger.debug("supportedTypes: {}", parser.getSupportedTypes(new ParseContext()));
@@ -369,6 +391,9 @@ public class TikaExtractor extends PasswordBasedExtractor {
                     }
                 }, contentEncoding, normalizeText);
                 if (StringUtil.isBlank(content)) {
+                    // OCR is slow and has already run in the first parse, so the retries skip it.
+                    final ParseContext retryParseContext = createParseContext(parser, params);
+                    retryParseContext.set(TesseractOCRConfig.class, SKIP_OCR_CONFIG);
                     if (resourceName != null) {
                         if (logger.isDebugEnabled()) {
                             logger.debug("retry without a resource name: resourceName={}", resourceName);
@@ -376,7 +401,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                         final Metadata metadata2 = createMetadata(null, contentType, contentEncoding, password);
                         content = getContent(writer -> {
                             try (InputStream in = openMaterializedInput(inputStream, tempFile, isByteStream)) {
-                                parser.parse(in, new BodyContentHandler(writer), metadata2, parseContext);
+                                parser.parse(in, new BodyContentHandler(writer), metadata2, retryParseContext);
                             }
                         }, contentEncoding, normalizeText);
                     }
@@ -387,7 +412,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                         final Metadata metadata3 = createMetadata(null, null, contentEncoding, password);
                         content = getContent(writer -> {
                             try (InputStream in = openMaterializedInput(inputStream, tempFile, isByteStream)) {
-                                parser.parse(in, new BodyContentHandler(writer), metadata3, parseContext);
+                                parser.parse(in, new BodyContentHandler(writer), metadata3, retryParseContext);
                             }
                         }, contentEncoding, normalizeText);
                     }
@@ -736,6 +761,8 @@ public class TikaExtractor extends PasswordBasedExtractor {
                 tesseractOCRConfigMap.put(tesseractConfigPath, tesseractOCRConfig);
             }
             parseContext.set(TesseractOCRConfig.class, tesseractOCRConfig);
+        } else if (this.tesseractOCRConfig != null) {
+            parseContext.set(TesseractOCRConfig.class, this.tesseractOCRConfig);
         }
 
         final String pdfParserConfigPath = params != null ? params.get(TIKA_PDF_CONFIG) : null;
@@ -1032,6 +1059,15 @@ public class TikaExtractor extends PasswordBasedExtractor {
      */
     public void setTikaConfig(final TikaConfig tikaConfig) {
         this.tikaConfig = tikaConfig;
+    }
+
+    /**
+     * Sets the default Tesseract OCR config.
+     * It is used when the {@link #TIKA_TESSERACT_CONFIG} parameter is not given.
+     * @param tesseractOCRConfig The Tesseract OCR config.
+     */
+    public void setTesseractOCRConfig(final TesseractOCRConfig tesseractOCRConfig) {
+        this.tesseractOCRConfig = tesseractOCRConfig;
     }
 
     /**

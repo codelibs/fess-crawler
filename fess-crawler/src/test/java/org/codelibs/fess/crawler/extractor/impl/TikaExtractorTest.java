@@ -35,6 +35,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.tika.parser.ParseContext;
+import org.apache.tika.parser.Parser;
+import org.apache.tika.parser.ocr.TesseractOCRConfig;
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.Constants;
@@ -1100,5 +1103,57 @@ public class TikaExtractorTest extends PlainTestCase {
         }
         Assertions.assertSame(originalOut, System.out);
         Assertions.assertSame(originalErr, System.err);
+    }
+
+    @Test
+    public void test_createParseContext_tesseractOCRConfig() throws Exception {
+        assertNull(tikaExtractor.createParseContext(null, null).get(TesseractOCRConfig.class));
+
+        final TesseractOCRConfig defaultConfig = new TesseractOCRConfig();
+        defaultConfig.setLanguage("jpn");
+        tikaExtractor.setTesseractOCRConfig(defaultConfig);
+        Assertions.assertSame(defaultConfig, tikaExtractor.createParseContext(null, null).get(TesseractOCRConfig.class));
+        Assertions.assertSame(defaultConfig, tikaExtractor.createParseContext(null, new HashMap<>()).get(TesseractOCRConfig.class));
+
+        final Map<String, String> params = new HashMap<>();
+        params.put(TikaExtractor.TIKA_TESSERACT_CONFIG, "extractor/tesseract.properties");
+        final TesseractOCRConfig config = tikaExtractor.createParseContext(null, params).get(TesseractOCRConfig.class);
+        assertEquals("eng", config.getLanguage());
+        assertTrue(config.isSkipOcr());
+    }
+
+    @Test
+    public void test_init_tesseractOCRConfigComponent() {
+        final StandardCrawlerContainer container = new StandardCrawlerContainer();
+        container.<TesseractOCRConfig> singleton("tesseractOCRConfig", TesseractOCRConfig.class, config -> config.setSkipOcr(true))
+                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class)
+                .singleton("tikaExtractor", TikaExtractor.class);
+        final TikaExtractor extractor = container.getComponent("tikaExtractor");
+        final TesseractOCRConfig config = extractor.createParseContext(null, null).get(TesseractOCRConfig.class);
+        Assertions.assertSame(container.getComponent("tesseractOCRConfig"), config);
+        assertTrue(config.isSkipOcr());
+    }
+
+    @Test
+    public void test_getText_retrySkipsOcr() {
+        final List<ParseContext> contexts = new ArrayList<>();
+        final TikaExtractor extractor = new TikaExtractor() {
+            @Override
+            protected ParseContext createParseContext(final Parser parser, final Map<String, String> params) {
+                final ParseContext context = super.createParseContext(parser, params);
+                contexts.add(context);
+                return context;
+            }
+        };
+        extractor.init();
+        final TesseractOCRConfig defaultConfig = new TesseractOCRConfig();
+        extractor.setTesseractOCRConfig(defaultConfig);
+        final Map<String, String> params = new HashMap<>();
+        params.put(ExtractData.RESOURCE_NAME_KEY, "blank.txt");
+        params.put(ExtractData.CONTENT_TYPE, "text/plain");
+        extractor.getText(new ByteArrayInputStream(" ".getBytes(StandardCharsets.UTF_8)), params);
+        assertEquals(2, contexts.size());
+        Assertions.assertSame(defaultConfig, contexts.get(0).get(TesseractOCRConfig.class));
+        assertTrue(contexts.get(1).get(TesseractOCRConfig.class).isSkipOcr());
     }
 }

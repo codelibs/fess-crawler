@@ -234,11 +234,7 @@ public class CrawlerThread implements Runnable {
                             log(logHelper, LogType.GET_CONTENT, crawlerContext, urlQueue);
                             // access an url
                             final long startTime = SystemUtil.currentTimeMillis();
-                            responseData = client.execute(RequestDataBuilder.newRequestData()
-                                    .method(urlQueue.getMethod())
-                                    .url(urlQueue.getUrl())
-                                    .weight(urlQueue.getWeight())
-                                    .build());
+                            responseData = client.execute(createRequestData(urlQueue));
                             responseData.setExecutionTime(SystemUtil.currentTimeMillis() - startTime);
                             responseData.setParentUrl(urlQueue.getParentUrl());
                             responseData.setSessionId(crawlerContext.sessionId);
@@ -331,6 +327,16 @@ public class CrawlerThread implements Runnable {
                 }
             }
         }
+    }
+
+    /**
+     * Creates the request data used to fetch the content of the URL queue entry.
+     * Subclasses can override this to add request headers.
+     * @param urlQueue The URL queue entry.
+     * @return The request data.
+     */
+    protected RequestData createRequestData(final UrlQueue<?> urlQueue) {
+        return RequestDataBuilder.newRequestData().method(urlQueue.getMethod()).url(urlQueue.getUrl()).weight(urlQueue.getWeight()).build();
     }
 
     /**

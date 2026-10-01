@@ -135,6 +135,18 @@ public final class RequestDataBuilder {
         }
 
         /**
+         * Adds a request header. A blank name or value is ignored.
+         *
+         * @param name the header name
+         * @param value the header value
+         * @return the current RequestDataContext instance
+         */
+        public RequestDataContext header(final String name, final String value) {
+            data.addHeader(name, value);
+            return this;
+        }
+
+        /**
          * Builds and returns the constructed RequestData object.
          *
          * @return the constructed RequestData object

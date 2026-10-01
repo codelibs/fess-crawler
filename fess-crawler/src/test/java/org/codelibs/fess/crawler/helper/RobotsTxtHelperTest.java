@@ -242,8 +242,10 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         // Invalid directives should not cause parsing to fail
 
         // Test crawl-delay with invalid values
-        // Invalid number should be ignored, valid ones should work
-        assertEquals(0, robotsTxt.getCrawlDelay("GoodBot")); // invalid values ignored
+        // Invalid number is ignored, "-10" clamps to 0, and the last valid value wins.
+        // "Crawl-delay: 5.5" is now a valid fractional delay (5500 ms), so the int API reports 5.
+        assertEquals(5500L, robotsTxt.getCrawlDelayMillis("GoodBot"));
+        assertEquals(5, robotsTxt.getCrawlDelay("GoodBot"));
 
         // Test MultiColonBot - colons in paths should be preserved
         assertFalse(robotsTxt.allows("http://example.com:8080/path", "MultiColonBot"));
@@ -287,7 +289,9 @@ public class RobotsTxtHelperTest extends PlainTestCase {
 
         // Test NumericBot - various crawl-delay formats
         // Should handle edge cases gracefully
+        // "1.23e10" seconds overflows an int, so the int API is capped instead of going negative
         assertTrue(robotsTxt.getCrawlDelay("NumericBot") >= 0);
+        assertEquals(Integer.MAX_VALUE, robotsTxt.getCrawlDelay("NumericBot"));
 
         // Test TabBot - tab characters should be treated as whitespace
         assertFalse(robotsTxt.allows("/tab1/", "TabBot"));
@@ -382,10 +386,33 @@ public class RobotsTxtHelperTest extends PlainTestCase {
             CloseableUtil.closeQuietly(in);
         }
 
-        // Floating point crawl-delay should be ignored (as it expects integer)
+        // Fractional crawl-delay is accepted; the int API rounds down to whole seconds
         assertNotNull(robotsTxt);
-        // Should either parse as 2 or be ignored
-        assertTrue(robotsTxt.getCrawlDelay("TestBot") >= 0);
+        assertEquals(2500L, robotsTxt.getCrawlDelayMillis("TestBot"));
+        assertEquals(2, robotsTxt.getCrawlDelay("TestBot"));
+    }
+
+    private RobotsTxt parseRobotsTxt(final String content) {
+        final InputStream in = new java.io.ByteArrayInputStream(content.getBytes());
+        try {
+            return robotsTxtHelper.parse(in);
+        } finally {
+            CloseableUtil.closeQuietly(in);
+        }
+    }
+
+    @Test
+    public void testParse_crawlDelayMillis() {
+        assertEquals(500L, parseRobotsTxt("User-agent: TestBot\nCrawl-delay: 0.5\n").getCrawlDelayMillis("TestBot"));
+
+        final RobotsTxt whole = parseRobotsTxt("User-agent: TestBot\nCrawl-delay: 2\n");
+        assertEquals(2000L, whole.getCrawlDelayMillis("TestBot"));
+        assertEquals(2, whole.getCrawlDelay("TestBot"));
+
+        assertEquals(0L, parseRobotsTxt("User-agent: TestBot\nCrawl-delay: abc\n").getCrawlDelayMillis("TestBot"));
+        assertEquals(0L, parseRobotsTxt("User-agent: TestBot\nCrawl-delay: -1\n").getCrawlDelayMillis("TestBot"));
+        assertEquals(0L, parseRobotsTxt("User-agent: TestBot\nCrawl-delay: NaN\n").getCrawlDelayMillis("TestBot"));
+        assertEquals(0L, parseRobotsTxt("User-agent: TestBot\nCrawl-delay: Infinity\n").getCrawlDelayMillis("TestBot"));
     }
 
     @Test

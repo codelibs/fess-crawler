@@ -547,4 +547,47 @@ public class RobotsTxtTest extends PlainTestCase {
         assertFalse(robotsTxt.allows("/search?q=a+b", "AnyBot"));
         assertTrue(robotsTxt.allows("/search?q=a b", "AnyBot"));
     }
+
+    @Test
+    public void test_wildcardCountsAsOneOctetInRuleLength() {
+        // RFC 9309 2.2.2: the most specific rule is the one with the most octets in its path.
+        // "/a*b" has 4 octets and beats "/ab" with 3, so /ab is disallowed.
+        RobotsTxt robotsTxt = new RobotsTxt();
+        Directive directive = new Directive("*");
+        directive.addDisallow("/a*b");
+        directive.addAllow("/ab");
+        robotsTxt.addDirective(directive);
+
+        assertFalse(robotsTxt.allows("/ab", "AnyBot"));
+    }
+
+    @Test
+    public void test_longerAllowBeatsWildcardDisallowWithEndAnchor() {
+        // "/*.php$" has 7 octets, "/index.php" has 10, so the Allow rule wins.
+        RobotsTxt robotsTxt = new RobotsTxt();
+        Directive directive = new Directive("*");
+        directive.addDisallow("/*.php$");
+        directive.addAllow("/index.php");
+        robotsTxt.addDirective(directive);
+
+        assertTrue(robotsTxt.allows("/index.php", "AnyBot"));
+        assertFalse(robotsTxt.allows("/other.php", "AnyBot"));
+    }
+
+    @Test
+    public void test_crawlDelayMillisStaysInSyncWithIntApi() {
+        Directive directive = new Directive("*");
+        directive.setCrawlDelay(3);
+        assertEquals(3000L, directive.getCrawlDelayMillis());
+        assertEquals(3, directive.getCrawlDelay());
+
+        directive.setCrawlDelayMillis(2500L);
+        assertEquals(2500L, directive.getCrawlDelayMillis());
+        assertEquals(2, directive.getCrawlDelay());
+
+        RobotsTxt robotsTxt = new RobotsTxt();
+        robotsTxt.addDirective(directive);
+        assertEquals(2500L, robotsTxt.getCrawlDelayMillis("AnyBot"));
+        assertEquals(0L, new RobotsTxt().getCrawlDelayMillis("AnyBot"));
+    }
 }

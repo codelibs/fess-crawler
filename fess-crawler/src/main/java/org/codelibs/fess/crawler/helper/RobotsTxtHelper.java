@@ -195,9 +195,12 @@ public class RobotsTxtHelper {
                         isGroupRecordStarted = true;
                         if (!currentDirectiveList.isEmpty() && !StringUtil.isEmpty(value)) {
                             try {
-                                final int crawlDelay = Integer.parseInt(value);
-                                for (final Directive directive : currentDirectiveList) {
-                                    directive.setCrawlDelay(Math.max(0, crawlDelay));
+                                final double crawlDelay = Double.parseDouble(value);
+                                if (!Double.isNaN(crawlDelay) && !Double.isInfinite(crawlDelay)) {
+                                    final long crawlDelayMillis = Math.round(Math.max(0, crawlDelay) * 1000);
+                                    for (final Directive directive : currentDirectiveList) {
+                                        directive.setCrawlDelayMillis(crawlDelayMillis);
+                                    }
                                 }
                             } catch (final NumberFormatException e) {
                                 // Ignore invalid crawl-delay values (non-numeric)

@@ -93,6 +93,22 @@ public class RobotsTxt {
     }
 
     /**
+     * Gets the crawl delay value for the specified user agent from robots.txt in milliseconds.
+     * Unlike {@link #getCrawlDelay(String)}, fractional seconds such as {@code Crawl-delay: 0.5} are preserved.
+     *
+     * @param userAgent The user agent string to match against robots.txt directives
+     * @return The crawl delay value in milliseconds. Returns 0 if no matching directive is found
+     *         or no crawl delay is specified for the matching directive.
+     */
+    public long getCrawlDelayMillis(final String userAgent) {
+        final Directive directive = getMatchedDirective(userAgent);
+        if (directive == null) {
+            return 0;
+        }
+        return directive.getCrawlDelayMillis();
+    }
+
+    /**
      * Returns the most specific directive matching the given user agent.
      * The method finds the longest matching user agent pattern in the directives,
      * excluding the general "*" pattern which matches all bots.
@@ -268,29 +284,14 @@ public class RobotsTxt {
 
         /**
          * Calculates the priority length for this pattern.
-         * According to RFC 9309, longer patterns have higher priority.
-         * The priority length is the number of characters before any wildcard.
+         * According to RFC 9309, the most specific rule is the one with the most octets in its path,
+         * so every character of the pattern counts, including a wildcard and the end-of-path marker.
          *
          * @param pattern the path pattern
          * @return the priority length
          */
         private static int calculatePriorityLength(final String pattern) {
-            // For priority, we count the pattern length, treating * as having length 0
-            // and $ as having length 1
-            int length = 0;
-            for (int i = 0; i < pattern.length(); i++) {
-                final char c = pattern.charAt(i);
-                if (c == '*') {
-                    // Wildcard doesn't contribute to priority length
-                    continue;
-                } else if (c == '$') {
-                    // $ at the end adds to specificity
-                    length++;
-                } else {
-                    length++;
-                }
-            }
-            return length;
+            return pattern.length();
         }
 
         /**
@@ -444,8 +445,8 @@ public class RobotsTxt {
         /** The user agent string this directive applies to. */
         private final String userAgent;
 
-        /** The crawl delay in seconds for this directive. */
-        private int crawlDelay;
+        /** The crawl delay in milliseconds for this directive. */
+        private long crawlDelayMillis;
 
         /** The list of allowed path patterns for this directive. */
         private final List<PathPattern> allowedPaths = new ArrayList<>();
@@ -466,15 +467,31 @@ public class RobotsTxt {
          * @param crawlDelay the crawl delay in seconds
          */
         public void setCrawlDelay(final int crawlDelay) {
-            this.crawlDelay = crawlDelay;
+            this.crawlDelayMillis = crawlDelay * 1000L;
         }
 
         /**
          * Gets the crawl delay for this directive.
-         * @return the crawl delay in seconds
+         * @return the crawl delay in seconds, rounded down and capped at {@link Integer#MAX_VALUE}
          */
         public int getCrawlDelay() {
-            return crawlDelay;
+            return (int) Math.min(crawlDelayMillis / 1000L, Integer.MAX_VALUE);
+        }
+
+        /**
+         * Sets the crawl delay for this directive in milliseconds.
+         * @param crawlDelayMillis the crawl delay in milliseconds
+         */
+        public void setCrawlDelayMillis(final long crawlDelayMillis) {
+            this.crawlDelayMillis = crawlDelayMillis;
+        }
+
+        /**
+         * Gets the crawl delay for this directive in milliseconds.
+         * @return the crawl delay in milliseconds
+         */
+        public long getCrawlDelayMillis() {
+            return crawlDelayMillis;
         }
 
         /**

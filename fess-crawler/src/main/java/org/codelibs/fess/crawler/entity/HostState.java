@@ -60,6 +60,8 @@ public class HostState {
 
     private int consecutiveFailures;
 
+    private boolean crawlDelayCapLogged;
+
     /**
      * Creates an empty state: robots.txt not resolved, no delay, no backoff.
      */
@@ -230,5 +232,18 @@ public class HostState {
      */
     public synchronized void recordSuccess() {
         consecutiveFailures = 0;
+    }
+
+    /**
+     * Marks that the over-limit Crawl-delay of this origin has been reported, so that it is logged only once.
+     *
+     * @return true the first time it is called, false afterwards
+     */
+    public synchronized boolean markCrawlDelayCapLogged() {
+        if (crawlDelayCapLogged) {
+            return false;
+        }
+        crawlDelayCapLogged = true;
+        return true;
     }
 }

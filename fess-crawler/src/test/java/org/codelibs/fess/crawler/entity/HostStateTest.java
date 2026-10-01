@@ -185,4 +185,13 @@ public class HostStateTest extends PlainTestCase {
         state.setLastAccessTime(1234L);
         assertEquals(1234L, state.getLastAccessTime());
     }
+
+    @Test
+    public void test_markCrawlDelayCapLogged() {
+        final HostState state = new HostState();
+        assertTrue(state.markCrawlDelayCapLogged());
+        assertFalse(state.markCrawlDelayCapLogged());
+        assertFalse(state.markCrawlDelayCapLogged());
+        assertTrue(new HostState().markCrawlDelayCapLogged());
+    }
 }

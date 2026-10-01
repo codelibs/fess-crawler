@@ -5,7 +5,7 @@
 	<include path="crawler/container.xml" />
 
 	<component name="intervalController"
-		class="org.codelibs.fess.crawler.interval.impl.DefaultIntervalController"
+		class="org.codelibs.fess.crawler.interval.impl.HostIntervalController"
 		instance="prototype">
 	</component>
 </components>

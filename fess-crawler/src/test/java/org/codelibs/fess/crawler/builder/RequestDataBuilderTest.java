@@ -310,4 +310,18 @@ public class RequestDataBuilderTest extends PlainTestCase {
         assertEquals(Method.HEAD, data.getMethod());
         assertEquals("https://example.com/large-file.zip", data.getUrl());
     }
+
+    @Test
+    public void test_header() {
+        final RequestData data = RequestDataBuilder.newRequestData()
+                .get()
+                .url("https://example.com/")
+                .header("If-None-Match", "\"x\"")
+                .header("If-Modified-Since", " ")
+                .build();
+
+        assertEquals(1, data.getHeaders().size());
+        assertEquals("\"x\"", data.getHeaders().get("If-None-Match"));
+        assertFalse(data.equals(RequestDataBuilder.newRequestData().get().url("https://example.com/").build()));
+    }
 }

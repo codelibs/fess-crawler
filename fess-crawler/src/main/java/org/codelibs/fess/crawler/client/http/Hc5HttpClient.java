@@ -126,6 +126,7 @@ import org.codelibs.fess.crawler.client.http.conn.Hc5IdnDnsResolver;
 import org.codelibs.fess.crawler.client.http.Hc4Authentication;
 import org.codelibs.fess.crawler.client.http.form.Hc4FormScheme;
 import org.codelibs.fess.crawler.client.http.form.Hc5FormScheme;
+import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
@@ -958,13 +959,32 @@ public class Hc5HttpClient extends HcHttpClient {
      */
     @Override
     public ResponseData doGet(final String url) {
-        ClassicHttpRequest httpGet;
+        return doHttpMethod(url, createHttpGet(url));
+    }
+
+    /**
+     * Performs a GET request with the headers of the request data.
+     * Crawler GETs made through {@code execute} go through this method, so a subclass that customizes GET
+     * should override this method (or {@code doHttpMethod}) rather than {@code doGet(String)}.
+     * The per-request headers are sent in addition to the client-wide request headers.
+     *
+     * @param request The request data
+     * @return The response data
+     */
+    @Override
+    public ResponseData doGet(final RequestData request) {
+        final String url = request.getUrl();
+        final ClassicHttpRequest httpGet = createHttpGet(url);
+        request.getHeaders().forEach(httpGet::setHeader);
+        return doHttpMethod(url, httpGet);
+    }
+
+    private ClassicHttpRequest createHttpGet(final String url) {
         try {
-            httpGet = new HttpGet(url);
+            return new HttpGet(url);
         } catch (final IllegalArgumentException e) {
             throw new CrawlingAccessException("The url may not be valid: " + url, e);
         }
-        return doHttpMethod(url, httpGet);
     }
 
     /*
@@ -1059,8 +1079,8 @@ public class Hc5HttpClient extends HcHttpClient {
             httpEntity = response.getEntity();
 
             final int httpStatusCode = response.getCode();
-            // redirect
-            if (isRedirectHttpStatus(httpStatusCode)) {
+            // redirect (304 Not Modified is a response without a body, not a redirect)
+            if (httpStatusCode != Constants.NOT_MODIFIED_STATUS_CODE && isRedirectHttpStatus(httpStatusCode)) {
                 final Header locationHeader = response.getFirstHeader("location");
                 if (locationHeader != null) {
                     final String redirectLocation;
@@ -1219,7 +1239,8 @@ public class Hc5HttpClient extends HcHttpClient {
             }
             responseData.setMimeType(contentType);
             final Header contentLengthHeader = response.getFirstHeader("Content-Length");
-            if (contentLengthHeader == null) {
+            // a 304 may declare the length of the unchanged representation, but it carries no body
+            if (contentLengthHeader == null || httpStatusCode == Constants.NOT_MODIFIED_STATUS_CODE) {
                 responseData.setContentLength(contentLength);
             } else {
                 final String value = contentLengthHeader.getValue();

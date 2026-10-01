@@ -44,7 +44,10 @@ import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
 import org.codelibs.fess.crawler.client.http.config.CredentialsConfig;
 import org.codelibs.fess.crawler.client.http.config.WebAuthenticationConfig;
 import org.codelibs.fess.crawler.client.http.config.WebAuthenticationConfig.AuthSchemeType;
+import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.CrawlerContext;
+import org.codelibs.fess.crawler.builder.RequestDataBuilder;
+import org.codelibs.fess.crawler.client.FaultTolerantClient;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.HostState;
 import org.codelibs.fess.crawler.entity.HostState.RobotsTxtStatus;
@@ -1467,6 +1470,192 @@ public class Hc5HttpClientTest extends PlainTestCase {
         assertFalse(HcHttpClient.isNonProxyHost("www.example.org", "localhost|*.example.com"));
         assertFalse(HcHttpClient.isNonProxyHost("localhost", ""));
         assertFalse(HcHttpClient.isNonProxyHost("localhost", null));
+    }
+
+    /**
+     * A 304 is a normal response, not a redirect without a Location. It must come back with its
+     * status, headers and Last-Modified, an empty body, and must not be retried by the
+     * fault-tolerant wrapper.
+     */
+    @Test
+    public void test_execute_notModified_returnedAsResponseWithoutRetry() throws Exception {
+        final AtomicInteger requests = new AtomicInteger();
+        final SimpleHttpServer server = new SimpleHttpServer();
+        server.setHandler(exchange -> {
+            requests.incrementAndGet();
+            exchange.getResponseHeaders().add("ETag", "\"v1\"");
+            exchange.getResponseHeaders().add("Last-Modified", "Mon, 01 Jun 2009 21:02:45 GMT");
+            exchange.sendResponseHeaders(304, -1);
+            exchange.close();
+        });
+        server.start();
+        try {
+            final ContentLengthHelper helper = new ContentLengthHelper();
+            helper.setDefaultMaxLength(64L);
+            httpClient.contentLengthHelper = helper;
+            httpClient.setInitParameterMap(robotsTxtDisabled());
+            httpClient.init();
+            final FaultTolerantClient client = new FaultTolerantClient();
+            client.setCrawlerClient(httpClient);
+            client.setRetryInterval(0);
+
+            try (ResponseData responseData =
+                    client.execute(RequestDataBuilder.newRequestData().get().url("http://127.0.0.1:" + server.port() + "/").build())) {
+                assertEquals(304, responseData.getHttpStatusCode());
+                assertNull(responseData.getRedirectLocation());
+                assertEquals(Constants.GET_METHOD, responseData.getMethod());
+                // com.sun.net.httpserver sends the name as "Etag"; metadata keeps the name the server sent
+                assertEquals("\"v1\"", responseData.getMetaDataMap().get("Etag"));
+                assertEquals(httpClient.parseLastModifiedDate("Mon, 01 Jun 2009 21:02:45 GMT"), responseData.getLastModified());
+                assertEquals(0L, responseData.getContentLength());
+                assertEquals(0, responseData.getResponseBody().readAllBytes().length);
+            }
+            assertEquals(1, requests.get());
+        } finally {
+            server.stop();
+        }
+    }
+
+    /**
+     * Other 3xx codes keep their redirect handling: a 302 without a Location is still rejected.
+     */
+    @Test
+    public void test_doGet_redirectWithoutLocation_stillRejected() throws Exception {
+        final SimpleHttpServer server = new SimpleHttpServer();
+        server.setHandler(exchange -> {
+            exchange.sendResponseHeaders(302, -1);
+            exchange.close();
+        });
+        server.start();
+        try {
+            httpClient.setInitParameterMap(robotsTxtDisabled());
+            httpClient.init();
+            try {
+                httpClient.doGet("http://127.0.0.1:" + server.port() + "/");
+                fail();
+            } catch (final CrawlingAccessException e) {
+                assertTrue(e.getMessage().contains("Invalid redirect location"));
+            }
+        } finally {
+            server.stop();
+        }
+    }
+
+    /**
+     * Per-request headers reach the server. The server answers 304 only for the matching
+     * If-None-Match, so the conditional GET returns 304 in a single request and a plain GET 200.
+     */
+    @Test
+    public void test_execute_ifNoneMatch_sentAndNotModifiedReturned() throws Exception {
+        final List<String> received = new CopyOnWriteArrayList<>();
+        final SimpleHttpServer server = new SimpleHttpServer();
+        final byte[] body = "content".getBytes(StandardCharsets.UTF_8);
+        server.setHandler(exchange -> {
+            final String ifNoneMatch = exchange.getRequestHeaders().getFirst("If-None-Match");
+            received.add(String.valueOf(ifNoneMatch));
+            exchange.getResponseHeaders().add("ETag", "\"v1\"");
+            if ("\"v1\"".equals(ifNoneMatch)) {
+                exchange.sendResponseHeaders(304, -1);
+                exchange.close();
+                return;
+            }
+            exchange.getResponseHeaders().add("Content-Type", "text/plain; charset=UTF-8");
+            exchange.sendResponseHeaders(200, body.length);
+            try (OutputStream out = exchange.getResponseBody()) {
+                out.write(body);
+            }
+        });
+        server.start();
+        try {
+            httpClient.setInitParameterMap(robotsTxtDisabled());
+            httpClient.init();
+            final FaultTolerantClient client = new FaultTolerantClient();
+            client.setCrawlerClient(httpClient);
+            client.setRetryInterval(0);
+            final String url = "http://127.0.0.1:" + server.port() + "/";
+
+            try (ResponseData responseData =
+                    client.execute(RequestDataBuilder.newRequestData().get().url(url).header("If-None-Match", "\"v1\"").build())) {
+                assertEquals(304, responseData.getHttpStatusCode());
+                assertNull(responseData.getRedirectLocation());
+            }
+            assertEquals(List.of("\"v1\""), received);
+
+            received.clear();
+            try (ResponseData responseData = client.execute(RequestDataBuilder.newRequestData().get().url(url).build())) {
+                assertEquals(200, responseData.getHttpStatusCode());
+                assertEquals("content", new String(responseData.getResponseBody().readAllBytes(), StandardCharsets.UTF_8));
+            }
+            assertEquals(List.of("null"), received);
+        } finally {
+            server.stop();
+        }
+    }
+
+    /**
+     * If-Modified-Since is sent verbatim.
+     */
+    @Test
+    public void test_execute_ifModifiedSince_sentVerbatim() throws Exception {
+        final List<String> received = new CopyOnWriteArrayList<>();
+        final SimpleHttpServer server = new SimpleHttpServer();
+        server.setHandler(exchange -> {
+            received.add(String.valueOf(exchange.getRequestHeaders().getFirst("If-Modified-Since")));
+            exchange.sendResponseHeaders(304, -1);
+            exchange.close();
+        });
+        server.start();
+        try {
+            httpClient.setInitParameterMap(robotsTxtDisabled());
+            httpClient.init();
+            final String value = "Mon, 01 Jun 2009 21:02:45 GMT";
+
+            try (ResponseData responseData = httpClient.execute(RequestDataBuilder.newRequestData()
+                    .get()
+                    .url("http://127.0.0.1:" + server.port() + "/")
+                    .header("If-Modified-Since", value)
+                    .build())) {
+                assertEquals(304, responseData.getHttpStatusCode());
+            }
+            assertEquals(List.of(value), received);
+        } finally {
+            server.stop();
+        }
+    }
+
+    /**
+     * A 304 may declare the Content-Length of the unchanged representation. It carries no body,
+     * so that length must not be reported or checked against the max content length.
+     */
+    @Test
+    public void test_execute_notModifiedWithContentLength_notRejected() throws Exception {
+        final SimpleHttpServer server = new SimpleHttpServer();
+        server.setHandler(exchange -> {
+            exchange.getResponseHeaders().add("Content-Length", "1024");
+            exchange.sendResponseHeaders(304, -1);
+            exchange.close();
+        });
+        server.start();
+        try {
+            httpClient.setInitParameterMap(robotsTxtDisabled());
+            httpClient.setMaxContentLength(64L);
+            httpClient.init();
+
+            try (ResponseData responseData =
+                    httpClient.execute(RequestDataBuilder.newRequestData().get().url("http://127.0.0.1:" + server.port() + "/").build())) {
+                assertEquals(304, responseData.getHttpStatusCode());
+                assertEquals("1024", responseData.getMetaDataMap().get("Content-length"));
+                assertEquals(0L, responseData.getContentLength());
+            }
+        } finally {
+            server.stop();
+        }
+    }
+
+    private static Map<String, Object> robotsTxtDisabled() {
+        final Map<String, Object> params = new HashMap<>();
+        params.put(HcHttpClient.ROBOTS_TXT_ENABLED_PROPERTY, false);
+        return params;
     }
 
     private static class SimpleHttpServer {

@@ -173,7 +173,7 @@ public abstract class AbstractCrawlerClient implements CrawlerClient {
     @Override
     public ResponseData execute(final RequestData request) {
         return switch (request.getMethod()) {
-        case GET -> doGet(request.getUrl());
+        case GET -> doGet(request);
         case HEAD -> doHead(request.getUrl());
         case POST -> doPost(request.getUrl());
         default -> throw new CrawlerSystemException(request.getMethod() + " method is not supported.");
@@ -189,6 +189,18 @@ public abstract class AbstractCrawlerClient implements CrawlerClient {
             throw new MaxLengthExceededException("The content length (" + responseData.getContentLength() + " byte) is over "
                     + maxContentLength.longValue() + " byte. The url is " + responseData.getUrl());
         }
+    }
+
+    /**
+     * Performs a GET request with the request data.
+     * The default implementation ignores the request headers and calls {@link #doGet(String)}.
+     * {@link #execute(RequestData)} sends GET requests through this method, so a subclass that customizes GET
+     * should override this method rather than {@link #doGet(String)}.
+     * @param request The request data.
+     * @return The ResponseData.
+     */
+    protected ResponseData doGet(final RequestData request) {
+        return doGet(request.getUrl());
     }
 
     /**

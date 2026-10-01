@@ -299,10 +299,14 @@ Application Default Credentials.
 - 2xx applies the rules; 3xx is followed up to 5 hops; any other 4xx (401 and 403 included) allows
   everything.
 - 429, 5xx or an unreachable robots.txt defers the URL: it is re-queued and the origin is backed
-  off before robots.txt is fetched again. When the first fetch and `robotsTxtMaxRetries` retries
-  have all failed, nothing on that origin is crawled; the log says
-  `Disallowed by robots.txt (unavailable, given up)`. `robotsTxtAllowOnUnavailable=true` allows
-  everything at once instead.
+  off before robots.txt is fetched again. The first failed fetch for a URL is also reported as a
+  `CRAWLING_ACCESS_EXCEPTION` (a `RobotsTxtUnavailableException` whose cause is the network error,
+  such as `UnknownHostException`), so it shows up as a failure URL while the URL is retried; a URL
+  is reported at most once per crawl. When the first fetch and `robotsTxtMaxRetries` retries have
+  all failed, nothing on that origin is crawled, and a dropped URL that has not been reported yet is
+  reported as `robots.txt of <origin> was unavailable; gave up after N attempts`. A `Disallow` rule
+  is not a failure and is only logged at INFO. `robotsTxtAllowOnUnavailable=true` allows everything
+  at once instead.
 
 A 429 or 503 page response is not processed: the URL is re-queued (up to `maxRetryCount` times,
 then the response is processed as is) and its origin is backed off for `Retry-After`, or
@@ -569,8 +573,8 @@ crawler to follow links; add `crawler.addIncludeFilter(url + ".*")`. Also check 
 **Crawl stops early**
 Check `setMaxAccessCount` and `setMaxDepth`, and whether `robots.txt` disallows the paths — set
 `useRobotsTxtDisallows` to `false` on the HTTP client only when you are authorized to ignore it.
-`Disallowed by robots.txt (unavailable, given up)` means the site's robots.txt kept failing; see
-[Politeness and Intervals](#politeness-and-intervals).
+`robots.txt of <origin> was unavailable; gave up after N attempts` means the site's robots.txt kept
+failing; see [Politeness and Intervals](#politeness-and-intervals).
 
 **Timeouts on slow servers**
 Raise `connectionTimeout` and `soTimeout` on the HTTP client, and `accessTimeout` on the client base.

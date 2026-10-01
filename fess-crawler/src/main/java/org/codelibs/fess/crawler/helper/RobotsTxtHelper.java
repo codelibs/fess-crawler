@@ -308,6 +308,10 @@ public class RobotsTxtHelper {
      * {@link RobotsTxtPolicy#maxRetries()} retries after it have all failed, nothing of the origin is allowed.
      * With {@link RobotsTxtPolicy#allowOnUnavailable()}, everything is allowed at once.</li>
      * </ul>
+     * <p>Each failed fetch is stored as the last failure of the {@link HostState} (see
+     * {@link HostState#getRobotsTxtLastFailureReason()}), which is kept when the origin is given up.
+     * A {@link RobotsTxtUnavailableException} for a failed fetch has {@link RobotsTxtUnavailableException#isFetchFailed()} true,
+     * names the failure in its message and carries the exception of the request, if any, as its cause.</p>
      * <p>A robots.txt that is too large or cannot be parsed allows everything. A body in an unknown charset is read as UTF-8.
      * A fetch that ends because the thread was interrupted (see {@link #isInterruptedFetch(Throwable)}) is not counted as a failed
      * fetch and records no backoff; the URL fails with {@link RobotsTxtUnavailableException}.</p>
@@ -337,17 +341,20 @@ public class RobotsTxtHelper {
                 throw new RobotsTxtUnavailableException(url, 0L, null, false);
             }
             if (status == null || status == RobotsTxtStatus.UNAVAILABLE) {
-                final Unavailable unavailable = resolveRobotsTxt(context, HostState.toOrigin(url), userAgent, fetcher, policy, hostState);
+                final String origin = HostState.toOrigin(url);
+                final Unavailable unavailable = resolveRobotsTxt(context, origin, userAgent, fetcher, policy, hostState);
                 if (unavailable != null) {
                     if (isInterruptedFetch(unavailable.cause())) {
                         // not a failure of the site: keep the state as it was and let the URL be re-queued
                         if (unavailable.cause() instanceof InterruptedException) {
                             Thread.currentThread().interrupt();
                         }
-                        throw new RobotsTxtUnavailableException(url, 0L, unavailable.cause());
+                        throw new RobotsTxtUnavailableException("robots.txt is unavailable for " + url, 0L, unavailable.cause(), true,
+                                false);
                     }
                     hostState.setRobotsTxt(RobotsTxtStatus.UNAVAILABLE, null, 0L);
                     final int failureCount = hostState.incrementAndGetRobotsTxtFailureCount();
+                    hostState.setRobotsTxtLastFailure(failureCount, unavailable.reason(), unavailable.cause());
                     if (policy.allowOnUnavailable()) {
                         if (logger.isInfoEnabled()) {
                             logger.info("{} is unavailable ({}); all URLs of the site are allowed.", unavailable.robotsTxtUrl(),
@@ -368,7 +375,10 @@ public class RobotsTxtHelper {
                             logger.debug("{} is unavailable ({}, attempt {}); retrying in {} ms.", unavailable.robotsTxtUrl(),
                                     unavailable.reason(), failureCount, wait, unavailable.cause());
                         }
-                        throw new RobotsTxtUnavailableException(url, retryAfterMillis, unavailable.cause());
+                        // the cause is the network error, if any, so that the failure of the URL is named after it
+                        throw new RobotsTxtUnavailableException(
+                                "robots.txt of " + origin + " is unavailable (" + unavailable.reason() + "): " + url, retryAfterMillis,
+                                unavailable.cause(), true, true);
                     }
                 }
             }

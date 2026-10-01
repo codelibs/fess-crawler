@@ -28,7 +28,8 @@ package org.codelibs.fess.crawler.exception;
  * {@link #getRetryAfterMillis()} is informational.</p>
  *
  * <p>{@link #isFetchAttempted()} tells whether robots.txt was requested for this URL. When it was not, because the backoff of
- * the origin has not ended yet, the URL has not been tried and the re-queue does not count as one of its retries.</p>
+ * the origin has not ended yet, the URL has not been tried and the re-queue does not count as one of its retries. {@link #isFetchFailed()} tells whether the
+ * request failed because of the site, in which case the failure is also reported for the URL.</p>
  */
 public class RobotsTxtUnavailableException extends CrawlingAccessException {
 
@@ -40,8 +41,12 @@ public class RobotsTxtUnavailableException extends CrawlingAccessException {
     /** Whether robots.txt was requested for the URL. */
     private final boolean fetchAttempted;
 
+    /** Whether the request for robots.txt failed because of the site. */
+    private final boolean fetchFailed;
+
     /**
-     * Creates a new RobotsTxtUnavailableException for a failed or interrupted robots.txt request.
+     * Creates a new RobotsTxtUnavailableException for a robots.txt request that failed because of the site.
+     * For an interrupted request, use the constructor that takes {@code fetchFailed}.
      *
      * @param url the URL whose robots.txt could not be retrieved
      * @param retryAfterMillis the wait requested by the server (Retry-After) in milliseconds, 0 or less if none
@@ -61,9 +66,25 @@ public class RobotsTxtUnavailableException extends CrawlingAccessException {
      */
     public RobotsTxtUnavailableException(final String url, final long retryAfterMillis, final Throwable cause,
             final boolean fetchAttempted) {
-        super("robots.txt is unavailable for " + url, cause);
+        this("robots.txt is unavailable for " + url, retryAfterMillis, cause, fetchAttempted, fetchAttempted);
+    }
+
+    /**
+     * Creates a new RobotsTxtUnavailableException with a message.
+     *
+     * @param message the message, which should name the URL and why robots.txt is unavailable
+     * @param retryAfterMillis the wait requested by the server (Retry-After) in milliseconds, 0 or less if none
+     * @param cause the cause, such as the network error of the request, or null
+     * @param fetchAttempted true if robots.txt was requested; false if it was not because the backoff of the origin has not ended
+     * @param fetchFailed true if the request failed because of the site (429, 5xx or a network error); false if no request was
+     *            made or it was interrupted
+     */
+    public RobotsTxtUnavailableException(final String message, final long retryAfterMillis, final Throwable cause,
+            final boolean fetchAttempted, final boolean fetchFailed) {
+        super(message, cause);
         this.retryAfterMillis = retryAfterMillis;
         this.fetchAttempted = fetchAttempted;
+        this.fetchFailed = fetchFailed;
     }
 
     /**
@@ -83,6 +104,16 @@ public class RobotsTxtUnavailableException extends CrawlingAccessException {
      */
     public boolean isFetchAttempted() {
         return fetchAttempted;
+    }
+
+    /**
+     * Returns whether robots.txt was requested and the request failed because of the site (429, 5xx or a network error).
+     * Such a failure is reported as a crawling failure of the URL even though the URL is retried later.
+     *
+     * @return true if the request failed; false if no request was made or the request was interrupted
+     */
+    public boolean isFetchFailed() {
+        return fetchFailed;
     }
 
 }

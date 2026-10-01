@@ -179,6 +179,34 @@ public class HostStateTest extends PlainTestCase {
     }
 
     @Test
+    public void test_robotsTxtLastFailure() {
+        final HostState state = new HostState();
+        assertEquals(0, state.getRobotsTxtLastFailureAttempts());
+        assertNull(state.getRobotsTxtLastFailureReason());
+        assertNull(state.getRobotsTxtLastFailure());
+
+        final Exception cause = new java.io.IOException("connection reset");
+        state.setRobotsTxtLastFailure(1, "IOException: connection reset", cause);
+        state.setRobotsTxt(RobotsTxtStatus.UNAVAILABLE, null, 0L);
+        state.setRobotsTxtLastFailure(2, "HTTP 503", null);
+        state.setRobotsTxt(RobotsTxtStatus.DISALLOW_ALL, null, 0L);
+        // kept when the origin is given up
+        assertEquals(2, state.getRobotsTxtLastFailureAttempts());
+        assertEquals("HTTP 503", state.getRobotsTxtLastFailureReason());
+        assertNull(state.getRobotsTxtLastFailure());
+
+        state.setRobotsTxtLastFailure(1, "IOException: connection reset", cause);
+        state.setRobotsTxt(RobotsTxtStatus.ALLOW_ALL, null, 0L);
+        assertEquals(0, state.getRobotsTxtLastFailureAttempts());
+        assertNull(state.getRobotsTxtLastFailureReason());
+        assertNull(state.getRobotsTxtLastFailure());
+
+        state.setRobotsTxtLastFailure(1, "IOException: connection reset", cause);
+        state.setRobotsTxt(RobotsTxtStatus.PARSED, null, 0L);
+        assertNull(state.getRobotsTxtLastFailure());
+    }
+
+    @Test
     public void test_lastAccessTime() {
         final HostState state = new HostState();
         assertEquals(0L, state.getLastAccessTime());

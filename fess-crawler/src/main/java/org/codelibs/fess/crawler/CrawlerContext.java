@@ -115,6 +115,12 @@ public class CrawlerContext {
      */
     protected Map<String, Integer> retryCountMap = Collections.synchronizedMap(new LruHashMap<>(10000));
 
+    /**
+     * URLs whose robots.txt outage has been reported as a crawling failure in this crawl.
+     * Wrapped with {@link Collections#synchronizedSet(Set)} for the same reason as {@link #robotsTxtUrlSet}.
+     */
+    protected Set<String> robotsTxtFailureReportedSet = Collections.synchronizedSet(new LruHashSet<>(10000));
+
     /** The upper limit of the robots.txt Crawl-delay in milliseconds. */
     protected long maxCrawlDelayMillis = 60000L;
 
@@ -346,6 +352,16 @@ public class CrawlerContext {
             retryCountMap.put(url, count);
             return count;
         }
+    }
+
+    /**
+     * Marks the robots.txt outage of a URL as reported, so that it is reported as a crawling failure at most once in a crawl
+     * however many times robots.txt fails for it.
+     * @param url The URL.
+     * @return true the first time it is called for the URL, false afterwards.
+     */
+    public boolean markRobotsTxtFailureReported(final String url) {
+        return robotsTxtFailureReportedSet.add(url);
     }
 
     /**

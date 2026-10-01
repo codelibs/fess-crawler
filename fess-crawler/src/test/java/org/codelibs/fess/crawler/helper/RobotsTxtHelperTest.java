@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -759,6 +760,41 @@ public class RobotsTxtHelperTest extends PlainTestCase {
     }
 
     @Test
+    public void testCheckRobotsTxt_unresolvableHostCarriesCause() {
+        final CrawlerContext context = new CrawlerContext();
+        final UnknownHostException uhe = new UnknownHostException("failure.url");
+        final ScriptedFetcher fetcher = new ScriptedFetcher().on("http://failure.url/robots.txt", uhe);
+
+        final RobotsTxtUnavailableException e = assertUnavailable(context, "http://failure.url/", fetcher, POLICY);
+        // a failure URL is named after the cause, so the network error must be the cause
+        assertTrue(e.getCause() == uhe);
+        assertTrue(e.isFetchAttempted());
+        assertTrue(e.isFetchFailed());
+        assertEquals("robots.txt of http://failure.url is unavailable (UnknownHostException: failure.url): http://failure.url/",
+                e.getMessage());
+        final HostState hostState = context.getHostState("http://failure.url/");
+        assertEquals(1, hostState.getRobotsTxtLastFailureAttempts());
+        assertEquals("UnknownHostException: failure.url", hostState.getRobotsTxtLastFailureReason());
+        assertTrue(hostState.getRobotsTxtLastFailure() == uhe);
+    }
+
+    @Test
+    public void testCheckRobotsTxt_failureStatusNamedInMessage() {
+        for (final int code : new int[] { 429, 500, 503 }) {
+            final CrawlerContext context = new CrawlerContext();
+            final ScriptedFetcher fetcher = new ScriptedFetcher().on("http://example.com/robots.txt", status(code));
+
+            final RobotsTxtUnavailableException e = assertUnavailable(context, "http://example.com/a", fetcher, POLICY);
+            assertNull(e.getCause());
+            assertTrue(e.isFetchFailed());
+            assertEquals("robots.txt of http://example.com is unavailable (HTTP " + code + "): http://example.com/a", e.getMessage());
+            final HostState hostState = context.getHostState("http://example.com/");
+            assertEquals("HTTP " + code, hostState.getRobotsTxtLastFailureReason());
+            assertNull(hostState.getRobotsTxtLastFailure());
+        }
+    }
+
+    @Test
     public void testCheckRobotsTxt_serviceUnavailableWithRetryAfter() {
         final CrawlerContext context = new CrawlerContext();
         final ScriptedFetcher fetcher =
@@ -809,6 +845,10 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         assertDisallowed(context, "http://example.com/a", fetcher, POLICY);
         assertEquals(RobotsTxtStatus.DISALLOW_ALL, hostState.getRobotsTxtStatus());
         assertEquals(4, fetcher.count());
+        // the last failure is kept so that the dropped URLs can be reported with it
+        assertEquals(4, hostState.getRobotsTxtLastFailureAttempts());
+        assertEquals("HTTP 503", hostState.getRobotsTxtLastFailureReason());
+        assertNull(hostState.getRobotsTxtLastFailure());
 
         // given up: no more fetches
         assertDisallowed(context, "http://example.com/b", fetcher, POLICY);
@@ -829,7 +869,9 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         assertDisallowed(context, "http://example.com/a/1", fetcher, POLICY);
         assertEquals(2, fetcher.count());
         assertEquals(RobotsTxtStatus.PARSED, hostState.getRobotsTxtStatus());
-        // the failure count was reset by the successful fetch
+        // the failure count and the last failure were reset by the successful fetch
+        assertEquals(0, hostState.getRobotsTxtLastFailureAttempts());
+        assertNull(hostState.getRobotsTxtLastFailureReason());
         assertEquals(1, hostState.incrementAndGetRobotsTxtFailureCount());
     }
 
@@ -847,8 +889,9 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         final RobotsTxtUnavailableException e = assertUnavailable(context, "http://example.com/b", fetcher, POLICY);
         assertEquals(0L, e.getRetryAfterMillis());
         assertNull(e.getCause());
-        // nothing was fetched, so the URL must not use up a retry
+        // nothing was fetched, so the URL must not use up a retry, and there is no failure to report
         assertFalse(e.isFetchAttempted());
+        assertFalse(e.isFetchFailed());
         assertEquals(1, fetcher.count());
         assertEquals(backoffUntil, hostState.getBackoffUntil());
 
@@ -879,6 +922,8 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         }
         assertTrue(e.getCause() == interrupted);
         assertTrue(e.isFetchAttempted());
+        // an interrupted request is not a failure of the site
+        assertFalse(e.isFetchFailed());
         assertEquals(0L, e.getRetryAfterMillis());
         assertEquals(0L, hostState.getBackoffUntil());
         assertNull(hostState.getRobotsTxtStatus());
@@ -926,8 +971,10 @@ public class RobotsTxtHelperTest extends PlainTestCase {
             assertTrue(Thread.interrupted());
         }
         assertTrue(e.getCause() == timeout);
+        assertFalse(e.isFetchFailed());
         assertEquals(0L, hostState.getBackoffUntil());
         assertNull(hostState.getRobotsTxtStatus());
+        assertNull(hostState.getRobotsTxtLastFailureReason());
         assertEquals(1, hostState.incrementAndGetRobotsTxtFailureCount());
     }
 
@@ -970,6 +1017,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
 
         final RobotsTxtUnavailableException e = assertUnavailable(context, "http://example.com/a", fetcher, POLICY);
         assertTrue(e.getCause() == ioe);
+        assertTrue(e.isFetchFailed());
         assertEquals(0L, e.getRetryAfterMillis());
         assertEquals(RobotsTxtStatus.UNAVAILABLE, context.getHostState("http://example.com/").getRobotsTxtStatus());
     }

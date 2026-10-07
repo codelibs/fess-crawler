@@ -1096,9 +1096,14 @@ public class Hc5HttpClient extends HcHttpClient {
             }
 
             String contentType = null;
+            String charset = Constants.UTF_8;
             final Header contentTypeHeader = response.getFirstHeader("Content-Type");
             if (contentTypeHeader != null) {
                 contentType = contentTypeHeader.getValue();
+                final String declaredCharset = getSupportedCharset(contentType);
+                if (declaredCharset != null) {
+                    charset = declaredCharset;
+                }
                 final int idx = contentType.indexOf(';');
                 if (idx > 0) {
                     contentType = contentType.substring(0, idx);
@@ -1109,7 +1114,6 @@ public class Hc5HttpClient extends HcHttpClient {
             }
 
             long contentLength = 0;
-            String contentEncoding = Constants.UTF_8;
             if (httpEntity == null) {
                 responseData.setResponseBody(new byte[0]);
                 if (contentType == null) {
@@ -1210,11 +1214,6 @@ public class Hc5HttpClient extends HcHttpClient {
                         }
                     }
                 }
-
-                final String contentEncodingValue = httpEntity.getContentEncoding();
-                if (contentEncodingValue != null) {
-                    contentEncoding = contentEncodingValue;
-                }
             }
 
             // check file size
@@ -1227,7 +1226,7 @@ public class Hc5HttpClient extends HcHttpClient {
             }
 
             responseData.setUrl(url);
-            responseData.setCharSet(contentEncoding);
+            responseData.setCharSet(charset);
             if (httpRequest instanceof HttpHead) {
                 responseData.setMethod(Constants.HEAD_METHOD);
             } else {

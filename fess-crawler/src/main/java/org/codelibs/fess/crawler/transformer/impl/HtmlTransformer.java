@@ -401,6 +401,10 @@ public class HtmlTransformer extends AbstractTransformer {
 
     /**
      * Updates the character set of the response data by detecting it from the content.
+     * <p>
+     * A charset declared by the page itself wins. Without one, the charset the client reported, such as the
+     * one of the Content-Type header, is kept, and only a response that has none gets {@link #defaultEncoding},
+     * or UTF-8 if that is not set either.
      *
      * @param responseData the response data to update
      */
@@ -408,10 +412,8 @@ public class HtmlTransformer extends AbstractTransformer {
         try (final InputStream is = responseData.getResponseBody()) {
             final String encoding = loadCharset(is);
             if (encoding == null) {
-                if (defaultEncoding == null) {
-                    responseData.setCharSet(Constants.UTF_8);
-                } else if (responseData.getCharSet() == null) {
-                    responseData.setCharSet(defaultEncoding);
+                if (responseData.getCharSet() == null) {
+                    responseData.setCharSet(defaultEncoding == null ? Constants.UTF_8 : defaultEncoding);
                 }
             } else {
                 responseData.setCharSet(encoding.trim());

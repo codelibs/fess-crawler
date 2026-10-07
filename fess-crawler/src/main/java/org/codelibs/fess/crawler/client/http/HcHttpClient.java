@@ -17,6 +17,8 @@ package org.codelibs.fess.crawler.client.http;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.IllegalCharsetNameException;
 import java.util.Locale;
 
 import org.apache.commons.io.input.BoundedInputStream;
@@ -239,6 +241,26 @@ public abstract class HcHttpClient extends AbstractCrawlerClient {
             }
         }
         return null;
+    }
+
+    /**
+     * Returns the charset parameter of a Content-Type header value if the JVM supports it.
+     * A name that is malformed or unknown is treated as no declaration at all: the transformers and
+     * the extractors decode with whatever the response reports, and none of them could do so with it.
+     *
+     * @param contentType the Content-Type header value, may be {@code null}
+     * @return the charset, or {@code null} if there is none or it is not supported
+     */
+    protected static String getSupportedCharset(final String contentType) {
+        final String charset = getCharset(contentType);
+        if (charset == null) {
+            return null;
+        }
+        try {
+            return Charset.isSupported(charset) ? charset : null;
+        } catch (final IllegalCharsetNameException e) {
+            return null;
+        }
     }
 
     /**

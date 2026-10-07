@@ -15,20 +15,24 @@
  */
 package org.codelibs.fess.crawler.client.http;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.zip.GZIPOutputStream;
 
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
 import org.apache.hc.client5.http.auth.StandardAuthScheme;
@@ -52,6 +56,7 @@ import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.entity.HostState;
 import org.codelibs.fess.crawler.entity.HostState.RobotsTxtStatus;
 import org.codelibs.fess.crawler.entity.ResponseData;
+import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.exception.RobotsTxtDisallowedException;
@@ -63,6 +68,7 @@ import org.codelibs.fess.crawler.helper.MemoryDataHelper;
 import org.codelibs.fess.crawler.helper.RobotsTxtHelper;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.codelibs.fess.crawler.service.impl.UrlFilterServiceImpl;
+import org.codelibs.fess.crawler.transformer.impl.XpathTransformer;
 import org.codelibs.fess.crawler.util.CrawlerWebServer;
 import org.codelibs.fess.crawler.util.CrawlingParameterUtil;
 import org.dbflute.utflute.core.PlainTestCase;
@@ -1650,6 +1656,190 @@ public class Hc5HttpClientTest extends PlainTestCase {
         } finally {
             server.stop();
         }
+    }
+
+    @Test
+    public void test_getSupportedCharset() {
+        assertEquals("Shift_JIS", HcHttpClient.getSupportedCharset("text/html; charset=Shift_JIS"));
+        assertEquals("EUC-JP", HcHttpClient.getSupportedCharset("text/html;charset=\"EUC-JP\""));
+        assertEquals("utf-8", HcHttpClient.getSupportedCharset("text/html; boundary=x; Charset=utf-8"));
+        assertEquals("sjis", HcHttpClient.getSupportedCharset("text/html; charset=sjis"));
+        assertNull(HcHttpClient.getSupportedCharset(null));
+        assertNull(HcHttpClient.getSupportedCharset("text/html"));
+        assertNull(HcHttpClient.getSupportedCharset("text/html; charset="));
+        assertNull(HcHttpClient.getSupportedCharset("text/html; charset=no-such-charset"));
+        assertNull(HcHttpClient.getSupportedCharset("text/html; charset=!!!"));
+        assertNull(HcHttpClient.getSupportedCharset("text/html; charset='sjis'"));
+    }
+
+    private static final String JA_TITLE = "文書形式の検証";
+
+    private static final String JA_BODY = "日本語の本文です";
+
+    private static final String META_SHIFT_JIS = "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=Shift_JIS\">";
+
+    private static final String META_UTF_8 = "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">";
+
+    private static String japanesePage(final String metaTag) {
+        return "<html><head>" + metaTag + "<title>" + JA_TITLE + "</title></head><body><p>" + JA_BODY + "</p></body></html>";
+    }
+
+    /** Serves one body for every path but robots.txt; a null content type sends no Content-Type header. */
+    private SimpleHttpServer startBodyServer(final byte[] body, final String contentType, final String... headers) throws IOException {
+        final SimpleHttpServer server = new SimpleHttpServer();
+        server.setHandler(exchange -> {
+            if ("/robots.txt".equals(exchange.getRequestURI().getPath())) {
+                exchange.sendResponseHeaders(404, -1);
+                exchange.close();
+                return;
+            }
+            if (contentType != null) {
+                exchange.getResponseHeaders().add("Content-Type", contentType);
+            }
+            for (int i = 0; i + 1 < headers.length; i += 2) {
+                exchange.getResponseHeaders().add(headers[i], headers[i + 1]);
+            }
+            exchange.sendResponseHeaders(200, body.length);
+            try (OutputStream out = exchange.getResponseBody()) {
+                out.write(body);
+            }
+        });
+        server.start();
+        return server;
+    }
+
+    private ResponseData fetch(final SimpleHttpServer server) {
+        httpClient.setInitParameterMap(robotsTxtDisabled());
+        httpClient.init();
+        return httpClient.execute(RequestDataBuilder.newRequestData().get().url("http://127.0.0.1:" + server.port() + "/").build());
+    }
+
+    private static byte[] gzip(final byte[] data) throws IOException {
+        final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        try (GZIPOutputStream out = new GZIPOutputStream(bytes)) {
+            out.write(data);
+        }
+        return bytes.toByteArray();
+    }
+
+    /** Fetches the body with the given Content-Type and returns the charset the client reported. */
+    private String reportedCharset(final byte[] body, final String contentType, final String... headers) throws Exception {
+        final SimpleHttpServer server = startBodyServer(body, contentType, headers);
+        try (ResponseData responseData = fetch(server)) {
+            assertTrue(Arrays.equals(body, responseData.getResponseBody().readAllBytes()));
+            return responseData.getCharSet();
+        } finally {
+            server.stop();
+        }
+    }
+
+    /** The charset of the Content-Type header, not of the page's bytes, is what the client reports. */
+    @Test
+    public void test_execute_charsetOfContentTypeHeader() throws Exception {
+        final String page = japanesePage("");
+        for (final String charset : new String[] { "Shift_JIS", "EUC-JP", "UTF-8" }) {
+            final byte[] body = page.getBytes(charset);
+            final String reported = reportedCharset(body, "text/html; charset=" + charset);
+            assertEquals(charset, reported);
+            // the reported charset decodes the body that was served
+            assertEquals(page, new String(body, reported));
+        }
+    }
+
+    @Test
+    public void test_execute_charsetOfContentTypeHeader_quotedAndCaseInsensitive() throws Exception {
+        final byte[] body = japanesePage("").getBytes("EUC-JP");
+        assertEquals("EUC-JP", reportedCharset(body, "text/html;charset=\"EUC-JP\""));
+        assertEquals("shift_jis", reportedCharset(japanesePage("").getBytes("Shift_JIS"), "text/html; CHARSET=shift_jis"));
+    }
+
+    /** A response that declares no charset keeps the UTF-8 default. */
+    @Test
+    public void test_execute_charsetNotDeclared_defaultsToUtf8() throws Exception {
+        final byte[] body = japanesePage("").getBytes(StandardCharsets.UTF_8);
+        assertEquals(Constants.UTF_8, reportedCharset(body, "text/html"));
+        assertEquals(Constants.UTF_8, reportedCharset(body, "text/html;"));
+        assertEquals(Constants.UTF_8, reportedCharset(body, null));
+    }
+
+    /** A charset the JVM does not know must not fail the crawl; it is treated as undeclared. */
+    @Test
+    public void test_execute_unsupportedCharset_defaultsToUtf8() throws Exception {
+        final byte[] body = japanesePage("").getBytes(StandardCharsets.UTF_8);
+        assertEquals(Constants.UTF_8, reportedCharset(body, "text/html; charset=no-such-charset"));
+        assertEquals(Constants.UTF_8, reportedCharset(body, "text/html; charset=!!!"));
+        assertEquals(Constants.UTF_8, reportedCharset(body, "text/html; charset='sjis'"));
+        assertEquals(Constants.UTF_8, reportedCharset(body, "text/html; charset="));
+    }
+
+    /** Content-Encoding names a compression, not a charset. */
+    @Test
+    public void test_execute_contentEncodingIsNotTheCharset() throws Exception {
+        final byte[] body = japanesePage("").getBytes("Shift_JIS");
+        assertEquals("Shift_JIS", reportedCharset(body, "text/html; charset=Shift_JIS", "Content-Encoding", "identity"));
+        assertEquals(Constants.UTF_8, reportedCharset(body, "text/html", "Content-Encoding", "identity"));
+    }
+
+    @Test
+    public void test_execute_charsetOfCompressedResponse() throws Exception {
+        final byte[] body = japanesePage("").getBytes("Shift_JIS");
+        final SimpleHttpServer server = startBodyServer(gzip(body), "text/html; charset=Shift_JIS", "Content-Encoding", "gzip");
+        try (ResponseData responseData = fetch(server)) {
+            assertEquals("Shift_JIS", responseData.getCharSet());
+            // the body handed to the transformers is the decompressed one
+            assertEquals(japanesePage(""), new String(responseData.getResponseBody().readAllBytes(), responseData.getCharSet()));
+        } finally {
+            server.stop();
+        }
+    }
+
+    /** Crawls the page and returns what an XPath transformer, as used by Fess, makes of its title. */
+    private String crawledTitle(final byte[] body, final String contentType) throws Exception {
+        final XpathTransformer transformer = new XpathTransformer();
+        transformer.setName("xpathTransformer");
+        transformer.setFeatureMap(Map.of("http://xml.org/sax/features/namespaces", "false"));
+        transformer.setPropertyMap(new HashMap<>());
+        transformer.setChildUrlRuleMap(new HashMap<>());
+        transformer.setFieldRuleMap(new LinkedHashMap<>(Map.of("title", "string(//TITLE)")));
+
+        final SimpleHttpServer server = startBodyServer(body, contentType);
+        try (ResponseData responseData = fetch(server)) {
+            final ResultData resultData = transformer.transform(responseData);
+            final String data = new String(resultData.getData(), StandardCharsets.UTF_8);
+            return data.replaceAll("(?s).*<field name=\"title\">(.*)</field>.*", "$1");
+        } finally {
+            server.stop();
+        }
+    }
+
+    /** A page in Shift_JIS or EUC-JP is readable when the charset is only in the Content-Type header. */
+    @Test
+    public void test_crawl_charsetOnlyInContentTypeHeader() throws Exception {
+        final String page = japanesePage("");
+        assertEquals(JA_TITLE, crawledTitle(page.getBytes("Shift_JIS"), "text/html; charset=Shift_JIS"));
+        assertEquals(JA_TITLE, crawledTitle(page.getBytes("EUC-JP"), "text/html; charset=EUC-JP"));
+    }
+
+    @Test
+    public void test_crawl_charsetOnlyInMetaTag() throws Exception {
+        assertEquals(JA_TITLE, crawledTitle(japanesePage(META_SHIFT_JIS).getBytes("Shift_JIS"), "text/html"));
+        assertEquals(JA_TITLE, crawledTitle(japanesePage(META_SHIFT_JIS).getBytes("Shift_JIS"), null));
+    }
+
+    /** The meta tag keeps overriding the Content-Type header, as it did before the header was reported. */
+    @Test
+    public void test_crawl_metaTagOverridesContentTypeHeader() throws Exception {
+        assertEquals(JA_TITLE, crawledTitle(japanesePage(META_SHIFT_JIS).getBytes("Shift_JIS"), "text/html; charset=UTF-8"));
+        assertEquals(JA_TITLE, crawledTitle(japanesePage(META_UTF_8).getBytes(StandardCharsets.UTF_8), "text/html; charset=Shift_JIS"));
+    }
+
+    /** A UTF-8 page that declares nothing is still read as UTF-8. */
+    @Test
+    public void test_crawl_charsetNotDeclared_isUtf8() throws Exception {
+        final byte[] body = japanesePage("").getBytes(StandardCharsets.UTF_8);
+        assertEquals(JA_TITLE, crawledTitle(body, "text/html"));
+        assertEquals(JA_TITLE, crawledTitle(body, null));
+        assertEquals(JA_TITLE, crawledTitle(body, "text/html; charset=no-such-charset"));
     }
 
     private static Map<String, Object> robotsTxtDisabled() {

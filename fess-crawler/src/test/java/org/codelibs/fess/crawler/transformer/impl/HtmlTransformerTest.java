@@ -289,6 +289,72 @@ public class HtmlTransformerTest extends PlainTestCase {
     }
 
     @Test
+    public void test_transform_charsetReportedByClient() throws Exception {
+        // a page that declares nothing is decoded with the charset the client reported, e.g. from the Content-Type header
+        final String content = "<html><head><title>文字コード</title></head><body><p>こんにちは</p></body></html>";
+        final ResponseData responseData = new ResponseData();
+        responseData.setUrl("http://hoge/test.html");
+        responseData.setResponseBody(content.getBytes("Shift_JIS"));
+        responseData.setCharSet("Shift_JIS");
+        responseData.setMimeType("text/html");
+        final ResultData resultData = htmlTransformer.transform(responseData);
+        assertEquals("Shift_JIS", responseData.getCharSet());
+        assertEquals("Shift_JIS", resultData.getEncoding());
+        assertEquals(content, new String(resultData.getData(), resultData.getEncoding()));
+    }
+
+    @Test
+    public void test_transform_charsetInMetaTagOverridesClient() throws Exception {
+        // the page's own declaration wins over the charset the client reported
+        final String content = "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=Shift_JIS\">"
+                + "</head><body><p>こんにちは</p></body></html>";
+        final ResponseData responseData = new ResponseData();
+        responseData.setUrl("http://hoge/test.html");
+        responseData.setResponseBody(content.getBytes("Shift_JIS"));
+        responseData.setCharSet("EUC-JP");
+        responseData.setMimeType("text/html");
+        final ResultData resultData = htmlTransformer.transform(responseData);
+        assertEquals("Shift_JIS", responseData.getCharSet());
+        assertEquals(content, new String(resultData.getData(), resultData.getEncoding()));
+    }
+
+    @Test
+    public void test_transform_unsupportedCharsetReportedByClient() throws Exception {
+        final String content = "<html><head><title>文字コード</title></head><body><p>こんにちは</p></body></html>";
+        final ResponseData responseData = new ResponseData();
+        responseData.setUrl("http://hoge/test.html");
+        responseData.setResponseBody(content.getBytes(Constants.UTF_8));
+        responseData.setCharSet("no-such-charset");
+        responseData.setMimeType("text/html");
+        final ResultData resultData = htmlTransformer.transform(responseData);
+        assertEquals(Constants.UTF_8, responseData.getCharSet());
+        assertEquals(content, new String(resultData.getData(), resultData.getEncoding()));
+    }
+
+    @Test
+    public void test_transform_defaultEncodingOnlyWithoutClientCharset() throws Exception {
+        htmlTransformer.setDefaultEncoding("Shift_JIS");
+        final String content = "<html><head><title>文字コード</title></head><body><p>こんにちは</p></body></html>";
+
+        // nothing reported and nothing declared
+        final ResponseData noCharset = new ResponseData();
+        noCharset.setUrl("http://hoge/test.html");
+        noCharset.setResponseBody(content.getBytes("Shift_JIS"));
+        noCharset.setMimeType("text/html");
+        htmlTransformer.transform(noCharset);
+        assertEquals("Shift_JIS", noCharset.getCharSet());
+
+        // the client reported a charset, which is not replaced by the default
+        final ResponseData reported = new ResponseData();
+        reported.setUrl("http://hoge/test.html");
+        reported.setResponseBody(content.getBytes(Constants.UTF_8));
+        reported.setCharSet(Constants.UTF_8);
+        reported.setMimeType("text/html");
+        htmlTransformer.transform(reported);
+        assertEquals(Constants.UTF_8, reported.getCharSet());
+    }
+
+    @Test
     public void test_getDuplicateUrl() {
         String url;
 

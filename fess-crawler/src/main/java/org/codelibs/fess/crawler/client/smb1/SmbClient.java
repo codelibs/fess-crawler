@@ -351,8 +351,8 @@ public class SmbClient extends AbstractCrawlerClient {
                             try (InputStream contentStream = new BufferedInputStream(new SmbFileInputStream(file))) {
                                 responseData.setResponseBody(InputStreamUtil.getBytes(contentStream));
                             } catch (final Exception e) {
-                                logger.warn("Failed to read SMB file content: path={}, size={}", filePath, file.getContentLength(), e);
-                                responseData.setHttpStatusCode(Constants.SERVER_ERROR_STATUS_CODE);
+                                throw new CrawlingAccessException(
+                                        "Failed to read SMB file content: path=" + filePath + ", size=" + file.getContentLength(), e);
                             }
                         } else {
                             File outputFile = null;
@@ -361,10 +361,9 @@ public class SmbClient extends AbstractCrawlerClient {
                                 copy(file, outputFile);
                                 responseData.setResponseBody(outputFile, true);
                             } catch (final Exception e) {
-                                logger.warn("Failed to write SMB file to temp file: path={}, size={}, tempFile={}", filePath,
-                                        file.getContentLength(), outputFile != null ? outputFile.getAbsolutePath() : "null", e);
-                                responseData.setHttpStatusCode(Constants.SERVER_ERROR_STATUS_CODE);
                                 FileUtil.deleteInBackground(outputFile);
+                                throw new CrawlingAccessException(
+                                        "Failed to write SMB file to temp file: path=" + filePath + ", size=" + file.getContentLength(), e);
                             }
                         }
                         if (logger.isDebugEnabled()) {

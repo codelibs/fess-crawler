@@ -15,6 +15,7 @@
  */
 package org.codelibs.fess.crawler.client.smb;
 
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -32,6 +33,10 @@ import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
+import org.codelibs.jcifs.smb.CIFSContext;
+import org.codelibs.jcifs.smb.SmbConstants;
+import org.codelibs.jcifs.smb.impl.NtlmPasswordAuthenticator;
+import org.codelibs.jcifs.smb.impl.SmbFile;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -775,6 +780,52 @@ public class SmbClientTest extends PlainTestCase {
         client.close();
 
         assertNull(client.smbAuthenticationHolder);
+    }
+
+    private SmbClient createClient(final String username) {
+        final StandardCrawlerContainer container = new StandardCrawlerContainer().singleton("smbClient", SmbClient.class)
+                .singleton("mimeTypeHelper", MimeTypeHelperImpl.class);
+        final SmbClient client = container.getComponent("smbClient");
+        final Map<String, Object> params = new HashMap<>();
+        final SmbAuthentication auth = new SmbAuthentication();
+        auth.setUsername(username);
+        auth.setPassword("test123");
+        params.put("smbAuthentications", new SmbAuthentication[] { auth });
+        client.setInitParameterMap(params);
+        client.init();
+        return client;
+    }
+
+    /** Opens the file so that it cannot be opened for reading by anyone else, as a program locking the file does. */
+    private InputStream lockFile(final String url) throws Exception {
+        final CIFSContext context = smbClient.cifsContext.withCredentials(new NtlmPasswordAuthenticator("", "testuser1", "test123"));
+        return new SmbFile(url, context).openInputStream(SmbConstants.O_RDONLY, SmbConstants.FILE_READ_DATA, SmbConstants.FILE_NO_SHARE);
+    }
+
+    @Test
+    public void test_doGet_lockedFile() throws Exception {
+        try (InputStream lock = lockFile(baseUrl + "file1.txt")) {
+            try (ResponseData responseData = smbClient.doGet(baseUrl + "file1.txt")) {
+                fail(); // a file that cannot be read must be a crawling failure, not a response with status 500
+            } catch (final CrawlingAccessException e) {
+                assertTrue(e.getMessage().contains("file1.txt"));
+            }
+        }
+    }
+
+    @Test
+    public void test_doGet_lockedLargeFile() throws Exception {
+        final SmbClient client = createClient("testuser1");
+        client.setMaxCachedContentSize(0); // read through a temp file
+        try (InputStream lock = lockFile(baseUrl + "file1.txt")) {
+            try (ResponseData responseData = client.doGet(baseUrl + "file1.txt")) {
+                fail(); // a file that cannot be read must be a crawling failure, not a response with status 500
+            } catch (final CrawlingAccessException e) {
+                assertTrue(e.getMessage().contains("file1.txt"));
+            }
+        } finally {
+            client.close();
+        }
     }
 
 }

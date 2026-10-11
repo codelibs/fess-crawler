@@ -445,7 +445,13 @@ public class SmbClient extends AbstractCrawlerClient {
                     if (logger.isDebugEnabled()) {
                         logger.debug("ACE:{}", ace);
                     }
-                    processAllowedSIDs(file, ace.getSID(), ace.isAllow() ? sidAllowSet : sidDenySet);
+                    if (!ace.isAllow()) {
+                        processAllowedSIDs(file, ace.getSID(), sidDenySet);
+                    } else if (isReadAllowed(ace)) {
+                        processAllowedSIDs(file, ace.getSID(), sidAllowSet);
+                    } else if (logger.isDebugEnabled()) {
+                        logger.debug("Skipped the ACE that does not allow reading: {}", ace);
+                    }
                 }
                 responseData.addMetaData(SMB_ALLOWED_SID_ENTRIES, sidAllowSet.toArray(new SID[sidAllowSet.size()]));
                 responseData.addMetaData(SMB_DENIED_SID_ENTRIES, sidDenySet.toArray(new SID[sidDenySet.size()]));
@@ -453,6 +459,18 @@ public class SmbClient extends AbstractCrawlerClient {
         } catch (final IOException e) {
             throw new CrawlingAccessException("Could not access " + file.getPath(), e);
         }
+    }
+
+    /**
+     * Checks whether the given allow ACE grants read access.
+     * An ACE whose access mask has no read bit, such as the empty mask of "Everyone:ALLOWED/0x0/",
+     * grants nothing, so its SID must not be treated as able to read the file.
+     *
+     * @param ace the allow ACE to check
+     * @return {@code true} if the access mask includes {@code FILE_READ_DATA}, {@code GENERIC_READ} or {@code GENERIC_ALL}
+     */
+    protected boolean isReadAllowed(final ACE ace) {
+        return (ace.getAccessMask() & (ACE.FILE_READ_DATA | ACE.GENERIC_READ | ACE.GENERIC_ALL)) != 0;
     }
 
     /**

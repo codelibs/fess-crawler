@@ -613,11 +613,40 @@ public class Hc5HttpClient extends HcHttpClient {
             return null;
         }
         if (config.getType() == CredentialsConfig.CredentialsType.NTLM) {
-            return new NTCredentials(config.getUsername(), config.getPassword() != null ? config.getPassword().toCharArray() : null,
+            return createNtCredentials(config.getUsername(), config.getPassword() != null ? config.getPassword().toCharArray() : null,
                     config.getWorkstation(), config.getDomain());
         }
         return new UsernamePasswordCredentials(config.getUsername(),
                 config.getPassword() != null ? config.getPassword().toCharArray() : null);
+    }
+
+    /**
+     * Creates NTLM credentials that carry the given workstation.
+     *
+     * <p>HttpClient 5 ignores the workstation argument of the {@link NTCredentials} constructors and
+     * reports the host name of the local machine instead, which is then what the NTLM messages carry.
+     * When a workstation is configured, the returned credentials report it. Without one, the local
+     * host name stays in place.</p>
+     *
+     * @param username the user name
+     * @param password the password
+     * @param workstation the workstation name to send, or blank to keep the local host name
+     * @param domain the domain
+     * @return the NTLM credentials
+     */
+    protected static NTCredentials createNtCredentials(final String username, final char[] password, final String workstation,
+            final String domain) {
+        if (StringUtil.isBlank(workstation)) {
+            return new NTCredentials(username, password, workstation, domain);
+        }
+        return new NTCredentials(username, password, workstation, domain) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getWorkstation() {
+                return workstation;
+            }
+        };
     }
 
     /**
@@ -661,7 +690,7 @@ public class Hc5HttpClient extends HcHttpClient {
      */
     protected Credentials convertFromHc4Credentials(final org.apache.http.auth.Credentials hc4Credentials) {
         if (hc4Credentials instanceof final org.apache.http.auth.NTCredentials nt) {
-            return new NTCredentials(nt.getUserName(), nt.getPassword() != null ? nt.getPassword().toCharArray() : null,
+            return createNtCredentials(nt.getUserName(), nt.getPassword() != null ? nt.getPassword().toCharArray() : null,
                     nt.getWorkstation(), nt.getDomain());
         }
         if (hc4Credentials instanceof final org.apache.http.auth.UsernamePasswordCredentials up) {

@@ -90,7 +90,8 @@ import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.psl.PublicSuffixMatcher;
 import org.apache.hc.client5.http.psl.PublicSuffixMatcherLoader;
 import org.apache.hc.client5.http.routing.HttpRoutePlanner;
-import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
+import org.apache.hc.client5.http.ssl.ClientTlsStrategyBuilder;
+import org.apache.hc.client5.http.ssl.HostnameVerificationPolicy;
 import org.apache.hc.client5.http.ssl.TrustAllStrategy;
 import org.apache.hc.core5.http.ClassicHttpRequest;
 import org.apache.hc.core5.http.ClassicHttpResponse;
@@ -766,11 +767,10 @@ public class Hc5HttpClient extends HcHttpClient {
         final PoolingHttpClientConnectionManagerBuilder builder = PoolingHttpClientConnectionManagerBuilder.create()
                 .setMaxConnTotal(maxTotal)
                 .setMaxConnPerRoute(defaultMaxPerRoute)
-                .setDnsResolver(dnsResolver)
-                .setConnectionTimeToLive(org.apache.hc.core5.util.TimeValue.of(timeToLive, timeUnit));
+                .setDnsResolver(dnsResolver);
 
         // Connection config
-        final ConnectionConfig.Builder connectionConfigBuilder = ConnectionConfig.custom();
+        final ConnectionConfig.Builder connectionConfigBuilder = ConnectionConfig.custom().setTimeToLive(timeToLive, timeUnit);
         if (connectionTimeoutParam != null) {
             connectionConfigBuilder.setConnectTimeout(Timeout.ofMilliseconds(connectionTimeoutParam));
         }
@@ -783,10 +783,11 @@ public class Hc5HttpClient extends HcHttpClient {
         if (getInitParameter(IGNORE_SSL_CERTIFICATE_PROPERTY, ignoreSslCertificate, Boolean.class)) {
             try {
                 final SSLContext sslContext = SSLContextBuilder.create().loadTrustMaterial(TrustAllStrategy.INSTANCE).build();
-                builder.setSSLSocketFactory(SSLConnectionSocketFactoryBuilder.create()
+                builder.setTlsSocketStrategy(ClientTlsStrategyBuilder.create()
                         .setSslContext(sslContext)
+                        .setHostVerificationPolicy(HostnameVerificationPolicy.CLIENT)
                         .setHostnameVerifier((hostname, session) -> true)
-                        .build());
+                        .buildClassic());
                 logger.warn(
                         "SSL certificate validation is disabled. This configuration is insecure and should only be used in development/testing environments.");
             } catch (final Exception e) {

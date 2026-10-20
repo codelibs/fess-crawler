@@ -15,8 +15,10 @@
  */
 package org.codelibs.fess.crawler.helper.impl;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,6 +27,7 @@ import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
 import org.codelibs.fess.crawler.exception.MimeTypeException;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
 import org.dbflute.utflute.core.PlainTestCase;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -442,4 +445,29 @@ public class MimeTypeHelperImplTest extends PlainTestCase {
         }
     }
 
+    @Test
+    public void test_getContentType_utf16BomText() throws IOException {
+        final byte[] body = "検索エンジンFessは、日本語のテキストです。".getBytes(StandardCharsets.UTF_16LE);
+        final byte[] data = new byte[body.length + 2];
+        data[0] = (byte) 0xFF;
+        data[1] = (byte) 0xFE;
+        System.arraycopy(body, 0, data, 2, body.length);
+        final MimeTypeHelperImpl mimeTypeHelper = container.getComponent("mimeTypeHelper");
+        assertEquals("text/plain", mimeTypeHelper.getContentType(new ByteArrayInputStream(data), "utf16.txt"));
+    }
+
+    @Test
+    public void test_getContentType_doesNotCloseStream() throws IOException {
+        final boolean[] closed = { false };
+        final InputStream is = new ByteArrayInputStream("hello".getBytes(StandardCharsets.UTF_8)) {
+            @Override
+            public void close() throws IOException {
+                closed[0] = true;
+                super.close();
+            }
+        };
+        final MimeTypeHelperImpl mimeTypeHelper = container.getComponent("mimeTypeHelper");
+        assertEquals("text/plain", mimeTypeHelper.getContentType(is, "hello.txt"));
+        Assertions.assertFalse(closed[0]);
+    }
 }

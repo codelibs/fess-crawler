@@ -20,22 +20,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.tika.metadata.ClimateForcast;
-import org.apache.tika.metadata.CreativeCommons;
-import org.apache.tika.metadata.Geographic;
-import org.apache.tika.metadata.HttpHeaders;
-import org.apache.tika.metadata.Message;
-import org.apache.tika.metadata.TIFF;
-import org.apache.tika.metadata.TikaCoreProperties;
-import org.apache.tika.metadata.TikaMimeKeys;
-
 /**
  * Represents extracted data from a crawled resource, including content and metadata.
  */
-public class ExtractData
-        implements TikaCoreProperties, CreativeCommons, Geographic, HttpHeaders, Message, ClimateForcast, TIFF, TikaMimeKeys, Serializable {
+public class ExtractData implements Serializable {
 
     private static final long serialVersionUID = 1L;
+
+    /** Content type key for metadata */
+    public static final String CONTENT_TYPE = "Content-Type";
+
+    /** Content encoding key for metadata */
+    public static final String CONTENT_ENCODING = "Content-Encoding";
 
     /** Resource name key for metadata */
     public static final String RESOURCE_NAME_KEY = "resourceName";

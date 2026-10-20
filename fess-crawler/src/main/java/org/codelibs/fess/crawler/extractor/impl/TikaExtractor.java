@@ -49,23 +49,29 @@ import org.apache.commons.io.output.DeferredFileOutputStream;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.tika.config.TikaConfig;
-import org.apache.tika.detect.Detector;
+import org.apache.tika.config.OutputLimits;
+import org.apache.tika.detect.DefaultDetector;
+import org.apache.tika.detect.DefaultEncodingDetector;
+import org.apache.tika.detect.EncodingDetector;
+import org.apache.tika.detect.EncodingResult;
 import org.apache.tika.exception.TikaException;
-import org.apache.tika.extractor.EmbeddedDocumentExtractor;
-import org.apache.tika.extractor.ParsingEmbeddedDocumentExtractor;
-import org.apache.tika.io.TemporaryResources;
 import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
-import org.apache.tika.mime.MediaType;
-import org.apache.tika.parser.CompositeParser;
+import org.apache.tika.metadata.ReservedNamespaces;
+import org.apache.tika.metadata.TikaCoreProperties;
+import org.apache.tika.metadata.filter.LegacyKeyMigrationFilter;
+import org.apache.tika.mime.MediaTypeRegistry;
+import org.apache.tika.parser.AutoDetectParser;
+import org.apache.tika.parser.AutoDetectParserConfig;
+import org.apache.tika.parser.DefaultParser;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
 import org.apache.tika.parser.PasswordProvider;
 import org.apache.tika.parser.ocr.TesseractOCRConfig;
 import org.apache.tika.parser.pdf.PDFParserConfig;
 import org.apache.tika.sax.BodyContentHandler;
-import org.apache.tika.sax.SecureContentHandler;
+import org.codelibs.core.beans.BeanDesc;
+import org.codelibs.core.beans.factory.BeanDescFactory;
 import org.codelibs.core.beans.util.BeanUtil;
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.CopyUtil;
@@ -79,7 +85,6 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.ExtractException;
 import org.codelibs.fess.crawler.extractor.Extractor;
 import org.codelibs.fess.crawler.util.TextUtil;
-import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
 import jakarta.annotation.PostConstruct;
@@ -112,14 +117,13 @@ import jakarta.annotation.PostConstruct;
  *   <li>Initial buffer size</li>
  *   <li>Memory size for temporary file storage</li>
  *   <li>Maximum term sizes for alphanumeric and symbolic terms</li>
- *   <li>Custom Tika configuration</li>
  *   <li>Tesseract OCR configuration for image-based documents</li>
  *   <li>PDF Parser configuration for PDF documents</li>
  * </ul>
  *
  * <p>
- * The {@link TikaDetectParser} inner class extends {@link CompositeParser} to provide auto-detection of the MIME type
- * of the document. It also handles zip bomb prevention and embedded document extraction.
+ * The document type is auto-detected by Tika's {@link AutoDetectParser}, which also handles zip bomb prevention
+ * and embedded document extraction.
  * </p>
  *
  * <p>
@@ -158,6 +162,18 @@ public class TikaExtractor extends PasswordBasedExtractor {
 
     private static final String FILE_PASSWORD = "fess.file.password";
 
+    /** The prefix of the metadata Tika 4 adds about how it opened a zip (e.g. zip:integrity-check-result), which is not for the index. */
+    private static final String ZIP_METADATA_PREFIX = "zip:";
+
+    /** The Tesseract timeout property of Tika 3, in seconds. */
+    private static final String LEGACY_TIMEOUT_SECONDS = "timeoutSeconds";
+
+    /** The Tesseract properties that Tika 4 reads only from the config of the parser, not from the one of a parse. */
+    private static final String[] TESSERACT_PARSER_LEVEL_PATHS = { "tesseractPath", "tessdataPath", "imageMagickPath" };
+
+    /** The Tesseract timeout property of Tika 4, in milliseconds. */
+    private static final String TIMEOUT_MILLIS = "timeoutMillis";
+
     /** Precompiled pattern for stripping {@code <script>...</script>} blocks in {@link #stripHtmlTags(String)}. */
     private static final Pattern SCRIPT_TAG_PATTERN = Pattern.compile("<script[^>]*>.*?</script>");
 
@@ -176,6 +192,9 @@ public class TikaExtractor extends PasswordBasedExtractor {
     static {
         SKIP_OCR_CONFIG.setSkipOcr(true);
     }
+
+    /** PDF parser config used when the {@link #TIKA_PDF_CONFIG} parameter is not given. */
+    private static final PDFParserConfig DEFAULT_PDF_PARSER_CONFIG = createPdfParserConfig();
 
     /**
      * Output encoding used when materializing extracted content into a byte
@@ -232,9 +251,9 @@ public class TikaExtractor extends PasswordBasedExtractor {
     protected int maxSymbolTermSize = -1;
 
     /**
-     * Tika config.
+     * Tika parser that detects the type of a document and delegates to the matching parser. Built by {@link #init()}.
      */
-    protected TikaConfig tikaConfig;
+    protected Parser parser;
 
     /**
      * Default Tesseract OCR config, used when the {@link #TIKA_TESSERACT_CONFIG} parameter is not given.
@@ -291,6 +310,142 @@ public class TikaExtractor extends PasswordBasedExtractor {
 
     private final Map<String, PDFParserConfig> pdfParserConfigMap = new ConcurrentHashMap<>();
 
+    /** Rewrites the Tika 4 metadata keys back to the Tika 3 ones, which the Fess configuration and the data stores refer to. */
+    private final LegacyKeyMigrationFilter legacyKeyMigrationFilter = new LegacyKeyMigrationFilter();
+
+    /**
+     * Holds the parser shared by all the extractors, because loading the Tika parsers is slow and memory hungry.
+     */
+    private static final class DefaultParserHolder {
+        static final Parser PARSER = createParser();
+
+        private static Parser createParser() {
+            final AutoDetectParserConfig config = new AutoDetectParserConfig();
+            // an empty document is not an error, it just has no content
+            config.setThrowOnZeroBytes(false);
+            return AutoDetectParser.build(new DefaultParser(MediaTypeRegistry.getDefaultRegistry()), new DefaultDetector(), config);
+        }
+    }
+
+    /**
+     * Holds the encoding detector shared by all the extractors.
+     */
+    private static final class EncodingDetectorHolder {
+        static final EncodingDetector DETECTOR = new AlignmentBreakingEncodingDetector(new DefaultEncodingDetector());
+    }
+
+    /**
+     * An encoding detector that keeps Mojibuster, the statistical detector of the default chain of Tika 4, from taking
+     * a text in Shift_JIS for UTF-16.
+     *
+     * <p>Mojibuster looks at the two columns of the even and the odd positions of the bytes. UTF-16 has a column that
+     * is poor in distinct values (the high bytes), and so does Shift_JIS, in the lead bytes (about 60 values against
+     * about 190 of the trail bytes). Every ASCII run of the text moves the next characters by its length, so the two
+     * columns are mixed unless all the runs have an even length (for example, all the line ends are CRLF). When they
+     * are not mixed, Mojibuster returns UTF-16 as the only candidate, which nothing in the chain can check.</p>
+     *
+     * <p>A UTF-16 text that has an ASCII character has a NUL byte, so a text that has no NUL byte and has a byte of
+     * 0x80 or more is not UTF-16. When the columns of such a text are lopsided like the ones of UTF-16, this detector
+     * inserts a space in the probe, after an ASCII byte so that no character is split, and then the columns are mixed.
+     * The inserted space is only seen by the detectors. The bytes the parser reads are not changed. A text whose
+     * columns are not lopsided is not changed, because the space could line up the characters that were not.</p>
+     */
+    private static final class AlignmentBreakingEncodingDetector implements EncodingDetector {
+
+        private static final long serialVersionUID = 1L;
+
+        /** The size of the probe, the same as the read limit of the junk filter of Tika. */
+        private static final int PROBE_SIZE = 16384;
+
+        /** The probe shorter than this is not judged by the columns. */
+        private static final int MIN_PROBE_SIZE = 16;
+
+        /** Mojibuster counts the columns in the first 4096 bytes, so the space is inserted before this offset. */
+        private static final int MAX_INSERT_OFFSET = 3000;
+
+        /** The number of bytes in which the columns are counted, the same as Mojibuster. */
+        private static final int COLUMN_SAMPLE_SIZE = 4096;
+
+        /**
+         * The ratio of the distinct values of the two columns that is taken for lopsided. Mojibuster takes 3 and over for
+         * UTF-16, and this is lower to leave a margin.
+         */
+        private static final int LOPSIDED_RATIO = 2;
+
+        private final EncodingDetector delegate;
+
+        AlignmentBreakingEncodingDetector(final EncodingDetector delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public List<EncodingResult> detect(final TikaInputStream tis, final Metadata metadata, final ParseContext parseContext)
+                throws IOException {
+            tis.mark(PROBE_SIZE);
+            final byte[] probe;
+            try {
+                probe = tis.readNBytes(PROBE_SIZE);
+            } finally {
+                tis.reset();
+            }
+            final int offset = findInsertOffset(probe);
+            if (offset < 0) {
+                return delegate.detect(tis, metadata, parseContext);
+            }
+            final byte[] broken = new byte[probe.length + 1];
+            System.arraycopy(probe, 0, broken, 0, offset);
+            broken[offset] = ' ';
+            System.arraycopy(probe, offset, broken, offset + 1, probe.length - offset);
+            try (TikaInputStream brokenStream = TikaInputStream.get(broken)) {
+                return delegate.detect(brokenStream, metadata, parseContext);
+            }
+        }
+
+        /**
+         * Returns the offset to insert a space at, or -1 when the probe can be UTF-16 or has no safe place.
+         */
+        private static int findInsertOffset(final byte[] probe) {
+            if (probe.length < MIN_PROBE_SIZE || isUtf16Bom(probe)) {
+                return -1;
+            }
+            boolean high = false;
+            for (final byte b : probe) {
+                if (b == 0) {
+                    return -1;
+                }
+                high |= b < 0;
+            }
+            if (!high || !isLopsided(probe)) {
+                return -1;
+            }
+            for (int i = Math.min(probe.length / 2, MAX_INSERT_OFFSET / 2); i < Math.min(probe.length, MAX_INSERT_OFFSET); i++) {
+                if (probe[i] >= 0) {
+                    return i + 1;
+                }
+            }
+            return -1;
+        }
+
+        private static boolean isLopsided(final byte[] probe) {
+            final boolean[][] seen = new boolean[2][256];
+            final int[] distinct = new int[2];
+            for (int i = 0; i < Math.min(probe.length, COLUMN_SAMPLE_SIZE); i++) {
+                final int column = i & 1;
+                final int value = probe[i] & 0xFF;
+                if (!seen[column][value]) {
+                    seen[column][value] = true;
+                    distinct[column]++;
+                }
+            }
+            return Math.min(distinct[0], distinct[1]) > 0
+                    && Math.max(distinct[0], distinct[1]) >= LOPSIDED_RATIO * Math.min(distinct[0], distinct[1]);
+        }
+
+        private static boolean isUtf16Bom(final byte[] probe) {
+            return probe[0] == (byte) 0xFE && probe[1] == (byte) 0xFF || probe[0] == (byte) 0xFF && probe[1] == (byte) 0xFE;
+        }
+    }
+
     /**
      * Creates a new TikaExtractor instance.
      */
@@ -303,16 +458,8 @@ public class TikaExtractor extends PasswordBasedExtractor {
      */
     @PostConstruct
     public void init() {
-        if (tikaConfig == null && crawlerContainer != null) {
-            try {
-                tikaConfig = crawlerContainer.getComponent("tikaConfig");
-            } catch (final Exception e) {
-                logger.debug("tikaConfig component is not found.", e);
-            }
-        }
-
-        if (tikaConfig == null) {
-            tikaConfig = TikaConfig.getDefaultConfig();
+        if (parser == null) {
+            parser = DefaultParserHolder.PARSER;
         }
 
         if (tesseractOCRConfig == null && crawlerContainer != null) {
@@ -324,9 +471,17 @@ public class TikaExtractor extends PasswordBasedExtractor {
         }
 
         if (logger.isDebugEnabled()) {
-            final Parser parser = tikaConfig.getParser();
             logger.debug("supportedTypes: {}", parser.getSupportedTypes(new ParseContext()));
         }
+    }
+
+    /**
+     * Returns the Tika parser built by {@link #init()}.
+     *
+     * @return the Tika parser, or null before {@link #init()} is called.
+     */
+    public Parser getParser() {
+        return parser;
     }
 
     @Override
@@ -349,11 +504,21 @@ public class TikaExtractor extends PasswordBasedExtractor {
         }
 
         final File tempFile;
+        final byte[] bytes;
         final boolean isByteStream = inputStream instanceof ByteArrayInputStream;
         if (isByteStream) {
             inputStream.mark(0); // ByteArrayInputStream
             tempFile = null;
+            try {
+                // An in-memory source is parsed from a byte[] stream, which knows its full length, so that the zip bomb
+                // ratio is computed against the whole source and not against the bytes read so far
+                bytes = inputStream.readAllBytes();
+                inputStream.reset();
+            } catch (final IOException e) {
+                throw new ExtractException("Failed to extract via Tika: reason=unexpectedError", e);
+            }
         } else {
+            bytes = null;
             tempFile = createTempFile("tikaExtractor-", ".out", null);
         }
 
@@ -373,7 +538,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                 // Materialize the input stream once into the existing tempFile (or keep the
                 // byte buffer in memory). Subsequent retries reuse the same on-disk file
                 // through TikaInputStream.get(Path), which prevents Tika from spooling the
-                // bytes a second time inside TikaDetectParser.
+                // bytes a second time.
                 if (!isByteStream) {
                     try (OutputStream out = new FileOutputStream(tempFile)) {
                         CopyUtil.copy(inputStream, out);
@@ -382,11 +547,10 @@ public class TikaExtractor extends PasswordBasedExtractor {
 
                 final Metadata metadata = createMetadata(resourceName, contentType, contentEncoding, password);
 
-                final Parser parser = new TikaDetectParser();
                 final ParseContext parseContext = createParseContext(parser, params);
 
                 String content = getContent(writer -> {
-                    try (InputStream in = openMaterializedInput(inputStream, tempFile, isByteStream)) {
+                    try (TikaInputStream in = openTikaInput(bytes, tempFile)) {
                         parser.parse(in, new BodyContentHandler(writer), metadata, parseContext);
                     }
                 }, contentEncoding, normalizeText);
@@ -400,7 +564,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                         }
                         final Metadata metadata2 = createMetadata(null, contentType, contentEncoding, password);
                         content = getContent(writer -> {
-                            try (InputStream in = openMaterializedInput(inputStream, tempFile, isByteStream)) {
+                            try (TikaInputStream in = openTikaInput(bytes, tempFile)) {
                                 parser.parse(in, new BodyContentHandler(writer), metadata2, retryParseContext);
                             }
                         }, contentEncoding, normalizeText);
@@ -411,7 +575,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                         }
                         final Metadata metadata3 = createMetadata(null, null, contentEncoding, password);
                         content = getContent(writer -> {
-                            try (InputStream in = openMaterializedInput(inputStream, tempFile, isByteStream)) {
+                            try (TikaInputStream in = openTikaInput(bytes, tempFile)) {
                                 parser.parse(in, new BodyContentHandler(writer), metadata3, retryParseContext);
                             }
                         }, contentEncoding, normalizeText);
@@ -478,10 +642,15 @@ public class TikaExtractor extends PasswordBasedExtractor {
                 }
                 extractData.putValue("Content-Length", Long.toString(contentLength));
 
+                // The tk: keys (and the X-TIKA: ones they are migrated to) are Tika's internal bookkeeping, and so are the
+                // zip: ones (e.g. zip:detector-zip-file-opened=true on every OOXML file), which would end up in the content
+                legacyKeyMigrationFilter.filter(new ArrayList<>(List.of(metadata)));
                 final String[] names = metadata.names();
                 Arrays.sort(names);
                 for (final String name : names) {
-                    extractData.putValues(name, metadata.getValues(name));
+                    if (!ReservedNamespaces.isTikaNative(name) && !name.startsWith(ZIP_METADATA_PREFIX)) {
+                        extractData.putValues(name, metadata.getValues(name));
+                    }
                 }
 
                 if (postFilter != null) {
@@ -526,11 +695,22 @@ public class TikaExtractor extends PasswordBasedExtractor {
     }
 
     /**
+     * Opens a {@link TikaInputStream} for parsing the already-materialized source. The
+     * stream is created without a {@link Metadata}, so that Tika neither records the
+     * temp file name as the resource name nor adds a length to the metadata of the parse.
+     *
+     * @param bytes    the in-memory source, or {@code null} when the source is {@code tempFile}
+     * @param tempFile the materialized on-disk copy (used when {@code bytes} is {@code null})
+     * @return a fresh, ready-to-read stream, which the caller must close
+     * @throws IOException if the on-disk file cannot be opened
+     */
+    protected TikaInputStream openTikaInput(final byte[] bytes, final File tempFile) throws IOException {
+        return bytes != null ? TikaInputStream.get(bytes) : TikaInputStream.get(tempFile.toPath());
+    }
+
+    /**
      * Opens an {@link InputStream} backed by the already-materialized source (the byte
-     * stream marked at the start, or the on-disk {@code tempFile}). When a temp file is
-     * present we wrap it as a {@link TikaInputStream} so that
-     * {@code TikaInputStream.get(stream, ...)} inside {@link TikaDetectParser#parse}
-     * can reuse the existing file path instead of spooling the bytes a second time.
+     * stream marked at the start, or the on-disk {@code tempFile}).
      *
      * @param inputStream the original byte stream (used when {@code isByteStream})
      * @param tempFile    the materialized on-disk copy (used otherwise); may be {@code null}
@@ -747,17 +927,14 @@ public class TikaExtractor extends PasswordBasedExtractor {
     protected ParseContext createParseContext(final Parser parser, final Map<String, String> params) {
         final ParseContext parseContext = new ParseContext();
         parseContext.set(Parser.class, parser);
+        parseContext.set(EncodingDetector.class, EncodingDetectorHolder.DETECTOR);
 
         final String tesseractConfigPath = params != null ? params.get(TIKA_TESSERACT_CONFIG) : null;
         if (StringUtil.isNotBlank(tesseractConfigPath)) {
             TesseractOCRConfig tesseractOCRConfig = tesseractOCRConfigMap.get(tesseractConfigPath);
             if (tesseractOCRConfig == null) {
-                final Properties props = new Properties();
-                PropertiesUtil.load(props, tesseractConfigPath);
-                final Map<String, String> propMap =
-                        props.entrySet().stream().collect(Collectors.toMap(e -> (String) e.getKey(), e -> (String) e.getValue()));
                 tesseractOCRConfig = new TesseractOCRConfig();
-                BeanUtil.copyMapToBean(propMap, tesseractOCRConfig);
+                copyConfig(tesseractConfigPath, tesseractOCRConfig);
                 tesseractOCRConfigMap.put(tesseractConfigPath, tesseractOCRConfig);
             }
             parseContext.set(TesseractOCRConfig.class, tesseractOCRConfig);
@@ -769,20 +946,78 @@ public class TikaExtractor extends PasswordBasedExtractor {
         if (StringUtil.isNotBlank(pdfParserConfigPath)) {
             PDFParserConfig pdfParserConfig = pdfParserConfigMap.get(pdfParserConfigPath);
             if (pdfParserConfig == null) {
-                final Properties props = new Properties();
-                PropertiesUtil.load(props, pdfParserConfigPath);
-                final Map<String, String> propMap =
-                        props.entrySet().stream().collect(Collectors.toMap(e -> (String) e.getKey(), e -> (String) e.getValue()));
-                pdfParserConfig = new PDFParserConfig();
-                BeanUtil.copyMapToBean(propMap, pdfParserConfig);
+                pdfParserConfig = createPdfParserConfig();
+                copyConfig(pdfParserConfigPath, pdfParserConfig);
                 pdfParserConfigMap.put(pdfParserConfigPath, pdfParserConfig);
             }
             parseContext.set(PDFParserConfig.class, pdfParserConfig);
+        } else {
+            parseContext.set(PDFParserConfig.class, DEFAULT_PDF_PARSER_CONFIG);
         }
+
+        final OutputLimits outputLimits = new OutputLimits();
+        outputLimits.setZipBombRatio(maxCompressionRatio);
+        outputLimits.setZipBombThreshold(maxUncompressionSize);
+        parseContext.set(OutputLimits.class, outputLimits);
 
         parseContext.set(PasswordProvider.class, metadata -> metadata.get(FILE_PASSWORD));
 
         return parseContext;
+    }
+
+    /**
+     * Creates a PDF parser config with the Fess defaults. Tika 4 turned on {@code extractIncrementalUpdateInfo},
+     * which scans the xref table and adds metadata of no use for a search index, so it is turned off again.
+     *
+     * @return a PDF parser config.
+     */
+    private static PDFParserConfig createPdfParserConfig() {
+        final PDFParserConfig config = new PDFParserConfig();
+        config.setExtractIncrementalUpdateInfo(false);
+        return config;
+    }
+
+    /**
+     * Copies the properties in a file into a Tika config bean. Tika 4 renamed or removed some of the
+     * properties, and a key that is not a settable property is not an error for the bean copy,
+     * so it is reported here instead of being dropped silently.
+     *
+     * @param path A properties file path.
+     * @param config A Tika config bean.
+     */
+    protected void copyConfig(final String path, final Object config) {
+        final Properties props = new Properties();
+        PropertiesUtil.load(props, path);
+        final Map<String, String> propMap =
+                props.entrySet().stream().collect(Collectors.toMap(e -> (String) e.getKey(), e -> (String) e.getValue()));
+        if (config instanceof TesseractOCRConfig && propMap.containsKey(LEGACY_TIMEOUT_SECONDS)) {
+            final String seconds = propMap.remove(LEGACY_TIMEOUT_SECONDS);
+            try {
+                propMap.putIfAbsent(TIMEOUT_MILLIS, Long.toString(Long.parseLong(seconds.trim()) * 1000));
+                logger.warn("{} is renamed to {}, which is in milliseconds. Converted: path={}, {}={}", LEGACY_TIMEOUT_SECONDS,
+                        TIMEOUT_MILLIS, path, LEGACY_TIMEOUT_SECONDS, seconds);
+            } catch (final NumberFormatException e) {
+                logger.warn("Invalid {} is ignored: path={}, value={}", LEGACY_TIMEOUT_SECONDS, path, seconds);
+            }
+        }
+        if (config instanceof TesseractOCRConfig) {
+            for (final String key : TESSERACT_PARSER_LEVEL_PATHS) {
+                if (propMap.containsKey(key)) {
+                    logger.warn("{} is read only when the Tesseract parser is initialized in Tika 4, so it has no effect here: path={}",
+                            key, path);
+                }
+            }
+        }
+        final BeanDesc beanDesc = BeanDescFactory.getBeanDesc(config.getClass());
+        propMap.keySet().removeIf(key -> {
+            if (beanDesc.hasPropertyDesc(key) && beanDesc.getPropertyDesc(key).isWritable()) {
+                return false;
+            }
+            logger.warn("{} is not a settable property of {} in this version of Tika, so it is ignored: path={}", key,
+                    config.getClass().getSimpleName(), path);
+            return true;
+        });
+        BeanUtil.copyMapToBean(propMap, config);
     }
 
     /**
@@ -854,7 +1089,8 @@ public class TikaExtractor extends PasswordBasedExtractor {
             final String pdfPassword) {
         final Metadata metadata = new Metadata();
         if (StringUtil.isNotEmpty(resourceName)) {
-            metadata.set(ExtractData.RESOURCE_NAME_KEY, resourceName);
+            // The Property is required: Tika 4 ignores a bare "resourceName" key for the name-based hints
+            metadata.set(TikaCoreProperties.RESOURCE_NAME_KEY, resourceName);
         }
         if (StringUtil.isNotBlank(contentType)) {
             metadata.set(ExtractData.CONTENT_TYPE, contentType);
@@ -871,82 +1107,6 @@ public class TikaExtractor extends PasswordBasedExtractor {
         }
 
         return metadata;
-    }
-
-    // workaround: Tika does not have extention points.
-    /**
-     * This class is a parser that detects the document type.
-     */
-    protected class TikaDetectParser extends CompositeParser {
-        private static final long serialVersionUID = 1L;
-
-        /**
-         * The type detector used by this parser to auto-detect the type of a
-         * document.
-         */
-        private final Detector detector; // always set in the constructor
-
-        /**
-         * Creates an auto-detecting parser instance using the default Tika
-         * configuration.
-         */
-        public TikaDetectParser() {
-            this(tikaConfig);
-        }
-
-        /**
-         * Constructor.
-         * @param config Tika config.
-         */
-        public TikaDetectParser(final TikaConfig config) {
-            super(config.getMediaTypeRegistry(), config.getParser());
-            detector = config.getDetector();
-        }
-
-        @Override
-        public void parse(final InputStream stream, final ContentHandler handler, final Metadata metadata, final ParseContext context)
-                throws IOException, SAXException, TikaException {
-            final TemporaryResources tmp = new TemporaryResources();
-            try {
-                final TikaInputStream tis = TikaInputStream.get(stream, tmp, metadata);
-
-                // Automatically detect the MIME type of the document
-                final MediaType type = detector.detect(tis, metadata);
-                metadata.set(ExtractData.CONTENT_TYPE, type.toString());
-
-                // TIKA-216: Zip bomb prevention
-                final SecureContentHandler sch = new SecureContentHandler(handler, tis);
-
-                sch.setMaximumCompressionRatio(maxCompressionRatio);
-                sch.setOutputThreshold(maxUncompressionSize);
-
-                //pass self to handle embedded documents if
-                //the caller hasn't specified one.
-                if (context.get(EmbeddedDocumentExtractor.class) == null) {
-                    final Parser p = context.get(Parser.class);
-                    if (p == null) {
-                        context.set(Parser.class, this);
-                    }
-                    context.set(EmbeddedDocumentExtractor.class, new ParsingEmbeddedDocumentExtractor(context));
-                }
-
-                if (logger.isDebugEnabled()) {
-                    logger.debug("type: {}, metadata: {}, maxCompressionRatio: {}, maxUncompressionSize: {}", type, metadata,
-                            maxCompressionRatio, maxUncompressionSize);
-                }
-
-                try {
-                    // Parse the document
-                    super.parse(tis, sch, metadata, context);
-                } catch (final SAXException e) {
-                    // Convert zip bomb exceptions to TikaExceptions
-                    sch.throwIfCauseOf(e);
-                    throw e;
-                }
-            } finally {
-                tmp.dispose();
-            }
-        }
     }
 
     /**
@@ -1051,14 +1211,6 @@ public class TikaExtractor extends PasswordBasedExtractor {
      */
     public void setSpaceChars(final int[] spaceChars) {
         this.spaceChars = spaceChars;
-    }
-
-    /**
-     * Sets the Tika configuration.
-     * @param tikaConfig The Tika config.
-     */
-    public void setTikaConfig(final TikaConfig tikaConfig) {
-        this.tikaConfig = tikaConfig;
     }
 
     /**

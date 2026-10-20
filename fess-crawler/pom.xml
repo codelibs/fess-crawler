@@ -204,19 +204,6 @@
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-parser-microsoft-module</artifactId>
 			<version>${tika.version}</version>
-			<exclusions>
-				<exclusion>
-					<!-- poi-ooxml-full carries every OOXML XmlBeans schema (13.6 MiB); poi-ooxml,
-					     which poi-ooxml-lite comes with, carries the 2,555 the extractors actually
-					     reach (5.7 MiB). Every one of the 911 schema classes referenced from the
-					     jars this project ships - poi-ooxml and tika-parser-microsoft-module, the
-					     only two that name any - is present in the lite jar, the 26 Visio ones
-					     included. Tika asks for the full jar because signing and schema-level
-					     editing need it; Fess only reads text out of the documents. -->
-					<groupId>org.apache.poi</groupId>
-					<artifactId>poi-ooxml-full</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.tika</groupId>
@@ -250,7 +237,7 @@
 			     error. It used to arrive with the OpenSearch jar. -->
 			<groupId>com.github.luben</groupId>
 			<artifactId>zstd-jni</artifactId>
-			<version>1.5.6-1</version>
+			<version>1.5.7-18</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
@@ -262,12 +249,23 @@
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-parser-xml-module</artifactId>
 			<version>${tika.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>xerces</groupId>
-					<artifactId>xercesImpl</artifactId>
-				</exclusion>
-			</exclusions>
+		</dependency>
+		<dependency>
+			<!-- Tika 4 reads the charset hint (Content-Encoding) first, and the crawler clients always send one (UTF-8
+			     by default). This module adds the junk filter, which lets the hint compete with the charset detected
+			     from the bytes. Without it, a text in any other charset is decoded as UTF-8. -->
+			<groupId>org.apache.tika</groupId>
+			<artifactId>tika-ml-junkdetect</artifactId>
+			<version>${tika.version}</version>
+		</dependency>
+		<dependency>
+			<!-- Reads the <meta charset> of an HTML page. tika-parser-html-module and tika-parser-text-module have it
+			     in the test scope only, and only tika-parsers-standard-package (not used here) brings it. Without it, an
+			     HTML page that declares its charset is reported as windows-1252 and a short text in another charset
+			     than UTF-8 is decoded as that one. -->
+			<groupId>org.apache.tika</groupId>
+			<artifactId>tika-encoding-detector-html</artifactId>
+			<version>${tika.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.codelibs</groupId>

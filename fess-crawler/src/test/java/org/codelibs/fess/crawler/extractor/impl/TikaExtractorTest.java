@@ -15,6 +15,7 @@
  */
 package org.codelibs.fess.crawler.extractor.impl;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,9 +36,11 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
 import org.apache.tika.parser.ocr.TesseractOCRConfig;
+import org.apache.tika.parser.pdf.PDFParserConfig;
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.Constants;
@@ -112,20 +115,24 @@ public class TikaExtractorTest extends PlainTestCase {
     //        assertTrue(content.contains("テスト"));
     //    }
 
-    // public void test_getTika_pdf_pass() {
-    // InputStream in =
-    // ResourceUtil.getResourceAsStream("extractor/test_pass.pdf");
-    // TikaExtractor extractor =
-    // (TikaExtractor) getContainer().getComponent(
-    // "tikaExtractorForPdfPassword");
-    // Map<String, String> params = new HashMap<String, String>();
-    // params.put(ExtractData.URL, "http://example.com/test_pass.pdf");
-    // ExtractData extractData = extractor.getText(in, params);
-    // String content = extractData.getContent();
-    // CloseableUtil.closeQuietly(in);
-    // logger.info(content);
-    // assertTrue(content.contains("テスト"));
-    // }
+    // the password of test_pass.pdf is "pass"; the PasswordProvider of the parse context hands it to Tika
+    @Test
+    public void test_getTika_pdf_pass() {
+        final Map<String, String> params = new HashMap<>();
+        params.put(ExtractData.URL, "http://example.com/test_pass.pdf");
+        try {
+            tikaExtractor.getText(ResourceUtil.getResourceAsStream("extractor/test_pass.pdf"), params);
+            fail();
+        } catch (final ExtractException e) {
+            logger.info(e.getMessage());
+        }
+
+        tikaExtractor.addPassword(".*test_pass.pdf", "pass");
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_pass.pdf");
+        final String content = tikaExtractor.getText(in, params).getContent();
+        CloseableUtil.closeQuietly(in);
+        assertTrue(content.contains("テスト"));
+    }
 
     @Test
     public void test_getTika_html() {
@@ -315,7 +322,7 @@ public class TikaExtractorTest extends PlainTestCase {
         assertEquals("かいしゃ", extractData.getValues("extended-properties:Company")[0]);
         assertEquals("1997-01-08T22:48:59Z", extractData.getValues("dcterms:created")[0]);
         assertEquals("2012-05-18T22:50:00Z", extractData.getValues("dcterms:modified")[0]);
-        assertEquals("false", extractData.getValues("protected")[0]);
+        assertEquals("false", extractData.getValues("msoffice:excel:protected-worksheet")[0]);
         assertEquals("じょうたい", extractData.getValues("cp:contentStatus")[0]);
         assertEquals("たいとる", extractData.getValues("dc:title")[0]);
         assertEquals("None", extractData.getValues("extended-properties:DocSecurityString")[0]);
@@ -414,6 +421,12 @@ public class TikaExtractorTest extends PlainTestCase {
             fail();
         } catch (final ExtractException e) {
             logger.info(e.getMessage());
+            // the limit is what stops it, not another failure of the parse
+            boolean zipBomb = false;
+            for (Throwable t = e; t != null; t = t.getCause()) {
+                zipBomb |= t.getMessage() != null && t.getMessage().contains("Suspected zip bomb");
+            }
+            Assertions.assertTrue(zipBomb, "no 'Suspected zip bomb' in the cause chain of " + e);
         }
     }
 
@@ -947,11 +960,10 @@ public class TikaExtractorTest extends PlainTestCase {
         // active and observes the replayed bytes through the test hook.
         final TikaExtractor spy = new TikaExtractor() {
             @Override
-            protected InputStream openMaterializedInput(final InputStream inputStream, final java.io.File tempFile,
-                    final boolean isByteStream) throws IOException {
+            protected TikaInputStream openTikaInput(final byte[] bytes, final java.io.File tempFile) throws IOException {
                 System.out.println("HELLO_FROM_PARSER_OUT");
                 System.err.println("HELLO_FROM_PARSER_ERR");
-                return super.openMaterializedInput(inputStream, tempFile, isByteStream);
+                return super.openTikaInput(bytes, tempFile);
             }
 
             @Override
@@ -963,8 +975,6 @@ public class TikaExtractorTest extends PlainTestCase {
                 }
             }
         };
-        // wire up the same Tika config the regular fixture uses so detection works
-        spy.setTikaConfig(org.apache.tika.config.TikaConfig.getDefaultConfig());
         spy.init();
 
         final PrintStream originalOut = System.out;
@@ -1013,10 +1023,9 @@ public class TikaExtractorTest extends PlainTestCase {
 
         final TikaExtractor spy = new TikaExtractor() {
             @Override
-            protected InputStream openMaterializedInput(final InputStream inputStream, final java.io.File tempFile,
-                    final boolean isByteStream) throws IOException {
+            protected TikaInputStream openTikaInput(final byte[] bytes, final java.io.File tempFile) throws IOException {
                 System.out.println(marker);
-                return super.openMaterializedInput(inputStream, tempFile, isByteStream);
+                return super.openTikaInput(bytes, tempFile);
             }
 
             @Override
@@ -1026,7 +1035,6 @@ public class TikaExtractorTest extends PlainTestCase {
                 }
             }
         };
-        spy.setTikaConfig(org.apache.tika.config.TikaConfig.getDefaultConfig());
         // Pick an outputEncoding that cannot represent every code point in the
         // marker; if the capture/replay path were (incorrectly) using
         // outputEncoding, characters such as '日' would be substituted with '?'.
@@ -1155,5 +1163,185 @@ public class TikaExtractorTest extends PlainTestCase {
         assertEquals(2, contexts.size());
         Assertions.assertSame(defaultConfig, contexts.get(0).get(TesseractOCRConfig.class));
         assertTrue(contexts.get(1).get(TesseractOCRConfig.class).isSkipOcr());
+    }
+
+    // The only ASCII byte runs of this text are the CRLF of the line ends, 2 bytes each. Tika 4 alone takes this text
+    // in Shift_JIS for UTF-16 (the lead bytes of all the characters are in the same column of 2 bytes).
+    private static final String JAPANESE_TEXT =
+            "日本語のテキストを検索システムに登録するための文章です。\r\n" + "検索エンジンはクロールした文書から文字を取り出します。\r\n" + "これはシフトジスで保存された普通のテキストファイルの例です。\r\n";
+
+    private byte[] readResource(final String path) throws IOException {
+        try (InputStream in = ResourceUtil.getResourceAsStream(path)) {
+            return in.readAllBytes();
+        }
+    }
+
+    /**
+     * Extracts a text the way the transformers do, from an in-memory stream and from a stream that is
+     * materialized into a temp file, and checks that both give the expected text.
+     */
+    private void assertExtracted(final String expected, final byte[] data, final String resourceName) {
+        assertExtracted(expected, data, resourceName, null);
+    }
+
+    private void assertExtracted(final String expected, final byte[] data, final String resourceName, final String contentEncoding) {
+        final Map<String, String> params = new HashMap<>();
+        params.put(ExtractData.RESOURCE_NAME_KEY, resourceName);
+        if (contentEncoding != null) {
+            params.put(ExtractData.CONTENT_ENCODING, contentEncoding);
+        }
+        final String inMemory = tikaExtractor.getText(new ByteArrayInputStream(data), params).getContent();
+        Assertions.assertTrue(inMemory.contains(expected), resourceName + " (in memory): " + inMemory);
+        final String onDisk = tikaExtractor.getText(new BufferedInputStream(new ByteArrayInputStream(data)), params).getContent();
+        Assertions.assertTrue(onDisk.contains(expected), resourceName + " (temp file): " + onDisk);
+    }
+
+    // Tika 4 ignores a plain "resourceName" key, and then leaves a text in a legacy charset empty
+    @Test
+    public void test_getText_resourceName_legacyCharsetText() throws Exception {
+        final String text = JAPANESE_TEXT;
+        assertExtracted("日本語のテキスト", text.getBytes("windows-31j"), "sjis.txt");
+        assertExtracted("日本語のテキスト", text.getBytes("EUC-JP"), "eucjp.txt");
+        final String csv = "名前,備考\n山田太郎,検索エンジンFessは日本語のテキストです\n鈴木花子,正しく取り出します\n";
+        assertExtracted("山田太郎", csv.getBytes("windows-31j"), "sjis.csv");
+        assertExtracted("山田太郎", csv.getBytes("EUC-JP"), "eucjp.csv");
+    }
+
+    // the crawler clients send UTF-8 as the Content-Encoding unless they are configured otherwise, whatever the charset of the file
+    @Test
+    public void test_getText_legacyCharsetText_utf8Hint() throws Exception {
+        final String text = JAPANESE_TEXT;
+        assertExtracted("日本語のテキスト", text.getBytes("windows-31j"), "sjis.txt", "UTF-8");
+        assertExtracted("日本語のテキスト", text.getBytes("EUC-JP"), "eucjp.txt", "UTF-8");
+        final String lf = text.replace("\r\n", "\n");
+        assertExtracted("日本語のテキスト", lf.getBytes("windows-31j"), "sjis_lf.txt", "UTF-8");
+        assertExtracted("日本語のテキスト", lf.getBytes("EUC-JP"), "eucjp_lf.txt", "UTF-8");
+        final String russian = "Это обычный текст на русском языке для проверки поиска.\n".repeat(3);
+        assertExtracted("обычный текст", russian.getBytes("windows-1251"), "ru.txt", "UTF-8");
+        assertExtracted("日本語のテキスト", text.getBytes(StandardCharsets.UTF_8), "utf8.txt", "UTF-8");
+    }
+
+    // Tika 4 takes a Shift_JIS text for UTF-16 when the lead bytes of all the characters are in the same column
+    @Test
+    public void test_getText_shiftJisText_evenAsciiRuns() throws Exception {
+        final String text = JAPANESE_TEXT;
+        for (final String hint : new String[] { null, "UTF-8", "Shift_JIS" }) {
+            assertExtracted("日本語のテキスト", text.getBytes("windows-31j"), "sjis.txt", hint);
+        }
+    }
+
+    // the odd ASCII runs ("10", "3") of this text already mix the columns, and a space inserted in the middle would line them up
+    @Test
+    public void test_getText_shiftJisText_oddAsciiRuns() throws Exception {
+        final String text = "売上は前年度と比較して大幅に増加しました。検索エンジンのためのクローラが文書から文字を取り出します。\r\n" + "本日の会議では、予算について検討しました。\r\n"
+                + "お問い合わせは担当者までご連絡ください。製品の仕様は予告なく変更される場合があります。（10月3日）\r\n" + "売上は前年度と比較して大幅に増加しました。お問い合わせは担当者までご連絡ください。\r\n"
+                + "検索エンジンのためのクローラが文書から文字を取り出します。本日の会議では、予算について検討しました。\r\n";
+        for (final String hint : new String[] { null, "UTF-8" }) {
+            assertExtracted("売上は前年度と比較して", text.getBytes("windows-31j"), "sjis.txt", hint);
+        }
+    }
+
+    // The HTML encoding detector (tika-encoding-detector-html) reads the <meta charset> of the page. Without it, an HTML page
+    // that declares its charset is reported as windows-1252 (the content-type charset, too) and a short text in another
+    // charset than UTF-8 is decoded as that one.
+    @Test
+    public void test_getText_html_metaCharset_reported() {
+        final ExtractData extractData = tikaExtractor.getText(ResourceUtil.getResourceAsStream("ajax/index.html"), null);
+        assertEquals("UTF-8", extractData.getValues(ExtractData.CONTENT_ENCODING)[0]);
+        assertEquals("text/html; charset=UTF-8", extractData.getValues(ExtractData.CONTENT_TYPE)[0]);
+    }
+
+    @Test
+    public void test_getText_html_metaCharset_shortText() throws Exception {
+        for (final String hint : new String[] { null, "UTF-8" }) {
+            assertExtracted("Москва",
+                    "<html><head><meta charset=\"windows-1251\"></head><body>Москва</body></html>".getBytes("windows-1251"), "ru.html",
+                    hint);
+            assertExtracted("naïve résumé",
+                    "<html><head><meta charset=\"windows-1252\"></head><body>naïve résumé</body></html>".getBytes("windows-1252"),
+                    "fr.html", hint);
+        }
+    }
+
+    @Test
+    public void test_getParser_afterInit() {
+        final TikaExtractor extractor = new TikaExtractor();
+        extractor.init();
+        assertNotNull(extractor.getParser());
+    }
+
+    @Test
+    public void test_getText_utf16BomText() throws Exception {
+        final byte[] body = JAPANESE_TEXT.getBytes(StandardCharsets.UTF_16LE);
+        final byte[] data = new byte[body.length + 2];
+        data[0] = (byte) 0xFF;
+        data[1] = (byte) 0xFE;
+        System.arraycopy(body, 0, data, 2, body.length);
+        assertExtracted("日本語のテキスト", data, "utf16.txt");
+    }
+
+    // a truncated OOXML file is salvaged only when the parse is announced with ParsingIntent
+    @Test
+    public void test_getText_truncatedOoxml() throws Exception {
+        for (final String name : new String[] { "test.docx", "test.pptx" }) {
+            final byte[] data = readResource("extractor/msoffice/" + name);
+            assertExtracted("テスト", java.util.Arrays.copyOf(data, data.length * 6 / 10), name);
+        }
+    }
+
+    @Test
+    public void test_getText_noTikaInternalMetadata() {
+        for (final String path : new String[] { "msoffice/test.docx", "msoffice/test.xlsx", "msoffice/test.pptx", "test.pdf",
+                "test.txt" }) {
+            final String name = path.substring(path.lastIndexOf('/') + 1);
+            final Map<String, String> params = new HashMap<>();
+            params.put(ExtractData.RESOURCE_NAME_KEY, name);
+            final ExtractData extractData = tikaExtractor.getText(ResourceUtil.getResourceAsStream("extractor/" + path), params);
+            for (final String key : extractData.getKeySet()) {
+                Assertions.assertFalse(key.startsWith("tk:") || key.startsWith("X-TIKA:") || key.startsWith("zip:"), name + ": " + key);
+            }
+            Assertions.assertNotNull(extractData.getValues(ExtractData.CONTENT_TYPE), name);
+            // Tika 4 writes it as tk:resource-name, and the legacy key is restored for the data stores
+            assertEquals(name, extractData.getValues(ExtractData.RESOURCE_NAME_KEY)[0]);
+        }
+    }
+
+    // test_size.zip is rejected with the default limits, so only the configured limits can let it through
+    @Test
+    public void test_getText_zipBombLimitsAreConfigurable() {
+        tikaExtractor.maxCompressionRatio = 100000;
+        tikaExtractor.maxUncompressionSize = 1000000000L;
+        final String content = tikaExtractor.getText(ResourceUtil.getResourceAsStream("extractor/zip/test_size.zip"), null).getContent();
+        assertTrue(content.length() > 1000000);
+    }
+
+    @Test
+    public void test_getText_emptyStream() {
+        assertEquals("", tikaExtractor.getText(new ByteArrayInputStream(new byte[0]), null).getContent());
+    }
+
+    @Test
+    public void test_createParseContext_tesseractTimeoutSeconds() {
+        final Map<String, String> params = new HashMap<>();
+        params.put(TikaExtractor.TIKA_TESSERACT_CONFIG, "extractor/tesseract_legacy.properties");
+        final TesseractOCRConfig config = tikaExtractor.createParseContext(null, params).get(TesseractOCRConfig.class);
+        assertEquals("eng", config.getLanguage());
+        // timeoutSeconds is in seconds, timeoutMillis in milliseconds
+        assertEquals(120000L, config.getTimeoutMillis());
+    }
+
+    @Test
+    public void test_createParseContext_pdfParserConfig() {
+        // Tika 4 turned extractIncrementalUpdateInfo on, Fess keeps it off unless it is configured
+        assertFalse(tikaExtractor.createParseContext(null, null).get(PDFParserConfig.class).isExtractIncrementalUpdateInfo());
+
+        final Map<String, String> params = new HashMap<>();
+        params.put(TikaExtractor.TIKA_PDF_CONFIG, "extractor/pdf.properties");
+        final PDFParserConfig config = tikaExtractor.createParseContext(null, params).get(PDFParserConfig.class);
+        assertTrue(config.isSortByPosition());
+        assertFalse(config.isExtractIncrementalUpdateInfo());
+
+        params.put(TikaExtractor.TIKA_PDF_CONFIG, "extractor/pdf_incremental.properties");
+        assertTrue(tikaExtractor.createParseContext(null, params).get(PDFParserConfig.class).isExtractIncrementalUpdateInfo());
     }
 }

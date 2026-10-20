@@ -15,17 +15,20 @@
  */
 package org.codelibs.fess.crawler.helper.impl;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import org.apache.tika.io.TemporaryResources;
+import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
+import org.apache.tika.metadata.TikaCoreProperties;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.mime.MimeTypes;
 import org.apache.tika.mime.MimeTypesFactory;
+import org.apache.tika.parser.ParseContext;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
@@ -113,19 +116,22 @@ public class MimeTypeHelperImpl implements MimeTypeHelper {
         }
 
         final Metadata metadata = new Metadata();
-        metadata.add(ExtractData.RESOURCE_NAME_KEY, normalizeFilename(filename));
+        // The Property key is required: Tika 4 ignores a bare "resourceName" string in the name-based hint
+        metadata.set(TikaCoreProperties.RESOURCE_NAME_KEY, normalizeFilename(filename));
+        final ParseContext context = new ParseContext();
 
-        try {
+        // tmp owns what the TikaInputStream caches; the caller's stream is not closed here
+        try (TemporaryResources tmp = new TemporaryResources()) {
             if (useFilename) {
-                final MediaType mediaType = mimeTypes.detect(null, metadata);
+                final MediaType mediaType = mimeTypes.detect(null, metadata, context);
                 if (!MediaType.OCTET_STREAM.equals(mediaType)) {
                     return mediaType.getType() + "/" + mediaType.getSubtype();
                 }
             }
 
-            final MediaType mediaType = mimeTypes.detect(is == null || is.markSupported() ? is : new BufferedInputStream(is), metadata);
+            final MediaType mediaType = mimeTypes.detect(is == null ? null : TikaInputStream.get(is, tmp, null), metadata, context);
             if (useFilenameOnOctetStream && MediaType.OCTET_STREAM.equals(mediaType)) {
-                final MediaType mediaTypeFromFilename = mimeTypes.detect(null, metadata);
+                final MediaType mediaTypeFromFilename = mimeTypes.detect(null, metadata, context);
                 return mediaTypeFromFilename.getType() + "/" + mediaTypeFromFilename.getSubtype();
             }
             return mediaType.getType() + "/" + mediaType.getSubtype();

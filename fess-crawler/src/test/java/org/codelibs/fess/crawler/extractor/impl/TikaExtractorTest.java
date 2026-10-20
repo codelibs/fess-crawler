@@ -1306,6 +1306,19 @@ public class TikaExtractorTest extends PlainTestCase {
         }
     }
 
+    // the image parsers report the temp file the source is spooled to, unless the source is an in-memory stream
+    @Test
+    public void test_getText_noTempFileMetadata() {
+        final Map<String, String> params = new HashMap<>();
+        params.put(ExtractData.RESOURCE_NAME_KEY, "test.jpg");
+        final ExtractData extractData = tikaExtractor.getText(ResourceUtil.getResourceAsStream("extractor/image/test.jpg"), params);
+        assertEquals("image/jpeg", extractData.getValues(ExtractData.CONTENT_TYPE)[0]);
+        assertNotNull(extractData.getValues("Image Width"));
+        for (final String name : new String[] { "File Name", "File Size", "File Modified Date" }) {
+            Assertions.assertNull(extractData.getValues(name), name);
+        }
+    }
+
     // test_size.zip is rejected with the default limits, so only the configured limits can let it through
     @Test
     public void test_getText_zipBombLimitsAreConfigurable() {

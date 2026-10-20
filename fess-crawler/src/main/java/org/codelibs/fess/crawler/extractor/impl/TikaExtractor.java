@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
@@ -164,6 +165,12 @@ public class TikaExtractor extends PasswordBasedExtractor {
 
     /** The prefix of the metadata Tika 4 adds about how it opened a zip (e.g. zip:integrity-check-result), which is not for the index. */
     private static final String ZIP_METADATA_PREFIX = "zip:";
+
+    /**
+     * The metadata the image parsers add about the temp file the source is spooled to (e.g. File Name=tikaExtractor-123.out),
+     * which is not about the source.
+     */
+    private static final Set<String> TEMP_FILE_METADATA = Set.of("File Name", "File Size", "File Modified Date");
 
     /** The Tesseract timeout property of Tika 3, in seconds. */
     private static final String LEGACY_TIMEOUT_SECONDS = "timeoutSeconds";
@@ -648,7 +655,8 @@ public class TikaExtractor extends PasswordBasedExtractor {
                 final String[] names = metadata.names();
                 Arrays.sort(names);
                 for (final String name : names) {
-                    if (!ReservedNamespaces.isTikaNative(name) && !name.startsWith(ZIP_METADATA_PREFIX)) {
+                    if (!ReservedNamespaces.isTikaNative(name) && !name.startsWith(ZIP_METADATA_PREFIX)
+                            && !TEMP_FILE_METADATA.contains(name)) {
                         extractData.putValues(name, metadata.getValues(name));
                     }
                 }

@@ -267,6 +267,9 @@ public class CrawlerThread implements Runnable {
                                 if (logger.isDebugEnabled()) {
                                     logger.debug("Skipped processing the response of {} until it is retried.", urlQueue.getUrl());
                                 }
+                            } else if (isRedirectTargetCrawled(urlQueue, responseData)) {
+                                logger.info("Skipped {}: its redirect target {} has already been crawled.", urlQueue.getUrl(),
+                                        responseData.getUrl());
                             } else if (responseData.getRedirectLocation() == null) {
                                 log(logHelper, LogType.PROCESS_RESPONSE, crawlerContext, urlQueue, responseData);
                                 processResponse(urlQueue, responseData);
@@ -436,6 +439,25 @@ public class CrawlerThread implements Runnable {
             }
         }
         return true;
+    }
+
+    /**
+     * Checks whether a client that followed a redirect itself ended up on a page that has already been stored.
+     *
+     * <p>An access result is stored under the URL of the response, so a second URL that redirects to the same
+     * page would fail to be stored. A client that reports the redirect instead (a redirect location) queues the
+     * target once; this is the same outcome for a client that follows it internally.</p>
+     *
+     * @param urlQueue The URL that was requested.
+     * @param responseData The response, whose URL is the page the client ended up on.
+     * @return true if the response is for another URL than the requested one and that page has been stored.
+     */
+    protected boolean isRedirectTargetCrawled(final UrlQueue<?> urlQueue, final ResponseData responseData) {
+        final String url = responseData.getUrl();
+        if (StringUtil.isBlank(url) || responseData.getRedirectLocation() != null || url.equals(urlQueue.getUrl())) {
+            return false;
+        }
+        return dataService.getAccessResult(crawlerContext.sessionId, url) != null;
     }
 
     /**

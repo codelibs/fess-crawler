@@ -673,7 +673,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
 
                 return extractData;
             } catch (final TikaException e) {
-                if (e.getMessage() != null && e.getMessage().indexOf("bomb") >= 0) {
+                if (isZipBomb(e)) {
                     throw new ExtractException("Failed to extract via Tika: reason=zipBombDetected", e);
                 }
                 final Throwable cause = e.getCause();
@@ -700,6 +700,22 @@ public class TikaExtractor extends PasswordBasedExtractor {
                 }
             }
         }
+    }
+
+    /**
+     * Checks whether the exception, or one of its causes, reports a suspected zip bomb. Tika reports it as a
+     * SAXException wrapped in a TikaException, whose own message does not mention it.
+     *
+     * @param e the exception thrown by the parse
+     * @return {@code true} if a zip bomb was suspected
+     */
+    protected boolean isZipBomb(final Throwable e) {
+        for (Throwable t = e; t != null; t = t.getCause()) {
+            if (t.getMessage() != null && t.getMessage().contains("zip bomb")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

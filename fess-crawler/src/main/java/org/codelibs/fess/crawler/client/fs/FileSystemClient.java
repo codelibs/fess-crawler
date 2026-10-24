@@ -18,12 +18,14 @@ package org.codelibs.fess.crawler.client.fs;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.attribute.AclFileAttributeView;
 import java.nio.file.attribute.FileOwnerAttributeView;
 import java.nio.file.attribute.PosixFileAttributeView;
@@ -247,6 +249,10 @@ public class FileSystemClient extends AbstractCrawlerClient {
                                 logger.info("Skipped a symbolic link: file={}", f.getAbsolutePath());
                                 continue;
                             }
+                            if (isSymlinkLoop(file, f)) {
+                                logger.info("Skipped a symbolic link that leads back to a parent directory: file={}", f.getAbsolutePath());
+                                continue;
+                            }
                             final String childUri = f.toURI().toASCIIString();
                             requestDataSet.add(RequestDataBuilder.newRequestData().get().url(childUri).build());
                         }
@@ -327,6 +333,36 @@ public class FileSystemClient extends AbstractCrawlerClient {
      */
     protected boolean isSkippedSymlink(final File file) {
         return !followSymlink && Files.isSymbolicLink(file.toPath());
+    }
+
+    /**
+     * Determines whether a child of a directory is a link to a directory that the listing already
+     * went through, which would be listed again under a longer url without end. That is a link whose
+     * target is the directory itself, one of its parents on disk, or a directory on the path of its
+     * url. A link that is broken or points elsewhere is not a loop.
+     *
+     * @param dir the directory being listed
+     * @param child a child of the directory
+     * @return true if following the child would loop
+     */
+    protected boolean isSymlinkLoop(final File dir, final File child) {
+        if (!Files.isSymbolicLink(child.toPath()) || !child.isDirectory()) {
+            return false;
+        }
+        try {
+            final Path target = child.toPath().toRealPath();
+            if (dir.toPath().toRealPath().startsWith(target)) {
+                return true;
+            }
+            for (File parent = dir; parent != null; parent = parent.getParentFile()) {
+                if (parent.toPath().toRealPath().equals(target)) {
+                    return true;
+                }
+            }
+        } catch (final IOException e) {
+            logger.debug("Failed to resolve a symbolic link: file={}", child.getAbsolutePath(), e);
+        }
+        return false;
     }
 
     /**

@@ -40,6 +40,7 @@ import org.codelibs.fess.crawler.client.CrawlerClientFactory;
 import org.codelibs.fess.crawler.container.CrawlerContainer;
 import org.codelibs.fess.crawler.entity.HostState;
 import org.codelibs.fess.crawler.entity.RequestData;
+import org.codelibs.fess.crawler.entity.AccessResult;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.entity.RobotsTxt;
 import org.codelibs.fess.crawler.entity.UrlQueue;
@@ -507,6 +508,35 @@ public class CrawlerThreadTest extends PlainTestCase {
 
         verify(responseProcessor, times(1)).process(responseData);
         assertEquals("test-rule", responseData.getRuleId());
+    }
+
+    /**
+     * A client that followed a redirect itself reports the page it ended up on. If that page has been
+     * stored, a second URL that redirects to it is skipped instead of failing to be stored.
+     */
+    @Test
+    @SuppressWarnings("unchecked")
+    public void test_isRedirectTargetCrawled() throws Exception {
+        final UrlQueue<?> urlQueue = new UrlQueueImpl<>();
+        urlQueue.setUrl("http://example.com/old");
+        final ResponseData responseData = new ResponseData();
+        responseData.setUrl("http://example.com/new");
+
+        // not stored yet: the first URL to reach the page is processed
+        assertFalse(crawlerThread.isRedirectTargetCrawled(urlQueue, responseData));
+
+        // stored: the second URL to reach it is skipped
+        when(dataService.getAccessResult("test-session", "http://example.com/new")).thenReturn(mock(AccessResult.class));
+        assertTrue(crawlerThread.isRedirectTargetCrawled(urlQueue, responseData));
+
+        // the response is for the requested URL: never a redirect target
+        urlQueue.setUrl("http://example.com/new");
+        assertFalse(crawlerThread.isRedirectTargetCrawled(urlQueue, responseData));
+
+        // a redirect location is queued as a child URL, not stored
+        urlQueue.setUrl("http://example.com/old");
+        responseData.setRedirectLocation("http://example.com/new");
+        assertFalse(crawlerThread.isRedirectTargetCrawled(urlQueue, responseData));
     }
 
     /**

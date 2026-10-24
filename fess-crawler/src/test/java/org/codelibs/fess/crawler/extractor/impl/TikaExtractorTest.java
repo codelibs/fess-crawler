@@ -17,6 +17,7 @@ package org.codelibs.fess.crawler.extractor.impl;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -33,6 +34,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -427,6 +430,30 @@ public class TikaExtractorTest extends PlainTestCase {
                 zipBomb |= t.getMessage() != null && t.getMessage().contains("Suspected zip bomb");
             }
             Assertions.assertTrue(zipBomb, "no 'Suspected zip bomb' in the cause chain of " + e);
+        }
+    }
+
+    // Tika wraps the zip bomb SAXException in a TikaException whose message does not mention it, and the
+    // xmlExtractor fallback for SAXException must not return the raw zip bytes as text
+    @Test
+    public void test_getTika_zip_bomb_with_xmlExtractor() throws IOException {
+        final StandardCrawlerContainer container = new StandardCrawlerContainer();
+        container.singleton("mimeTypeHelper", MimeTypeHelperImpl.class)
+                .singleton("tikaExtractor", TikaExtractor.class)
+                .singleton("xmlExtractor", XmlExtractor.class);
+        final TikaExtractor extractor = container.getComponent("tikaExtractor");
+
+        final ByteArrayOutputStream zip = new ByteArrayOutputStream();
+        try (ZipOutputStream out = new ZipOutputStream(zip)) {
+            out.putNextEntry(new ZipEntry("bomb.txt"));
+            out.write(new byte[5000000]);
+            out.closeEntry();
+        }
+        try {
+            extractor.getText(new ByteArrayInputStream(zip.toByteArray()), null);
+            fail();
+        } catch (final ExtractException e) {
+            Assertions.assertTrue(e.getMessage().contains("reason=zipBombDetected"), e.getMessage());
         }
     }
 

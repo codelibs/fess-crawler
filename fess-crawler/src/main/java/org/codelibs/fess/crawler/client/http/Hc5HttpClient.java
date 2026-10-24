@@ -21,6 +21,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.ConnectException;
+import java.net.InetSocketAddress;
 import java.net.NoRouteToHostException;
 import java.net.SocketException;
 import java.net.URI;
@@ -102,6 +103,7 @@ import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.HttpResponse;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.RegistryBuilder;
+import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.message.BasicHeader;
 import org.apache.hc.core5.http.protocol.HttpContext;
@@ -215,6 +217,12 @@ public class Hc5HttpClient extends HcHttpClient {
 
     /** Proxy port number */
     protected Integer proxyPort;
+
+    /** SOCKS proxy host name */
+    protected String socksProxyHost;
+
+    /** SOCKS proxy port number */
+    protected Integer socksProxyPort;
 
     /** Proxy authentication scheme */
     protected AuthScheme proxyAuthScheme = new BasicScheme();
@@ -778,6 +786,13 @@ public class Hc5HttpClient extends HcHttpClient {
             connectionConfigBuilder.setSocketTimeout(Timeout.ofMilliseconds(soTimeoutParam));
         }
         builder.setDefaultConnectionConfig(connectionConfigBuilder.build());
+
+        // SOCKS proxy
+        final String socksHost = getInitParameter(SOCKS_PROXY_HOST_PROPERTY, socksProxyHost, String.class);
+        final Integer socksPort = getInitParameter(SOCKS_PROXY_PORT_PROPERTY, socksProxyPort, Integer.class);
+        if (socksHost != null && socksPort != null) {
+            builder.setDefaultSocketConfig(SocketConfig.custom().setSocksProxyAddress(new InetSocketAddress(socksHost, socksPort)).build());
+        }
 
         // SSL
         if (getInitParameter(IGNORE_SSL_CERTIFICATE_PROPERTY, ignoreSslCertificate, Boolean.class)) {
@@ -1574,6 +1589,24 @@ public class Hc5HttpClient extends HcHttpClient {
      */
     public void setProxyPort(final Integer proxyPort) {
         this.proxyPort = proxyPort;
+    }
+
+    /**
+     * Sets the SOCKS proxy host name. The SOCKS proxy is used without authentication.
+     *
+     * @param socksProxyHost The SOCKS proxy host name
+     */
+    public void setSocksProxyHost(final String socksProxyHost) {
+        this.socksProxyHost = socksProxyHost;
+    }
+
+    /**
+     * Sets the SOCKS proxy port number.
+     *
+     * @param socksProxyPort The SOCKS proxy port number
+     */
+    public void setSocksProxyPort(final Integer socksProxyPort) {
+        this.socksProxyPort = socksProxyPort;
     }
 
     /**

@@ -36,6 +36,8 @@ import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
  *   <li>SO_TIMEOUT_PROPERTY: Socket timeout setting.</li>
  *   <li>PROXY_HOST_PROPERTY: Proxy host setting.</li>
  *   <li>PROXY_PORT_PROPERTY: Proxy port setting.</li>
+ *   <li>SOCKS_PROXY_HOST_PROPERTY: SOCKS proxy host setting (Hc5HttpClient only).</li>
+ *   <li>SOCKS_PROXY_PORT_PROPERTY: SOCKS proxy port setting (Hc5HttpClient only).</li>
  *   <li>PROXY_AUTH_SCHEME_PROPERTY: Proxy authentication scheme.</li>
  *   <li>PROXY_CREDENTIALS_PROPERTY: Proxy credentials, as a WebAuthenticationConfig.</li>
  *   <li>NON_PROXY_HOSTS_PROPERTY: Hosts connected to directly, bypassing the proxy.</li>
@@ -70,6 +72,15 @@ public abstract class HcHttpClient extends AbstractCrawlerClient {
 
     /** Property name for proxy port setting */
     public static final String PROXY_PORT_PROPERTY = "proxyPort";
+
+    /**
+     * Property name for SOCKS proxy host setting. Only {@link Hc5HttpClient} honours it, and the SOCKS
+     * proxy is used without authentication.
+     */
+    public static final String SOCKS_PROXY_HOST_PROPERTY = "socksProxyHost";
+
+    /** Property name for SOCKS proxy port setting. Only {@link Hc5HttpClient} honours it. */
+    public static final String SOCKS_PROXY_PORT_PROPERTY = "socksProxyPort";
 
     /** Property name for proxy authentication scheme setting */
     public static final String PROXY_AUTH_SCHEME_PROPERTY = "proxyAuthScheme";

@@ -261,12 +261,15 @@ what you might guess:
 | Per-host pool size | `setMaxConnectionsPerRoute(Integer)` | `maxConnectionsPerRoute` |
 | Skip TLS verification | `setIgnoreSslCertificate(boolean)` | `ignoreSslCertificate` |
 | Proxy | `setProxyHost(String)` / `setProxyPort(Integer)` | `proxyHost` / `proxyPort` |
+| SOCKS proxy (no authentication; `Hc5HttpClient` only) | `setSocksProxyHost(String)` / `setSocksProxyPort(Integer)` | `socksProxyHost` / `socksProxyPort` |
 | Follow redirects | `setRedirectsEnabled(boolean)` | `redirectsEnabled` |
 | Honour robots.txt | `setUseRobotsTxtDisallows(boolean)` / `setUseRobotsTxtAllows(boolean)` | — |
 | Allow a site whose robots.txt is unavailable | — | `robotsTxtAllowOnUnavailable` (default `false`) |
 | robots.txt retries before giving up a site | — | `robotsTxtMaxRetries` (default from `CrawlerContext`, 3) |
 
 Disable TLS verification only against hosts you control.
+
+The SOCKS proxy is used without authentication, and host names are resolved by the crawler rather than by the proxy (the proxy receives IP addresses).
 
 Every client also inherits generic knobs from `AbstractCrawlerClient`: `accessTimeout`,
 `maxContentLength`, `maxCachedContentSize`. Any of these can be supplied as a map instead of via

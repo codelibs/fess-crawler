@@ -150,10 +150,13 @@ public class CsvExtractor extends AbstractExtractor {
         final BufferedInputStream bomBuffered = new BufferedInputStream(in);
         final BomDetectionResult bomResult = detectBomCharset(bomBuffered, defaultCharset);
         final InputStream postBom = bomResult.stream;
-        final Charset charset = bomResult.charset;
 
-        // Wrap once more so we can mark/reset for delimiter detection.
+        // Wrap once more so we can mark/reset for charset and delimiter detection.
         final BufferedInputStream peekBuffered = new BufferedInputStream(postBom);
+
+        // Without a BOM the charset from the params (the crawler clients send UTF-8 for a local or a shared file, whatever
+        // the charset of the file is) is only a hint, and the bytes decide, the same as for a text file read by Tika.
+        final Charset charset = bomResult.bomFound ? bomResult.charset : detectCharset(peekBuffered, bomResult.charset);
 
         final List<String[]> rows = new ArrayList<>();
         String[] headers = null;
@@ -256,10 +259,17 @@ public class CsvExtractor extends AbstractExtractor {
         public final InputStream stream;
         /** Charset to use when decoding the stream. */
         public final Charset charset;
+        /** Whether the charset comes from a BOM. */
+        public final boolean bomFound;
 
         BomDetectionResult(final InputStream stream, final Charset charset) {
+            this(stream, charset, false);
+        }
+
+        BomDetectionResult(final InputStream stream, final Charset charset, final boolean bomFound) {
             this.stream = stream;
             this.charset = charset;
+            this.bomFound = bomFound;
         }
     }
 
@@ -290,7 +300,7 @@ public class CsvExtractor extends AbstractExtractor {
                     logger.debug("Detected BOM charset: {}", name);
                 }
                 if (name != null && Charset.isSupported(name)) {
-                    return new BomDetectionResult(bomIn, Charset.forName(name));
+                    return new BomDetectionResult(bomIn, Charset.forName(name), true);
                 }
             }
             // No (recognized) BOM — still return the bomIn wrapper because it
@@ -303,6 +313,29 @@ public class CsvExtractor extends AbstractExtractor {
             }
             return new BomDetectionResult(bis, defaultCharset);
         }
+    }
+
+    /**
+     * Detects the charset of the CSV from its leading bytes (using mark/reset), with the
+     * charset of the params as a hint.
+     *
+     * @param bis the buffered input stream
+     * @param hint the charset to use when the bytes do not tell
+     * @return the detected charset, or {@code hint} when it cannot be detected
+     */
+    protected Charset detectCharset(final BufferedInputStream bis, final Charset hint) {
+        try {
+            final Charset detected = TikaExtractor.detectCharset(bis, hint.name());
+            if (detected != null) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Detected CSV charset: {} (hint={})", detected, hint);
+                }
+                return detected;
+            }
+        } catch (final IOException e) {
+            throw new ExtractException("Failed to read the CSV: " + e.getMessage(), e);
+        }
+        return hint;
     }
 
     /**

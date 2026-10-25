@@ -19,6 +19,10 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
+import java.util.HashMap;
+
+import java.util.Map;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.codelibs.core.io.CloseableUtil;
@@ -339,5 +343,67 @@ public class CsvExtractorTest extends PlainTestCase {
             assertTrue(msg.contains("line="));
             assertTrue(msg.contains("error="));
         }
+    }
+
+    // ----------------------------------------------------------------------
+    // Charset: the charset of the params is a hint, and the bytes decide
+    // ----------------------------------------------------------------------
+
+    private static final String JAPANESE_CSV = "名前,備考\n山田太郎,検索エンジンFessは日本語のテキストです\n鈴木花子,正しく取り出します\n";
+
+    private ExtractData extractWithEncoding(final byte[] data, final String contentEncoding) {
+        final Map<String, String> params = new HashMap<>();
+        if (contentEncoding != null) {
+            params.put(ExtractData.CONTENT_ENCODING, contentEncoding);
+        }
+        return csvExtractor.getText(bytes(data), params);
+    }
+
+    // the file clients send UTF-8 as the Content-Encoding for a file in any charset
+    @Test
+    public void test_legacyCharset_utf8Hint() throws Exception {
+        for (final String charset : new String[] { "windows-31j", "EUC-JP" }) {
+            for (final String hint : new String[] { "UTF-8", null }) {
+                final ExtractData extractData = extractWithEncoding(JAPANESE_CSV.getBytes(charset), hint);
+                final String content = extractData.getContent();
+                assertTrue(content.contains("山田太郎") && content.contains("検索エンジンFess"));
+                assertEquals("名前", extractData.getValues("columns")[0]);
+            }
+        }
+    }
+
+    // a charset declared by the server, and the bytes agree with it
+    @Test
+    public void test_legacyCharset_matchingHint() throws Exception {
+        assertTrue(extractWithEncoding(JAPANESE_CSV.getBytes("windows-31j"), "Shift_JIS").getContent().contains("山田太郎"));
+        assertTrue(extractWithEncoding(JAPANESE_CSV.getBytes("EUC-JP"), "EUC-JP").getContent().contains("山田太郎"));
+        // a short text, which is not enough for the detector to tell
+        final String shortCsv = "名前,備考\n山田,太郎\n";
+        assertTrue(extractWithEncoding(shortCsv.getBytes("windows-31j"), "Shift_JIS").getContent().contains("山田"));
+        assertTrue(extractWithEncoding(shortCsv.getBytes("EUC-JP"), "EUC-JP").getContent().contains("山田"));
+    }
+
+    @Test
+    public void test_utf8_kept() throws Exception {
+        for (final String hint : new String[] { "UTF-8", null }) {
+            assertTrue(extractWithEncoding(JAPANESE_CSV.getBytes(StandardCharsets.UTF_8), hint).getContent().contains("山田太郎"));
+            assertTrue(extractWithEncoding("名前,備考\n山田,太郎\n".getBytes(StandardCharsets.UTF_8), hint).getContent().contains("山田"));
+        }
+        final ExtractData ascii = extractWithEncoding("name,value\nfoo,bar\n".getBytes(StandardCharsets.UTF_8), "UTF-8");
+        assertTrue(ascii.getContent().contains("foo"));
+    }
+
+    // a BOM is not a hint
+    @Test
+    public void test_bom_winsOverHint() throws Exception {
+        final byte[] body = JAPANESE_CSV.getBytes(StandardCharsets.UTF_8);
+        final byte[] all = new byte[body.length + 3];
+        all[0] = (byte) 0xEF;
+        all[1] = (byte) 0xBB;
+        all[2] = (byte) 0xBF;
+        System.arraycopy(body, 0, all, 3, body.length);
+        final ExtractData extractData = extractWithEncoding(all, "Shift_JIS");
+        assertEquals("名前", extractData.getValues("columns")[0]);
+        assertTrue(extractData.getContent().contains("山田太郎"));
     }
 }

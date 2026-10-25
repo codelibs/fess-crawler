@@ -113,6 +113,39 @@ public class HtmlExtractorTest extends PlainTestCase {
         assertEquals("タイトル", data.getValues("title")[0]);
     }
 
+    private static final String JAPANESE_PAGE =
+            "<html><head><title>タイトル</title></head><body><p>日本語のテキストを検索システムに登録するための文章です。</p></body></html>";
+
+    // a page in a legacy charset that does not declare it, such as one read from a local or a shared file
+    @Test
+    public void test_getHtml_legacyCharset_noDeclaration() throws Exception {
+        for (final String charset : new String[] { "windows-31j", "EUC-JP" }) {
+            final ExtractData data = htmlExtractor.getText(new ByteArrayInputStream(JAPANESE_PAGE.getBytes(charset)), null);
+            assertTrue(data.getContent().contains("日本語のテキストを検索システム"));
+            assertEquals("タイトル", data.getValues("title")[0]);
+        }
+    }
+
+    @Test
+    public void test_getHtml_utf8_noDeclaration() throws Exception {
+        final ExtractData data = htmlExtractor.getText(new ByteArrayInputStream(JAPANESE_PAGE.getBytes(StandardCharsets.UTF_8)), null);
+        assertTrue(data.getContent().contains("日本語のテキストを検索システム"));
+        assertEquals("タイトル", data.getValues("title")[0]);
+        final String ascii = "<html><head><title>Title</title></head><body>plain text</body></html>";
+        assertTrue(htmlExtractor.getText(new ByteArrayInputStream(ascii.getBytes(StandardCharsets.UTF_8)), null)
+                .getContent()
+                .contains("plain text"));
+    }
+
+    // the declaration wins over the detection
+    @Test
+    public void test_getHtml_legacyCharset_declared() throws Exception {
+        final String page =
+                JAPANESE_PAGE.replace("<head>", "<head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=Shift_JIS\">");
+        final ExtractData data = htmlExtractor.getText(new ByteArrayInputStream(page.getBytes("windows-31j")), null);
+        assertTrue(data.getContent().contains("日本語のテキストを検索システム"));
+    }
+
     @Test
     public void test_getHtml_empty() {
         final InputStream in = new ByteArrayInputStream("".getBytes());

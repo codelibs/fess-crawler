@@ -141,6 +141,9 @@ public class TikaExtractor extends PasswordBasedExtractor {
 
     private static final Logger logger = LogManager.getLogger(TikaExtractor.class);
 
+    /** The number of leading bytes the charset is detected from, the same as the read limit of the junk filter of Tika. */
+    private static final int CHARSET_PROBE_SIZE = 16384;
+
     /**
      * Tesseract config file path.
      */
@@ -451,6 +454,61 @@ public class TikaExtractor extends PasswordBasedExtractor {
         private static boolean isUtf16Bom(final byte[] probe) {
             return probe[0] == (byte) 0xFE && probe[1] == (byte) 0xFF || probe[0] == (byte) 0xFF && probe[1] == (byte) 0xFE;
         }
+    }
+
+    /**
+     * Detects the charset of a text from its leading bytes with the encoding detector that {@link TikaExtractor} parses
+     * with, so that the extractors that do not use Tika read a text in the same charset as a Tika-extracted one. The
+     * stream is reset to the position it was at.
+     *
+     * <p>The hint is one of the candidates and does not override the bytes: Tika decodes with the hint only when the
+     * bytes are valid in it, and takes another charset when they are not.</p>
+     *
+     * @param in The buffered input stream of the text.
+     * @param hint The charset the text is declared or expected to be in, or {@code null}.
+     * @return the detected charset, or {@code null} if it cannot be detected.
+     * @throws IOException if the stream cannot be read.
+     */
+    static Charset detectCharset(final BufferedInputStream in, final String hint) throws IOException {
+        in.mark(CHARSET_PROBE_SIZE);
+        final byte[] probe;
+        try {
+            probe = in.readNBytes(CHARSET_PROBE_SIZE);
+        } finally {
+            in.reset();
+        }
+        if (isPlainAscii(probe)) {
+            // every charset decodes it the same, and the caller keeps its own
+            return null;
+        }
+        final Metadata metadata = new Metadata();
+        if (StringUtil.isNotBlank(hint)) {
+            metadata.set(ExtractData.CONTENT_ENCODING, hint);
+        }
+        try (TikaInputStream tis = TikaInputStream.get(probe)) {
+            final List<EncodingResult> results = EncodingDetectorHolder.DETECTOR.detect(tis, metadata, new ParseContext());
+            if (results != null && !results.isEmpty()) {
+                return results.get(0).getCharset();
+            }
+        } catch (final Exception e) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Failed to detect the charset: hint={}", hint, e);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns whether the bytes are in the range that is the same in all the charsets but the ones that have NUL bytes
+     * (UTF-16, UTF-32) or an escape sequence (ISO-2022).
+     */
+    private static boolean isPlainAscii(final byte[] bytes) {
+        for (final byte b : bytes) {
+            if (b <= 0 || b == 0x1B) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

@@ -15,8 +15,11 @@
  */
 package org.codelibs.fess.crawler.extractor.impl;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -43,6 +46,7 @@ import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.stream.StreamUtil;
 import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
+import org.codelibs.fess.crawler.exception.ExtractException;
 import org.codelibs.fess.crawler.util.XPathAPI;
 import org.codelibs.nekohtml.parsers.DOMParser;
 import org.w3c.dom.DOMException;
@@ -891,6 +895,29 @@ public class HtmlExtractor extends AbstractXmlExtractor {
     @Override
     protected Pattern getEncodingPattern() {
         return metaCharsetPattern;
+    }
+
+    /**
+     * Detects the encoding of a page that has no BOM and no declaration of the encoding from its bytes, the same
+     * as for a text file read by Tika, with the default encoding as a hint.
+     *
+     * @param bis The buffered input stream.
+     * @return The encoding.
+     */
+    @Override
+    protected String detectEncoding(final BufferedInputStream bis) {
+        try {
+            final Charset detected = TikaExtractor.detectCharset(bis, encoding);
+            if (detected != null) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Detected HTML charset: {} (default={})", detected, encoding);
+                }
+                return detected.name();
+            }
+        } catch (final IOException e) {
+            throw new ExtractException("Failed to read the HTML: " + e.getMessage(), e);
+        }
+        return encoding;
     }
 
     /*

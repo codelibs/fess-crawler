@@ -211,6 +211,7 @@ public abstract class AbstractXmlExtractor extends AbstractExtractor {
      */
     protected String getEncoding(final BufferedInputStream bis) {
         final byte[] b = new byte[preloadSizeForCharset];
+        boolean undeclared = false;
         try {
             bis.mark(preloadSizeForCharset);
             // The wrapping BOMInputStream is intentionally not closed here so the
@@ -245,6 +246,7 @@ public abstract class AbstractXmlExtractor extends AbstractExtractor {
                     return enc;
                 }
             }
+            undeclared = true;
         } catch (final Exception e) {
             if (logger.isInfoEnabled()) {
                 logger.info("Use a default encoding: " + encoding, e);
@@ -257,6 +259,16 @@ public abstract class AbstractXmlExtractor extends AbstractExtractor {
             }
         }
 
+        return undeclared ? detectEncoding(bis) : encoding;
+    }
+
+    /**
+     * Returns the encoding of the content that has no BOM and no declaration of the encoding. The stream is at
+     * the beginning of the content, and it has to be left there. This implementation returns the default encoding.
+     * @param bis The buffered input stream.
+     * @return The encoding.
+     */
+    protected String detectEncoding(final BufferedInputStream bis) {
         return encoding;
     }
 

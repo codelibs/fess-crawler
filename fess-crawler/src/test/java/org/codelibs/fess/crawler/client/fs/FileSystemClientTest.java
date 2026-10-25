@@ -16,20 +16,27 @@
 package org.codelibs.fess.crawler.client.fs;
 
 import java.io.File;
+import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import org.codelibs.core.io.InputStreamUtil;
 import org.codelibs.core.io.ResourceUtil;
 import org.codelibs.fess.crawler.Constants;
 import org.codelibs.fess.crawler.container.StandardCrawlerContainer;
+import org.codelibs.fess.crawler.entity.ExtractData;
 import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.exception.ChildUrlsException;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
+import org.codelibs.fess.crawler.extractor.Extractor;
+import org.codelibs.fess.crawler.extractor.impl.CsvExtractor;
+import org.codelibs.fess.crawler.extractor.impl.HtmlExtractor;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
@@ -540,6 +547,42 @@ public class FileSystemClientTest extends PlainTestCase {
                 tempFile.delete();
             }
             tempDir.delete();
+        }
+    }
+
+    /**
+     * A csv and a html page in a legacy charset are read as they are written, through the same parameters as the
+     * transformers of Fess give the extractors: the charset of the response (UTF-8, the default of the client) is
+     * the Content-Encoding.
+     */
+    @Test
+    public void test_doGet_legacyCharsetFile() throws Exception {
+        final File dir = Files.createTempDirectory("fsclient-charset").toFile();
+        try {
+            final String csv = "名前,備考\n山田太郎,検索エンジンFessは日本語のテキストです\n鈴木花子,正しく取り出します\n";
+            final String html = "<html><head><title>タイトル</title></head><body>日本語のテキストを検索システムに登録するための文章です。</body></html>";
+            for (final String charset : new String[] { "windows-31j", "EUC-JP" }) {
+                final File csvFile = new File(dir, "data-" + charset + ".csv");
+                Files.write(csvFile.toPath(), csv.getBytes(charset));
+                assertTrue(extract(csvFile, new CsvExtractor()).contains("山田太郎"));
+                final File htmlFile = new File(dir, "page-" + charset + ".html");
+                Files.write(htmlFile.toPath(), html.getBytes(charset));
+                assertTrue(extract(htmlFile, new HtmlExtractor()).contains("日本語のテキストを検索システムに登録"));
+            }
+        } finally {
+            org.apache.commons.io.FileUtils.deleteDirectory(dir);
+        }
+    }
+
+    private String extract(final File file, final Extractor extractor) throws Exception {
+        final ResponseData responseData = fsClient.doGet(file.toURI().toString());
+        assertEquals("UTF-8", responseData.getCharSet());
+        final Map<String, String> params = new HashMap<>();
+        params.put(ExtractData.RESOURCE_NAME_KEY, file.getName());
+        params.put(ExtractData.CONTENT_TYPE, responseData.getMimeType());
+        params.put(ExtractData.CONTENT_ENCODING, responseData.getCharSet());
+        try (InputStream in = responseData.getResponseBody()) {
+            return extractor.getText(in, params).getContent();
         }
     }
 }

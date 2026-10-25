@@ -131,6 +131,75 @@ public class FileSystemClientTest extends PlainTestCase {
         }
     }
 
+    /**
+     * A directory link that points at an ancestor of the directory being listed is left out of the
+     * child urls. Following it reaches the same files again under ever longer urls (sub/up/a.txt,
+     * sub/up/sub/up/a.txt, ...) until the depth limit stops the crawl. Links to other places, and
+     * links that are broken, are listed as before.
+     */
+    @Test
+    public void test_doGet_dir_leavesOutSymlinkToAncestor() throws Exception {
+        final File root = new File(tempDir(), "loop");
+        final File sub = new File(root, "sub");
+        final File other = new File(root, "other");
+        assertTrue(sub.mkdirs());
+        assertTrue(other.mkdirs());
+        try {
+            Files.createSymbolicLink(new File(sub, "up").toPath(), root.toPath());
+            Files.createSymbolicLink(new File(sub, "self").toPath(), sub.toPath());
+            Files.createSymbolicLink(new File(sub, "otherlink").toPath(), other.toPath());
+            Files.createSymbolicLink(new File(sub, "broken").toPath(), new File(root, "missing").toPath());
+        } catch (final UnsupportedOperationException | java.io.IOException e) {
+            return; // the file system does not support symbolic links
+        }
+
+        try {
+            fsClient.doGet(sub.toURI().toASCIIString());
+            fail();
+        } catch (final ChildUrlsException e) {
+            final Set<String> names = new java.util.HashSet<>();
+            for (final RequestData requestData : e.getChildUrlList()) {
+                final String url = requestData.getUrl().replaceAll("/$", "");
+                names.add(url.substring(url.lastIndexOf('/') + 1));
+            }
+            assertFalse(names.contains("up"));
+            assertFalse(names.contains("self"));
+            assertTrue(names.contains("otherlink"));
+            assertTrue(names.contains("broken"));
+        }
+    }
+
+    /**
+     * Two links that point at each other's tree form a loop too, even though neither target is an
+     * ancestor of the directory on disk: a/x -> b, b/y -> a gives a/x/y/x/y/... The link that
+     * leads back to a directory already on the path of the url is left out.
+     */
+    @Test
+    public void test_doGet_dir_leavesOutSymlinkBackToDirectoryOnTheUrlPath() throws Exception {
+        final File root = new File(tempDir(), "cycle");
+        final File a = new File(root, "a");
+        final File b = new File(root, "b");
+        assertTrue(a.mkdirs());
+        assertTrue(b.mkdirs());
+        final File x = new File(a, "x");
+        try {
+            Files.createSymbolicLink(x.toPath(), b.toPath());
+            Files.createSymbolicLink(new File(b, "y").toPath(), a.toPath());
+        } catch (final UnsupportedOperationException | java.io.IOException e) {
+            return; // the file system does not support symbolic links
+        }
+
+        // a/x (= b) lists y, which points back at a, the parent of a/x
+        try {
+            fsClient.doGet(x.toURI().toASCIIString());
+            fail();
+        } catch (final ChildUrlsException e) {
+            for (final RequestData requestData : e.getChildUrlList()) {
+                assertFalse(requestData.getUrl().replaceAll("/$", "").endsWith("/y"));
+            }
+        }
+    }
+
     private File tempDir() {
         final File dir = new File(System.getProperty("java.io.tmpdir"), "fsClientSymlinkTest" + System.nanoTime());
         assertTrue(dir.mkdirs());

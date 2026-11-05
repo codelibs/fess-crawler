@@ -88,6 +88,34 @@ public class DefaultResponseProcessorTest extends PlainTestCase {
      */
     @SuppressWarnings("unchecked")
     @Test
+    public void test_checkAccessCount_countsWithoutLimit() {
+        final DefaultResponseProcessor processor = new DefaultResponseProcessor();
+        final CrawlerContext crawlerContext = new CrawlerContext();
+
+        // no limit: every access is allowed, and it is counted
+        crawlerContext.setMaxAccessCount(0);
+        assertTrue(processor.checkAccessCount(crawlerContext));
+        assertTrue(processor.checkAccessCount(crawlerContext));
+        assertEquals(2L, crawlerContext.getAccessCount());
+
+        crawlerContext.setMaxAccessCount(-1);
+        assertTrue(processor.checkAccessCount(crawlerContext));
+        assertEquals(3L, crawlerContext.getAccessCount());
+    }
+
+    @Test
+    public void test_checkAccessCount_stopsAtLimit() {
+        final DefaultResponseProcessor processor = new DefaultResponseProcessor();
+        final CrawlerContext crawlerContext = new CrawlerContext();
+
+        crawlerContext.setMaxAccessCount(2);
+        assertTrue(processor.checkAccessCount(crawlerContext));
+        assertTrue(processor.checkAccessCount(crawlerContext));
+        assertFalse(processor.checkAccessCount(crawlerContext));
+        assertEquals(3L, crawlerContext.getAccessCount());
+    }
+
+    @Test
     public void test_storeChildUrls_appliesWeigher() {
         final DefaultResponseProcessor processor = new DefaultResponseProcessor();
 

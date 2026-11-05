@@ -234,14 +234,17 @@ public class DefaultResponseProcessor implements ResponseProcessor {
     }
 
     /**
-     * Checks if the access count is within the allowed limit.
+     * Counts an access result that is about to be stored, and checks that the count is within the allowed
+     * limit. The count is kept whether or not a limit is set, so that it is the number of access results
+     * the crawler has stored; the limit applies only when the maximum access count is above zero.
      *
      * @param crawlerContext the crawler context
      * @return true if access count is within limit, false otherwise
      */
     protected boolean checkAccessCount(final CrawlerContext crawlerContext) {
+        final long count = crawlerContext.incrementAndGetAccessCount();
         if (crawlerContext.getMaxAccessCount() > 0) {
-            return crawlerContext.incrementAndGetAccessCount() <= crawlerContext.getMaxAccessCount();
+            return count <= crawlerContext.getMaxAccessCount();
         }
         return true;
     }

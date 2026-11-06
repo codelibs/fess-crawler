@@ -469,7 +469,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
      * @return the detected charset, or {@code null} if it cannot be detected.
      * @throws IOException if the stream cannot be read.
      */
-    static Charset detectCharset(final BufferedInputStream in, final String hint) throws IOException {
+    public static Charset detectCharset(final BufferedInputStream in, final String hint) throws IOException {
         in.mark(CHARSET_PROBE_SIZE);
         final byte[] probe;
         try {

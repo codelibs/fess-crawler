@@ -49,6 +49,7 @@ import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
+import org.codelibs.fess.crawler.extractor.impl.TikaExtractor;
 import org.codelibs.fess.crawler.helper.EncodingHelper;
 import org.codelibs.fess.crawler.helper.UrlConvertHelper;
 import org.codelibs.fess.crawler.util.CharUtil;
@@ -403,8 +404,11 @@ public class HtmlTransformer extends AbstractTransformer {
      * Updates the character set of the response data by detecting it from the content.
      * <p>
      * A charset declared by the page itself wins. Without one, the charset the client reported, such as the
-     * one of the Content-Type header, is kept, and only a response that has none gets {@link #defaultEncoding},
-     * or UTF-8 if that is not set either.
+     * one of the Content-Type header, or else {@link #defaultEncoding}, or UTF-8 if that is not set either,
+     * is only a hint, and the bytes of the page decide, the same as for a text read by
+     * {@link TikaExtractor}: the hint is kept when the bytes agree with it or are plain ASCII, and the
+     * charset the bytes are in is taken when they do not. An HTTP client reports UTF-8 for a response whose
+     * Content-Type has no charset, so the hint cannot be trusted any more than the one of a local file.
      *
      * @param responseData the response data to update
      */
@@ -412,9 +416,9 @@ public class HtmlTransformer extends AbstractTransformer {
         try (final InputStream is = responseData.getResponseBody()) {
             final String encoding = loadCharset(is);
             if (encoding == null) {
-                if (responseData.getCharSet() == null) {
-                    responseData.setCharSet(defaultEncoding == null ? Constants.UTF_8 : defaultEncoding);
-                }
+                final String reported = responseData.getCharSet() != null ? responseData.getCharSet()
+                        : defaultEncoding != null ? defaultEncoding : Constants.UTF_8;
+                responseData.setCharSet(detectCharset(responseData, isSupportedCharset(reported) ? reported : Constants.UTF_8));
             } else {
                 responseData.setCharSet(encoding.trim());
             }
@@ -427,6 +431,28 @@ public class HtmlTransformer extends AbstractTransformer {
         } catch (final Exception e) {
             throw new CrawlerSystemException("Could not load response data: " + responseData.getUrl(), e);
         }
+    }
+
+    /**
+     * Detects the character set of a page that declares none from its bytes.
+     *
+     * @param responseData the response data of the page
+     * @param hint the supported character set to use when the bytes do not tell
+     * @return the detected character set name, or the hint if it cannot be detected
+     */
+    protected String detectCharset(final ResponseData responseData, final String hint) {
+        try (final BufferedInputStream bis = new BufferedInputStream(responseData.getResponseBody())) {
+            final Charset detected = TikaExtractor.detectCharset(bis, hint);
+            if (detected != null) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Detected charset: {} (hint={}, url={})", detected, hint, responseData.getUrl());
+                }
+                return detected.name();
+            }
+        } catch (final IOException e) {
+            throw new CrawlingAccessException("Could not load a content.", e);
+        }
+        return hint;
     }
 
     /**

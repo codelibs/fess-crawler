@@ -354,6 +354,85 @@ public class HtmlTransformerTest extends PlainTestCase {
         assertEquals(Constants.UTF_8, reported.getCharSet());
     }
 
+    private static final String JAPANESE_PAGE =
+            "<html><head><title>検索システム</title></head><body><p>日本語のテキストを検索システムに登録するための文章です。</p></body></html>";
+
+    private ResponseData newUndeclaredPage(final String charset, final String reportedCharset) throws Exception {
+        final ResponseData responseData = new ResponseData();
+        responseData.setUrl("http://hoge/test.html");
+        responseData.setResponseBody(JAPANESE_PAGE.getBytes(charset));
+        responseData.setCharSet(reportedCharset);
+        responseData.setMimeType("text/html");
+        return responseData;
+    }
+
+    @Test
+    public void test_transform_undeclaredCharsetIsDetectedFromBytes() throws Exception {
+        // no meta, and nothing reported by the client (or UTF-8, which the HTTP client reports when the header has none)
+        for (final String reported : new String[] { null, Constants.UTF_8 }) {
+            for (final String charset : new String[] { "windows-31j", "EUC-JP", Constants.UTF_8 }) {
+                final ResponseData responseData = newUndeclaredPage(charset, reported);
+                final ResultData resultData = htmlTransformer.transform(responseData);
+                assertEquals(JAPANESE_PAGE, new String(resultData.getData(), resultData.getEncoding()));
+                assertEquals(resultData.getEncoding(), responseData.getCharSet());
+            }
+        }
+    }
+
+    @Test
+    public void test_transform_undeclaredCharsetIsDetectedWithDefaultEncoding() throws Exception {
+        htmlTransformer.setDefaultEncoding("ISO-8859-1");
+        final ResponseData responseData = newUndeclaredPage("EUC-JP", null);
+        final ResultData resultData = htmlTransformer.transform(responseData);
+        assertEquals(JAPANESE_PAGE, new String(resultData.getData(), resultData.getEncoding()));
+    }
+
+    @Test
+    public void test_transform_asciiPageKeepsReportedCharset() throws Exception {
+        final String content = "<html><head><title>Title</title></head><body>plain text</body></html>";
+
+        final ResponseData reported = new ResponseData();
+        reported.setUrl("http://hoge/test.html");
+        reported.setResponseBody(content.getBytes(Constants.UTF_8));
+        reported.setCharSet("ISO-8859-1");
+        reported.setMimeType("text/html");
+        htmlTransformer.transform(reported);
+        assertEquals("ISO-8859-1", reported.getCharSet());
+
+        htmlTransformer.setDefaultEncoding("Shift_JIS");
+        final ResponseData none = new ResponseData();
+        none.setUrl("http://hoge/test.html");
+        none.setResponseBody(content.getBytes(Constants.UTF_8));
+        none.setMimeType("text/html");
+        htmlTransformer.transform(none);
+        assertEquals("Shift_JIS", none.getCharSet());
+    }
+
+    @Test
+    public void test_transform_utf8WithBomWithoutDeclaration() throws Exception {
+        final byte[] body = JAPANESE_PAGE.getBytes(Constants.UTF_8);
+        final byte[] withBom = new byte[body.length + 3];
+        withBom[0] = (byte) 0xEF;
+        withBom[1] = (byte) 0xBB;
+        withBom[2] = (byte) 0xBF;
+        System.arraycopy(body, 0, withBom, 3, body.length);
+        final ResponseData responseData = new ResponseData();
+        responseData.setUrl("http://hoge/test.html");
+        responseData.setResponseBody(withBom);
+        responseData.setMimeType("text/html");
+        htmlTransformer.transform(responseData);
+        assertEquals(Constants.UTF_8, responseData.getCharSet());
+    }
+
+    @Test
+    public void test_transform_reportedCharsetThatAgreesWithBytesIsKept() throws Exception {
+        for (final String charset : new String[] { "windows-31j", "EUC-JP", Constants.UTF_8 }) {
+            final ResponseData responseData = newUndeclaredPage(charset, charset);
+            final ResultData resultData = htmlTransformer.transform(responseData);
+            assertEquals(JAPANESE_PAGE, new String(resultData.getData(), resultData.getEncoding()));
+        }
+    }
+
     @Test
     public void test_getDuplicateUrl() {
         String url;

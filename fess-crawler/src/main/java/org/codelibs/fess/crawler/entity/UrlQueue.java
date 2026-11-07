@@ -15,6 +15,8 @@
  */
 package org.codelibs.fess.crawler.entity;
 
+import org.codelibs.fess.crawler.util.UserInfoUtil;
+
 /**
  * The UrlQueue interface represents a queue of URLs to be processed by a web crawler.
  * It provides methods to get and set various properties of a URL queue entry.
@@ -78,6 +80,17 @@ public interface UrlQueue<IDTYPE> {
      * @param url the URL to be set
      */
     void setUrl(String url);
+
+    /**
+     * Retrieves the URL to write to a log: the URL without the user name and password of a URL like
+     * {@code http://user:password@host/}. An implementation may keep the value instead of converting the
+     * URL at each call.
+     *
+     * @return the URL without the userinfo, or the URL itself when it has none
+     */
+    default String getLogUrl() {
+        return UserInfoUtil.removeUserInfo(getUrl());
+    }
 
     /**
      * Retrieves the metadata associated with the URL queue.

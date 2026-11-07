@@ -208,7 +208,7 @@ public class LogHelperImpl implements LogHelper {
         final Integer threadCheckCount = (Integer) objs[2];
         if (logger.isDebugEnabled()) {
             if (urlQueue != null && urlQueue.getUrl() != null) {
-                logger.debug("{} is not a target url. ({})", urlQueue.getUrl(), threadCheckCount);
+                logger.debug("{} is not a target url. ({})", urlQueue.getLogUrl(), threadCheckCount);
             } else {
                 logger.debug("The url is null. ({})", threadCheckCount);
             }
@@ -224,7 +224,25 @@ public class LogHelperImpl implements LogHelper {
         // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
         final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
         final Throwable e = (Throwable) objs[2];
-        logger.error("Crawling exception at url: {}", urlQueue.getUrl(), e);
+        logger.error("Crawling exception at url: {}", urlQueue.getLogUrl(), e);
+    }
+
+    /**
+     * Replaces the URL of the queue in a message that quotes it with the URL for a log, so that a URL like
+     * {@code http://user:password@host/} does not reach the log through the message of an exception. The
+     * message is returned as it is when it does not quote the URL.
+     *
+     * @param message the message, which may quote the URL as it is
+     * @param urlQueue the queue of the URL that was crawled
+     * @return the message without the userinfo of the URL
+     */
+    protected String removeUserInfo(final String message, final UrlQueue<?> urlQueue) {
+        final String url = urlQueue.getUrl();
+        final String logUrl = urlQueue.getLogUrl();
+        if (message == null || url == null || url.equals(logUrl)) {
+            return message;
+        }
+        return message.replace(url, logUrl);
     }
 
     /**
@@ -237,13 +255,13 @@ public class LogHelperImpl implements LogHelper {
         final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
         final CrawlingAccessException e = (CrawlingAccessException) objs[2];
         if (e.isDebugEnabled()) {
-            logger.debug("Crawling access exception at url: {}", urlQueue.getUrl(), e);
+            logger.debug("Crawling access exception at url: {}", urlQueue.getLogUrl(), e);
         } else if (e.isInfoEnabled()) {
-            logger.info(e.getMessage());
+            logger.info(removeUserInfo(e.getMessage(), urlQueue));
         } else if (e.isWarnEnabled()) {
-            logger.warn("Crawling access exception at url: {}", urlQueue.getUrl(), e);
+            logger.warn("Crawling access exception at url: {}", urlQueue.getLogUrl(), e);
         } else if (e.isErrorEnabled()) {
-            logger.error("Crawling access exception at url: {}", urlQueue.getUrl(), e);
+            logger.error("Crawling access exception at url: {}", urlQueue.getLogUrl(), e);
         }
     }
 
@@ -258,7 +276,7 @@ public class LogHelperImpl implements LogHelper {
         final String url = (String) objs[2];
         final Throwable e = (Throwable) objs[3];
         if (logger.isDebugEnabled()) {
-            logger.debug("Child URL: {} from {}", url, urlQueue.getUrl(), e);
+            logger.debug("Child URL: {} from {}", url, urlQueue.getLogUrl(), e);
         }
     }
 
@@ -274,7 +292,7 @@ public class LogHelperImpl implements LogHelper {
         final Set<RequestData> requestDataSet = (Set<RequestData>) objs[2];
         if (logger.isDebugEnabled()) {
             for (final RequestData requestData : requestDataSet) {
-                logger.debug("Child URL: {} from {}", requestData.getUrl(), urlQueue.getUrl());
+                logger.debug("Child URL: {} from {}", requestData.getUrl(), urlQueue.getLogUrl());
             }
         }
     }
@@ -288,7 +306,7 @@ public class LogHelperImpl implements LogHelper {
         // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
         final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
         if (logger.isDebugEnabled()) {
-            logger.debug("Finished {}", urlQueue.getUrl());
+            logger.debug("Finished {}", urlQueue.getLogUrl());
         }
     }
 
@@ -330,7 +348,7 @@ public class LogHelperImpl implements LogHelper {
         // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
         final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
         if (logger.isDebugEnabled()) {
-            logger.debug("Getting the content from URL: {}", urlQueue.getUrl());
+            logger.debug("Getting the content from URL: {}", urlQueue.getLogUrl());
         }
     }
 
@@ -343,7 +361,7 @@ public class LogHelperImpl implements LogHelper {
         // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
         final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
         if (logger.isInfoEnabled()) {
-            logger.info("Not modified URL: {}", urlQueue.getUrl());
+            logger.info("Not modified URL: {}", urlQueue.getLogUrl());
         }
     }
 
@@ -369,7 +387,7 @@ public class LogHelperImpl implements LogHelper {
         // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
         final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
         if (logger.isInfoEnabled()) {
-            logger.info("Unsupported URL: {}", urlQueue.getUrl());
+            logger.info("Unsupported URL: {}", urlQueue.getLogUrl());
         }
     }
 
@@ -391,7 +409,7 @@ public class LogHelperImpl implements LogHelper {
         // CrawlerContext crawlerContext = (CrawlerContext) objs[0];
         final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
         if (logger.isInfoEnabled()) {
-            logger.info("Crawling URL: {}", urlQueue.getUrl());
+            logger.info("Crawling URL: {}", urlQueue.getLogUrl());
         }
     }
 

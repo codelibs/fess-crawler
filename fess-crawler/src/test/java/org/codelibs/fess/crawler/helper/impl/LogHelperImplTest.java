@@ -287,4 +287,26 @@ public class LogHelperImplTest extends PlainTestCase {
         final LogHelperImpl helper = new LogHelperImpl();
         assertNotNull(helper);
     }
+
+    @Test
+    public void test_removeUserInfo_message() {
+        final UrlQueueImpl<Long> urlQueue = new UrlQueueImpl<>();
+        urlQueue.setUrl("http://user:secret@host.example.com/path");
+
+        assertEquals("Failed to access to http://host.example.com/path; I/O exception: http://host.example.com/path",
+                logHelper.removeUserInfo(
+                        "Failed to access to http://user:secret@host.example.com/path; I/O exception: http://user:secret@host.example.com/path",
+                        urlQueue));
+        assertEquals("another message", logHelper.removeUserInfo("another message", urlQueue));
+        assertNull(logHelper.removeUserInfo(null, urlQueue));
+    }
+
+    @Test
+    public void test_removeUserInfo_messageOfUrlWithoutUserInfo() {
+        final UrlQueueImpl<Long> urlQueue = new UrlQueueImpl<>();
+        urlQueue.setUrl("http://host.example.com/path");
+
+        final String message = "Failed to access to http://host.example.com/path";
+        assertTrue(message == logHelper.removeUserInfo(message, urlQueue));
+    }
 }

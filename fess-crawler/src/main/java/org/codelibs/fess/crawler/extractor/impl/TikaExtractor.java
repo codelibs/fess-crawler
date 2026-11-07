@@ -51,6 +51,7 @@ import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.tika.config.OutputLimits;
+import org.apache.tika.detect.CharsetSupersets;
 import org.apache.tika.detect.DefaultDetector;
 import org.apache.tika.detect.DefaultEncodingDetector;
 import org.apache.tika.detect.EncodingDetector;
@@ -464,6 +465,10 @@ public class TikaExtractor extends PasswordBasedExtractor {
      * <p>The hint is one of the candidates and does not override the bytes: Tika decodes with the hint only when the
      * bytes are valid in it, and takes another charset when they are not.</p>
      *
+     * <p>The charset is the one to decode the text with, so a charset that a wider one extends is replaced by it, the
+     * same as Tika does when it parses a text (for example, Shift_JIS by windows-31j, which has the NEC and IBM
+     * extension characters such as the circled digits and the parenthesized ideographs that Shift_JIS lacks).</p>
+     *
      * @param in The buffered input stream of the text.
      * @param hint The charset the text is declared or expected to be in, or {@code null}.
      * @return the detected charset, or {@code null} if it cannot be detected.
@@ -488,7 +493,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
         try (TikaInputStream tis = TikaInputStream.get(probe)) {
             final List<EncodingResult> results = EncodingDetectorHolder.DETECTOR.detect(tis, metadata, new ParseContext());
             if (results != null && !results.isEmpty()) {
-                return results.get(0).getCharset();
+                return CharsetSupersets.decodeAs(results.get(0).getCharset());
             }
         } catch (final Exception e) {
             if (logger.isDebugEnabled()) {

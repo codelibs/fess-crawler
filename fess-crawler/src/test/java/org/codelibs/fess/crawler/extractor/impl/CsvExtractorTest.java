@@ -383,6 +383,16 @@ public class CsvExtractorTest extends PlainTestCase {
         assertTrue(extractWithEncoding(shortCsv.getBytes("EUC-JP"), "EUC-JP").getContent().contains("山田"));
     }
 
+    // the characters of the NEC row 13 and the IBM extensions are in windows-31j, but not in Shift_JIS
+    @Test
+    public void test_windows31j_extensionCharacters() throws Exception {
+        final String csv = "品名,備考\n①㈱ 納品書 ㈲日本電気,検索エンジンFessは日本語のテキストです\n鈴木花子,正しく取り出します\n";
+        for (final String hint : new String[] { "UTF-8", "Shift_JIS", null }) {
+            final ExtractData extractData = extractWithEncoding(csv.getBytes("windows-31j"), hint);
+            assertTrue(extractData.getContent().contains("①㈱ 納品書 ㈲日本電気"));
+        }
+    }
+
     @Test
     public void test_utf8_kept() throws Exception {
         for (final String hint : new String[] { "UTF-8", null }) {

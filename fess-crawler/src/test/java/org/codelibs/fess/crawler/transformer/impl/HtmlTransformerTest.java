@@ -290,7 +290,8 @@ public class HtmlTransformerTest extends PlainTestCase {
 
     @Test
     public void test_transform_charsetReportedByClient() throws Exception {
-        // a page that declares nothing is decoded with the charset the client reported, e.g. from the Content-Type header
+        // a page that declares nothing is decoded with the charset the client reported, e.g. from the Content-Type header,
+        // as windows-31j, which has all the characters of Shift_JIS and the extension characters of NEC and IBM
         final String content = "<html><head><title>文字コード</title></head><body><p>こんにちは</p></body></html>";
         final ResponseData responseData = new ResponseData();
         responseData.setUrl("http://hoge/test.html");
@@ -298,8 +299,8 @@ public class HtmlTransformerTest extends PlainTestCase {
         responseData.setCharSet("Shift_JIS");
         responseData.setMimeType("text/html");
         final ResultData resultData = htmlTransformer.transform(responseData);
-        assertEquals("Shift_JIS", responseData.getCharSet());
-        assertEquals("Shift_JIS", resultData.getEncoding());
+        assertEquals("windows-31j", responseData.getCharSet());
+        assertEquals("windows-31j", resultData.getEncoding());
         assertEquals(content, new String(resultData.getData(), resultData.getEncoding()));
     }
 
@@ -342,7 +343,7 @@ public class HtmlTransformerTest extends PlainTestCase {
         noCharset.setResponseBody(content.getBytes("Shift_JIS"));
         noCharset.setMimeType("text/html");
         htmlTransformer.transform(noCharset);
-        assertEquals("Shift_JIS", noCharset.getCharSet());
+        assertEquals("windows-31j", noCharset.getCharSet());
 
         // the client reported a charset, which is not replaced by the default
         final ResponseData reported = new ResponseData();
@@ -376,6 +377,21 @@ public class HtmlTransformerTest extends PlainTestCase {
                 assertEquals(JAPANESE_PAGE, new String(resultData.getData(), resultData.getEncoding()));
                 assertEquals(resultData.getEncoding(), responseData.getCharSet());
             }
+        }
+    }
+
+    // the characters of the NEC row 13 and the IBM extensions are in windows-31j, but not in Shift_JIS
+    @Test
+    public void test_transform_undeclaredWindows31jExtensionCharacters() throws Exception {
+        final String page = "<html><head><title>検索システム</title></head><body><p>①㈱ 納品書 ㈲日本電気 日本語のテキストを検索システムに登録するための文章です。</p></body></html>";
+        for (final String reported : new String[] { null, Constants.UTF_8, "Shift_JIS" }) {
+            final ResponseData responseData = new ResponseData();
+            responseData.setUrl("http://hoge/test.html");
+            responseData.setResponseBody(page.getBytes("windows-31j"));
+            responseData.setCharSet(reported);
+            responseData.setMimeType("text/html");
+            final ResultData resultData = htmlTransformer.transform(responseData);
+            assertEquals(page, new String(resultData.getData(), resultData.getEncoding()));
         }
     }
 

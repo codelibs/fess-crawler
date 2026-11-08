@@ -15,6 +15,8 @@
  */
 package org.codelibs.fess.crawler.entity;
 
+import org.codelibs.fess.crawler.util.UserInfoUtil;
+
 /**
  * Implementation of the {@link UrlQueue} interface.
  * This class represents a URL to be crawled, storing its ID, session ID,
@@ -35,6 +37,12 @@ public class UrlQueueImpl<IDTYPE> implements UrlQueue<IDTYPE> {
 
     /** The URL from the queue. */
     protected String url;
+
+    /** The URL for a log, kept with the URL it was made from. It is not part of the state of the queue. */
+    private transient volatile LogUrl logUrl;
+
+    private record LogUrl(String source, String value) {
+    }
 
     /** The metadata associated with the URL queue. */
     protected String metaData;
@@ -137,6 +145,23 @@ public class UrlQueueImpl<IDTYPE> implements UrlQueue<IDTYPE> {
     @Override
     public void setUrl(final String url) {
         this.url = url;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.codelibs.fess.crawler.entity.UrlQueue#getLogUrl()
+     */
+    @Override
+    public String getLogUrl() {
+        final String currentUrl = url;
+        final LogUrl cached = logUrl;
+        if (cached != null && cached.source == currentUrl) {
+            return cached.value;
+        }
+        final String value = UserInfoUtil.removeUserInfo(currentUrl);
+        logUrl = new LogUrl(currentUrl, value);
+        return value;
     }
 
     @Override
@@ -255,7 +280,8 @@ public class UrlQueueImpl<IDTYPE> implements UrlQueue<IDTYPE> {
      */
     @Override
     public String toString() {
-        return "UrlQueueImpl [id=" + id + ", sessionId=" + sessionId + ", method=" + method + ", url=" + url + ", encoding=" + encoding
-                + ", parentUrl=" + parentUrl + ", depth=" + depth + ", lastModified=" + lastModified + ", createTime=" + createTime + "]";
+        return "UrlQueueImpl [id=" + id + ", sessionId=" + sessionId + ", method=" + method + ", url=" + getLogUrl() + ", encoding="
+                + encoding + ", parentUrl=" + UserInfoUtil.removeUserInfo(parentUrl) + ", depth=" + depth + ", lastModified=" + lastModified
+                + ", createTime=" + createTime + "]";
     }
 }

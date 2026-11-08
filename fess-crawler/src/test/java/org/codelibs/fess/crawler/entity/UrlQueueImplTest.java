@@ -300,4 +300,53 @@ public class UrlQueueImplTest extends PlainTestCase {
         longQueue.setId(123456789L);
         assertEquals(Long.valueOf(123456789L), longQueue.getId());
     }
+
+    @Test
+    public void test_logUrl_withoutUserInfo() {
+        final UrlQueueImpl<Long> queue = new UrlQueueImpl<>();
+        assertNull(queue.getLogUrl());
+
+        final String url = "http://host.example.com/path";
+        queue.setUrl(url);
+        assertTrue(url == queue.getLogUrl());
+    }
+
+    @Test
+    public void test_logUrl_removesUserInfoAndKeepsUrl() {
+        final UrlQueueImpl<Long> queue = new UrlQueueImpl<>();
+        queue.setUrl("http://user:secret@host.example.com/path");
+
+        assertEquals("http://host.example.com/path", queue.getLogUrl());
+        assertEquals("http://user:secret@host.example.com/path", queue.getUrl());
+    }
+
+    @Test
+    public void test_logUrl_isKept() {
+        final UrlQueueImpl<Long> queue = new UrlQueueImpl<>();
+        queue.setUrl("http://user:secret@host.example.com/path");
+
+        assertTrue(queue.getLogUrl() == queue.getLogUrl());
+    }
+
+    @Test
+    public void test_logUrl_followsTheUrl() {
+        final UrlQueueImpl<Long> queue = new UrlQueueImpl<>();
+        queue.setUrl("http://user:secret@host.example.com/path");
+        assertEquals("http://host.example.com/path", queue.getLogUrl());
+
+        queue.setUrl("http://other:secret@other.example.com/");
+        assertEquals("http://other.example.com/", queue.getLogUrl());
+
+        queue.setUrl(null);
+        assertNull(queue.getLogUrl());
+    }
+
+    @Test
+    public void test_toString_doesNotHaveUserInfo() {
+        final UrlQueueImpl<Long> queue = new UrlQueueImpl<>();
+        queue.setUrl("http://user:secret@host.example.com/path");
+        queue.setParentUrl("http://user:secret@host.example.com/");
+
+        assertFalse(queue.toString().contains("secret"));
+    }
 }

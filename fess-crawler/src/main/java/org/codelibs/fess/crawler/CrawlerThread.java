@@ -265,10 +265,10 @@ public class CrawlerThread implements Runnable {
                             if (requeued) {
                                 // retried later; the response is not processed
                                 if (logger.isDebugEnabled()) {
-                                    logger.debug("Skipped processing the response of {} until it is retried.", urlQueue.getUrl());
+                                    logger.debug("Skipped processing the response of {} until it is retried.", urlQueue.getLogUrl());
                                 }
                             } else if (isRedirectTargetCrawled(urlQueue, responseData)) {
-                                logger.info("Skipped {}: its redirect target {} has already been crawled.", urlQueue.getUrl(),
+                                logger.info("Skipped {}: its redirect target {} has already been crawled.", urlQueue.getLogUrl(),
                                         responseData.getUrl());
                             } else if (responseData.getRedirectLocation() == null) {
                                 log(logHelper, LogType.PROCESS_RESPONSE, crawlerContext, urlQueue, responseData);
@@ -312,7 +312,7 @@ public class CrawlerThread implements Runnable {
                                 // the URL has not been tried, so this does not use up one of its retries
                                 requeue(urlQueue);
                                 if (logger.isDebugEnabled()) {
-                                    logger.debug("Re-queued {} until the robots.txt backoff of the host ends.", urlQueue.getUrl());
+                                    logger.debug("Re-queued {} until the robots.txt backoff of the host ends.", urlQueue.getLogUrl());
                                 }
                             }
                         } catch (final Exception e1) {
@@ -609,7 +609,7 @@ public class CrawlerThread implements Runnable {
         if (hostState != null && hostState.getRobotsTxtStatus() == HostState.RobotsTxtStatus.DISALLOW_ALL) {
             reportRobotsTxtFailure(urlQueue, createRobotsTxtGivenUpException(url, hostState));
         } else {
-            logDisallowedByRobotsTxt(url);
+            logDisallowedByRobotsTxt(urlQueue);
         }
     }
 
@@ -625,7 +625,7 @@ public class CrawlerThread implements Runnable {
         if (crawlerContext.markRobotsTxtFailureReported(urlQueue.getUrl())) {
             log(logHelper, LogType.CRAWLING_ACCESS_EXCEPTION, crawlerContext, urlQueue, e);
         } else if (logger.isDebugEnabled()) {
-            logger.debug("Already reported the robots.txt failure of {}: {}", urlQueue.getUrl(), e.getMessage());
+            logger.debug("Already reported the robots.txt failure of {}: {}", urlQueue.getLogUrl(), e.getMessage());
         }
     }
 
@@ -657,14 +657,14 @@ public class CrawlerThread implements Runnable {
      * stayed unavailable and was given up ({@link HostState.RobotsTxtStatus#DISALLOW_ALL}) is reported as a
      * crawling failure instead and does not reach this method from this class.
      *
-     * @param url the URL
+     * @param urlQueue the URL queue entry
      */
-    protected void logDisallowedByRobotsTxt(final String url) {
-        final HostState hostState = crawlerContext.peekHostState(url);
+    protected void logDisallowedByRobotsTxt(final UrlQueue<?> urlQueue) {
+        final HostState hostState = crawlerContext.peekHostState(urlQueue.getUrl());
         if (hostState != null && hostState.getRobotsTxtStatus() == HostState.RobotsTxtStatus.DISALLOW_ALL) {
-            logger.info("Disallowed by robots.txt (unavailable, given up): {}", url);
+            logger.info("Disallowed by robots.txt (unavailable, given up): {}", urlQueue.getLogUrl());
         } else {
-            logger.info("Disallowed by robots.txt: {}", url);
+            logger.info("Disallowed by robots.txt: {}", urlQueue.getLogUrl());
         }
     }
 
@@ -723,12 +723,13 @@ public class CrawlerThread implements Runnable {
         final int retryCount = crawlerContext.incrementAndGetRetryCount(url);
         final int maxRetryCount = crawlerContext.getMaxRetryCount();
         if (retryCount > maxRetryCount) {
-            logger.warn("Gave up retrying {} ({}) after {} attempt(s).", url, reason, retryCount);
+            logger.warn("Gave up retrying {} ({}) after {} attempt(s).", urlQueue.getLogUrl(), reason, retryCount);
             return false;
         }
 
         requeue(urlQueue);
-        logger.info("Re-queued {} ({}; retry {}/{}); the host is backed off for {} ms.", url, reason, retryCount, maxRetryCount, wait);
+        logger.info("Re-queued {} ({}; retry {}/{}); the host is backed off for {} ms.", urlQueue.getLogUrl(), reason, retryCount,
+                maxRetryCount, wait);
         return true;
     }
 

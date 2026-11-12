@@ -110,6 +110,25 @@ public class LogHelperImplTest extends PlainTestCase {
     }
 
     @Test
+    public void test_log_urlsWithUserInfo() {
+        final ResponseData responseData = new ResponseData();
+        responseData.setRedirectLocation("http://user:secret@example.com/redirected");
+        logHelper.log(LogType.REDIRECT_LOCATION, null, null, responseData);
+        // a response without a Location header
+        logHelper.log(LogType.REDIRECT_LOCATION, null, null, new ResponseData());
+
+        final UrlQueueImpl<Long> urlQueue = new UrlQueueImpl<>();
+        urlQueue.setUrl("http://example.com/parent");
+        final Set<RequestData> children = new HashSet<>();
+        final RequestData child = new RequestData();
+        child.setUrl("http://user:secret@example.com/child");
+        children.add(child);
+        logHelper.log(LogType.PROCESS_CHILD_URLS_BY_EXCEPTION, null, urlQueue, children);
+        logHelper.log(LogType.PROCESS_CHILD_URL_BY_EXCEPTION, null, urlQueue, "http://user:secret@example.com/child2",
+                new RuntimeException("x"));
+    }
+
+    @Test
     public void test_log_processResponse() {
         final ResponseData responseData = new ResponseData();
         responseData.setHttpStatusCode(200);

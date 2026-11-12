@@ -25,6 +25,7 @@ import org.codelibs.fess.crawler.entity.UrlQueue;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.helper.LogHelper;
 import org.codelibs.fess.crawler.log.LogType;
+import org.codelibs.fess.crawler.util.UserInfoUtil;
 
 /**
  * Implementation of the {@link LogHelper} interface.
@@ -276,7 +277,7 @@ public class LogHelperImpl implements LogHelper {
         final String url = (String) objs[2];
         final Throwable e = (Throwable) objs[3];
         if (logger.isDebugEnabled()) {
-            logger.debug("Child URL: {} from {}", url, urlQueue.getLogUrl(), e);
+            logger.debug("Child URL: {} from {}", UserInfoUtil.removeUserInfo(url), urlQueue.getLogUrl(), e);
         }
     }
 
@@ -292,7 +293,7 @@ public class LogHelperImpl implements LogHelper {
         final Set<RequestData> requestDataSet = (Set<RequestData>) objs[2];
         if (logger.isDebugEnabled()) {
             for (final RequestData requestData : requestDataSet) {
-                logger.debug("Child URL: {} from {}", requestData.getUrl(), urlQueue.getLogUrl());
+                logger.debug("Child URL: {} from {}", UserInfoUtil.removeUserInfo(requestData.getUrl()), urlQueue.getLogUrl());
             }
         }
     }
@@ -335,7 +336,7 @@ public class LogHelperImpl implements LogHelper {
         // final UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
         final ResponseData responseData = (ResponseData) objs[2];
         if (logger.isInfoEnabled()) {
-            logger.info("Redirect to URL: {}", responseData.getRedirectLocation());
+            logger.info("Redirect to URL: {}", UserInfoUtil.removeUserInfo(responseData.getRedirectLocation()));
         }
     }
 

@@ -320,4 +320,84 @@ public class TextExtractorTest extends PlainTestCase {
         CloseableUtil.closeQuietly(in);
         assertEquals(text, content);
     }
+
+    private static final String JAPANESE_SOURCE = "/*\n" + " * 顧客情報を読み込んで、検索用のインデックスに登録する。\n" + " * 入力ファイルが存在しない場合は、エラーメッセージを出力して終了する。\n"
+            + " */\n" + "int load_customers(const char *path) {\n" + "    // ファイルを開く\n" + "    FILE *fp = fopen(path, \"r\");\n"
+            + "    if (fp == NULL) {\n" + "        return -1; // 開けなかった\n" + "    }\n" + "    // 一行ずつ処理して、結果を返す\n" + "    return 0;\n"
+            + "}\n";
+
+    private String extract(final byte[] bytes, final java.util.Map<String, String> params) {
+        return textExtractor.getText(new ByteArrayInputStream(bytes), params).getContent();
+    }
+
+    @Test
+    public void test_detectsShiftJisWithoutConfiguration() {
+        assertEquals(JAPANESE_SOURCE, extract(JAPANESE_SOURCE.getBytes(java.nio.charset.Charset.forName("windows-31j")), null));
+    }
+
+    @Test
+    public void test_detectsEucJpWithoutConfiguration() {
+        assertEquals(JAPANESE_SOURCE, extract(JAPANESE_SOURCE.getBytes(java.nio.charset.Charset.forName("EUC-JP")), null));
+    }
+
+    @Test
+    public void test_detectsShiftJisWithCrlf() {
+        final String text = JAPANESE_SOURCE.replace("\n", "\r\n");
+        assertEquals(text, extract(text.getBytes(java.nio.charset.Charset.forName("windows-31j")), null));
+    }
+
+    @Test
+    public void test_detectsShiftJisWithUtf8DeclaredByTheCrawler() {
+        final java.util.Map<String, String> params = new java.util.HashMap<>();
+        params.put(ExtractData.CONTENT_ENCODING, "UTF-8");
+        assertEquals(JAPANESE_SOURCE, extract(JAPANESE_SOURCE.getBytes(java.nio.charset.Charset.forName("windows-31j")), params));
+    }
+
+    @Test
+    public void test_contentEncodingHintDecidesAShortText() {
+        // a short EUC-JP text that is misdetected without the hint
+        final String text = "int a; // 顧客\nint b;\n";
+        final byte[] bytes = text.getBytes(java.nio.charset.Charset.forName("EUC-JP"));
+        final java.util.Map<String, String> params = new java.util.HashMap<>();
+        params.put(ExtractData.CONTENT_ENCODING, "EUC-JP");
+        assertEquals(text, extract(bytes, params));
+    }
+
+    @Test
+    public void test_detectsShiftJisAfterALongAsciiPrefix() {
+        final String text = "// license header\n".repeat(2000) + JAPANESE_SOURCE;
+        assertEquals(text, extract(text.getBytes(java.nio.charset.Charset.forName("windows-31j")), null));
+    }
+
+    @Test
+    public void test_utf8IsNotDetectedAway() {
+        assertEquals(JAPANESE_SOURCE, extract(JAPANESE_SOURCE.getBytes(StandardCharsets.UTF_8), null));
+        final java.util.Map<String, String> params = new java.util.HashMap<>();
+        params.put(ExtractData.CONTENT_ENCODING, "ISO-8859-1");
+        assertEquals(JAPANESE_SOURCE, extract(JAPANESE_SOURCE.getBytes(StandardCharsets.UTF_8), params));
+    }
+
+    @Test
+    public void test_unchangedForAsciiEmptyAndUtf8() {
+        assertEquals("", extract(new byte[0], null));
+        assertEquals("plain ascii\r\nsecond line\n", extract("plain ascii\r\nsecond line\n".getBytes(StandardCharsets.US_ASCII), null));
+        final String emoji = "絵文字 \uD83D\uDE00 と 𠮷野家";
+        assertEquals(emoji, extract(emoji.getBytes(StandardCharsets.UTF_8), null));
+        // a multibyte character that straddles the end of the probe is not an error
+        final String padded = "a".repeat(TextExtractor.PROBE_SIZE - 1) + "あ" + "b".repeat(10);
+        assertEquals(padded, extract(padded.getBytes(StandardCharsets.UTF_8), null));
+    }
+
+    @Test
+    public void test_invalidBytesInUtf8StillDecode() {
+        // a single stray byte in an otherwise valid UTF-8 text must not turn the rest of the text into mojibake
+        final byte[] utf8 = JAPANESE_SOURCE.getBytes(StandardCharsets.UTF_8);
+        final byte[] bytes = new byte[utf8.length + 1];
+        System.arraycopy(utf8, 0, bytes, 0, 100);
+        bytes[100] = (byte) 0xFF;
+        System.arraycopy(utf8, 100, bytes, 101, utf8.length - 100);
+        final String content = extract(bytes, null);
+        assertTrue(content.contains("顧客情報を読み込んで"));
+        assertTrue(content.contains("一行ずつ処理して、結果を返す"));
+    }
 }

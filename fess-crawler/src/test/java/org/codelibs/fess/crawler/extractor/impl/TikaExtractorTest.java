@@ -40,6 +40,7 @@ import java.util.zip.ZipOutputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.tika.io.TikaInputStream;
+import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
 import org.apache.tika.parser.ocr.TesseractOCRConfig;
@@ -1353,6 +1354,65 @@ public class TikaExtractorTest extends PlainTestCase {
         tikaExtractor.maxUncompressionSize = 1000000000L;
         final String content = tikaExtractor.getText(ResourceUtil.getResourceAsStream("extractor/zip/test_size.zip"), null).getContent();
         assertTrue(content.length() > 1000000);
+    }
+
+    // A zip bomb in a zip that is itself a member of a zip is skipped by Tika as an embedded document, so the parse
+    // returns the text written before the limit without an exception, and the cut has to be reported
+    @Test
+    public void test_getText_nestedZipBombIsReported() throws IOException {
+        final byte[] inner = zip("bomb.txt", "0".repeat(3000000).getBytes(StandardCharsets.UTF_8));
+        final byte[] outer = zip("inner.zip", inner);
+        final List<Boolean> reported = new ArrayList<>();
+        final TikaExtractor extractor = new TikaExtractor() {
+            @Override
+            protected boolean warnEmbeddedZipBomb(final Metadata metadata, final String resourceName) {
+                final boolean warned = super.warnEmbeddedZipBomb(metadata, resourceName);
+                reported.add(warned);
+                return warned;
+            }
+        };
+        extractor.crawlerContainer = tikaExtractor.crawlerContainer;
+        extractor.maxCompressionRatio = 2;
+        extractor.maxUncompressionSize = 1000000;
+        extractor.init();
+
+        final Map<String, String> params = new HashMap<>();
+        params.put(ExtractData.RESOURCE_NAME_KEY, "nested.zip");
+        final ExtractData extractData = extractor.getText(new ByteArrayInputStream(outer), params);
+
+        // the text is cut at the threshold and Tika does not fail, which is why it has to be reported
+        assertTrue(extractData.getContent().contains("inner.zip"));
+        assertTrue(extractData.getContent().length() < 3000000);
+        assertEquals(List.of(true), reported);
+    }
+
+    // a nested zip below the limits is not a zip bomb
+    @Test
+    public void test_getText_nestedZipIsNotReported() throws IOException {
+        final byte[] outer = zip("inner.zip", zip("a.txt", "a small text".getBytes(StandardCharsets.UTF_8)));
+        final List<Boolean> reported = new ArrayList<>();
+        final TikaExtractor extractor = new TikaExtractor() {
+            @Override
+            protected boolean warnEmbeddedZipBomb(final Metadata metadata, final String resourceName) {
+                final boolean warned = super.warnEmbeddedZipBomb(metadata, resourceName);
+                reported.add(warned);
+                return warned;
+            }
+        };
+        extractor.crawlerContainer = tikaExtractor.crawlerContainer;
+        extractor.init();
+        assertTrue(extractor.getText(new ByteArrayInputStream(outer), null).getContent().contains("a small text"));
+        assertEquals(List.of(false), reported);
+    }
+
+    private static byte[] zip(final String name, final byte[] data) throws IOException {
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try (ZipOutputStream zos = new ZipOutputStream(out)) {
+            zos.putNextEntry(new ZipEntry(name));
+            zos.write(data);
+            zos.closeEntry();
+        }
+        return out.toByteArray();
     }
 
     @Test

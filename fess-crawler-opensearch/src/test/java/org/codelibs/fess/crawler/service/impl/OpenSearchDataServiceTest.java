@@ -461,6 +461,96 @@ public class OpenSearchDataServiceTest extends LastaDiTestCase {
         assertNotNull(dataService.getAccessResult(sessionId, "http://www.example.com/small").getAccessResultData());
     }
 
+    protected List<OpenSearchAccessResult> getAccessResultList(final String sessionId, final int size) {
+        return dataService.getAccessResultList(builder -> {
+            builder.setQuery(QueryBuilders.termQuery("sessionId", sessionId));
+            builder.setFrom(0);
+            builder.setSize(size);
+            builder.addSort("createTime", SortOrder.ASC);
+        });
+    }
+
+    @Test
+    public void test_getAccessResultList_reportsUnreadableAccessResults() {
+        // a document stored before the limit existed, or by a data service without it
+        dataService.setMaxDataSize(0);
+        final String sessionId = "unreadable";
+        final long now = System.currentTimeMillis();
+        final OpenSearchAccessResult big = newAccessResult(sessionId, "http://www.example.com/big", now - 2000, new byte[38_000_000]);
+        dataService.store(big);
+        dataService.store(newAccessResult(sessionId, "http://www.example.com/small", now - 1000, new byte[10]));
+        assertNotNull(big.getId());
+
+        // OpenSearch leaves the unreadable one out and reports it only as a failed shard, so the first page is empty
+        final OpenSearchResultList<OpenSearchAccessResult> firstPage =
+                (OpenSearchResultList<OpenSearchAccessResult>) getAccessResultList(sessionId, 1);
+        assertEquals(2L, firstPage.getTotalHits());
+        assertEquals(0, firstPage.size());
+        assertEquals(1, firstPage.getUnreadableList().size());
+        assertEquals(big.getId(), firstPage.getUnreadableList().get(0).getId());
+
+        final OpenSearchResultList<OpenSearchAccessResult> secondPage =
+                (OpenSearchResultList<OpenSearchAccessResult>) getAccessResultList(sessionId, 10);
+        assertEquals(1, secondPage.size());
+        assertEquals("http://www.example.com/small", secondPage.get(0).getUrl());
+        assertEquals(1, secondPage.getUnreadableList().size());
+
+        // once they are deleted, the crawl is not blocked by them any more
+        dataService.deleteAccessResults(secondPage.getUnreadableList());
+
+        final OpenSearchResultList<OpenSearchAccessResult> cleaned =
+                (OpenSearchResultList<OpenSearchAccessResult>) getAccessResultList(sessionId, 10);
+        assertEquals(1L, cleaned.getTotalHits());
+        assertEquals(1, cleaned.size());
+        assertTrue(cleaned.getUnreadableList().isEmpty());
+    }
+
+    @Test
+    public void test_getAccessResultList_noUnreadableAccessResults() {
+        final String sessionId = "readable";
+        final long now = System.currentTimeMillis();
+        dataService.store(newAccessResult(sessionId, "http://www.example.com/a", now - 2000, new byte[10]));
+        dataService.store(newAccessResult(sessionId, "http://www.example.com/b", now - 1000, null));
+
+        final OpenSearchResultList<OpenSearchAccessResult> list =
+                (OpenSearchResultList<OpenSearchAccessResult>) getAccessResultList(sessionId, 10);
+
+        assertEquals(2, list.size());
+        assertTrue(list.getUnreadableList().isEmpty());
+    }
+
+    @Test
+    public void test_getAccessResultList_unreadableAccessResultDoesNotTakeTheReadableOnesOnTheSameShard() {
+        // OpenSearch drops the hits of the whole shard when it cannot parse one source, so the readable ones that are
+        // on the shard of the unreadable one are missing too. With 2 shards and 10 readable ones, there are some on both.
+        // (When every shard fails, OpenSearch answers with an error, which is not what this is about.)
+        dataService.setNumberOfShards(2);
+        dataService.setMaxDataSize(0);
+        final String sessionId = "twoshards";
+        final long now = System.currentTimeMillis();
+        final OpenSearchAccessResult big = newAccessResult(sessionId, "http://www.example.com/big", now - 20000, new byte[38_000_000]);
+        dataService.store(big);
+        final List<OpenSearchAccessResult> smallList = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            final OpenSearchAccessResult small =
+                    newAccessResult(sessionId, "http://www.example.com/small" + i, now - 10000 + i, i % 2 == 0 ? new byte[10] : null);
+            dataService.store(small);
+            smallList.add(small);
+        }
+
+        final OpenSearchResultList<OpenSearchAccessResult> list =
+                (OpenSearchResultList<OpenSearchAccessResult>) getAccessResultList(sessionId, 20);
+
+        assertEquals(11L, list.getTotalHits());
+        assertEquals(1, list.getUnreadableList().size());
+        assertEquals(big.getId(), list.getUnreadableList().get(0).getId());
+        // all the readable ones are in the page, including the ones that the failed shard took with it
+        assertEquals(10, list.size());
+        for (final OpenSearchAccessResult small : smallList) {
+            assertTrue(list.stream().anyMatch(r -> small.getId().equals(r.getId()) && small.getUrl().equals(r.getUrl())));
+        }
+    }
+
     @Test
     public void test_update_oversizedDataIsDropped() {
         final String sessionId = "updated";

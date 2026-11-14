@@ -17,6 +17,8 @@ package org.codelibs.fess.crawler.service.impl;
 
 import org.codelibs.fess.crawler.entity.OpenSearchAccessResult;
 import org.codelibs.fess.crawler.entity.OpenSearchAccessResultData;
+import org.codelibs.fess.crawler.util.OpenSearchResultList;
+import org.codelibs.fesen.opensearch.action.search.ShardSearchFailure;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.Test;
 
@@ -97,5 +99,29 @@ public class OpenSearchDataServiceLimitTest extends PlainTestCase {
         accessResult.setUrl("http://www.example.com/");
 
         assertFalse(dataService.limitData(accessResult));
+    }
+
+    @Test
+    public void test_isUnreadableSource() {
+        assertTrue(dataService.isUnreadableSource(new ShardSearchFailure(new RuntimeException("Failed to parse content to map",
+                new RuntimeException("String value length (50001064) exceeds the maximum allowed (50000000)")))));
+        assertTrue(dataService.isUnreadableSource(
+                new ShardSearchFailure(new RuntimeException("String value length (50001064) exceeds the maximum allowed"))));
+        assertFalse(dataService.isUnreadableSource(new ShardSearchFailure(new IllegalStateException("shard is not available"))));
+    }
+
+    @Test
+    public void test_checkUnreadable_otherShardFailureLeavesThePageAsItIs() {
+        final OpenSearchResultList<OpenSearchAccessResult> page = new OpenSearchResultList<>();
+        final OpenSearchAccessResult readable = new OpenSearchAccessResult();
+        page.add(readable);
+
+        // a shard that is not available says nothing about the documents that it holds. It does not search again (there is no client here)
+        dataService.checkUnreadable(builder -> {}, page, new java.util.HashSet<>(),
+                new ShardSearchFailure[] { new ShardSearchFailure(new IllegalStateException("shard is not available")),
+                        new ShardSearchFailure(new RuntimeException("String value length (50001064) exceeds the maximum allowed")) });
+
+        assertEquals(1, page.size());
+        assertTrue(page.getUnreadableList().isEmpty());
     }
 }

@@ -16,6 +16,7 @@
 package org.codelibs.fess.crawler.util;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * OpenSearchResultList is a list of OpenSearch results.
@@ -41,6 +42,8 @@ public class OpenSearchResultList<E> extends ArrayList<E> {
      * Time taken for the search in milliseconds.
      */
     private long tookInMillis;
+
+    private List<E> unreadableList = new ArrayList<>();
 
     /**
      * Sets the total number of hits.
@@ -72,6 +75,26 @@ public class OpenSearchResultList<E> extends ArrayList<E> {
      */
     public long getTookInMillis() {
         return tookInMillis;
+    }
+
+    /**
+     * Sets the documents that matched but that OpenSearch could not read.
+     *
+     * @param unreadableList The unreadable documents.
+     */
+    public void setUnreadableList(final List<E> unreadableList) {
+        this.unreadableList = unreadableList;
+    }
+
+    /**
+     * Returns the documents that matched but that OpenSearch could not read, e.g. because a string in the source
+     * is over the limit of OpenSearch. They are left out of this list, but are counted in the total hits.
+     * Only the ID is set, because the other fields cannot be read.
+     *
+     * @return The unreadable documents.
+     */
+    public List<E> getUnreadableList() {
+        return unreadableList;
     }
 
 }

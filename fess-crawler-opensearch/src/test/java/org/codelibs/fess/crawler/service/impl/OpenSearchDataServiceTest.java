@@ -25,6 +25,9 @@ import java.util.UUID;
 import org.codelibs.fess.crawler.client.FesenClient;
 import org.codelibs.fess.crawler.entity.AccessResult;
 import org.codelibs.fess.crawler.entity.OpenSearchAccessResult;
+import org.codelibs.fess.crawler.entity.OpenSearchAccessResultData;
+import org.codelibs.fess.crawler.util.OpenSearchResultList;
+import org.codelibs.fesen.opensearch.search.sort.SortOrder;
 import org.codelibs.opensearch.runner.OpenSearchRunner;
 import org.dbflute.utflute.lastadi.LastaDiTestCase;
 import org.junit.jupiter.api.Test;
@@ -416,4 +419,59 @@ public class OpenSearchDataServiceTest extends LastaDiTestCase {
         assertEquals(0, dataService.getCount(sessionId));
     }
 
+    protected OpenSearchAccessResult newAccessResult(final String sessionId, final String url, final long createTime, final byte[] data) {
+        final OpenSearchAccessResult accessResult = new OpenSearchAccessResult();
+        accessResult.setCreateTime(createTime);
+        accessResult.setHttpStatusCode(200);
+        accessResult.setMethod("GET");
+        accessResult.setMimeType("text/html");
+        accessResult.setSessionId(sessionId);
+        accessResult.setStatus(0);
+        accessResult.setUrl(url);
+        if (data != null) {
+            final OpenSearchAccessResultData accessResultData = new OpenSearchAccessResultData();
+            accessResultData.setTransformerName("t");
+            accessResultData.setData(data);
+            accessResult.setAccessResultData(accessResultData);
+        }
+        return accessResult;
+    }
+
+    @Test
+    public void test_store_oversizedDataIsDropped() {
+        final String sessionId = "oversized";
+        final long now = System.currentTimeMillis();
+        // the first one cannot be read back when its data is stored: 38,000,000 bytes are 50,666,668 characters in base64
+        dataService.store(newAccessResult(sessionId, "http://www.example.com/big", now - 2000, new byte[38_000_000]));
+        dataService.store(newAccessResult(sessionId, "http://www.example.com/small", now - 1000, new byte[10]));
+
+        final List<OpenSearchAccessResult> list = dataService.getAccessResultList(builder -> {
+            builder.setQuery(QueryBuilders.termQuery("sessionId", sessionId));
+            builder.setFrom(0);
+            builder.setSize(10);
+            builder.addSort("createTime", SortOrder.ASC);
+        });
+
+        assertEquals(2L, ((OpenSearchResultList<OpenSearchAccessResult>) list).getTotalHits());
+        assertEquals(2, list.size());
+        assertEquals("http://www.example.com/big", list.get(0).getUrl());
+        assertEquals("http://www.example.com/small", list.get(1).getUrl());
+        // the access result is kept, but without the data
+        assertNull(dataService.getAccessResult(sessionId, "http://www.example.com/big").getAccessResultData());
+        assertNotNull(dataService.getAccessResult(sessionId, "http://www.example.com/small").getAccessResultData());
+    }
+
+    @Test
+    public void test_update_oversizedDataIsDropped() {
+        final String sessionId = "updated";
+        final OpenSearchAccessResult accessResult =
+                newAccessResult(sessionId, "http://www.example.com/big", System.currentTimeMillis(), new byte[10]);
+        dataService.store(accessResult);
+        assertNotNull(dataService.getAccessResult(sessionId, "http://www.example.com/big").getAccessResultData());
+
+        dataService.setMaxDataSize(5);
+        final OpenSearchAccessResult updated = dataService.getAccessResult(sessionId, "http://www.example.com/big");
+        dataService.update(java.util.Collections.singletonList(updated));
+        assertNull(dataService.getAccessResult(sessionId, "http://www.example.com/big").getAccessResultData());
+    }
 }

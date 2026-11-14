@@ -154,6 +154,15 @@ public class OpenSearchAccessResult extends AccessResultImpl<String> implements 
     }
 
     /**
+     * Gets the access result data without loading it from the data service.
+     *
+     * @return The access result data, or null if it is not loaded or has been cleared.
+     */
+    public AccessResultData<String> getAccessResultDataIfLoaded() {
+        return initializedData ? accessResultData : null;
+    }
+
+    /**
      * Sets the access result data and marks it as initialized.
      *
      * @param accessResultDataAsOne The access result data to set.

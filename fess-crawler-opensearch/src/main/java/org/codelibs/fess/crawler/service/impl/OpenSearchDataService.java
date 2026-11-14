@@ -19,8 +19,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.lucene.search.TotalHits;
 import org.codelibs.core.beans.util.BeanUtil;
+import org.codelibs.fess.crawler.entity.AccessResultData;
 import org.codelibs.fess.crawler.entity.OpenSearchAccessResult;
 import org.codelibs.fess.crawler.entity.OpenSearchAccessResultData;
 import org.codelibs.fess.crawler.exception.OpenSearchAccessException;
@@ -42,6 +45,21 @@ import jakarta.annotation.PostConstruct;
  * OpenSearchDataService is an implementation of {@link DataService} for OpenSearch.
  */
 public class OpenSearchDataService extends AbstractCrawlerService implements DataService<OpenSearchAccessResult> {
+
+    private static final Logger logger = LogManager.getLogger(OpenSearchDataService.class);
+
+    /**
+     * The default value of {@link #maxDataSize}.
+     * The data is stored as a base64 string, which is 4 * ceil(n / 3) characters for n bytes, and OpenSearch fails to read
+     * a string value of more than 50,000,000 characters ({@code opensearch.xcontent.string.length.max}).
+     * Up to 37,499,999 bytes fit in it, and this leaves some room.
+     */
+    protected static final int DEFAULT_MAX_DATA_SIZE = 37_000_000;
+
+    /**
+     * The maximum size in bytes of the data of an access result. 0 or less disables the limit.
+     */
+    protected int maxDataSize = DEFAULT_MAX_DATA_SIZE;
 
     /**
      * Fields to fetch for access result list without data.
@@ -83,6 +101,7 @@ public class OpenSearchDataService extends AbstractCrawlerService implements Dat
      */
     @Override
     public void store(final OpenSearchAccessResult accessResult) {
+        limitData(accessResult);
         super.insert(accessResult, accessResult.getId() == null ? OpType.CREATE : OpType.INDEX);
     }
 
@@ -93,7 +112,54 @@ public class OpenSearchDataService extends AbstractCrawlerService implements Dat
      */
     @Override
     public void update(final OpenSearchAccessResult accessResult) {
+        limitData(accessResult);
         super.insert(accessResult, OpType.INDEX);
+    }
+
+    /**
+     * Drops the data of an access result when it is too large for OpenSearch to read back.
+     * OpenSearch stores such a document without a complaint, but cannot parse its source any more,
+     * and a search that has to read the document fails on it.
+     * The access result itself is kept, so that the crawler goes on, but there is no data to index.
+     *
+     * @param accessResult The access result to be stored.
+     * @return true if the data was dropped.
+     */
+    protected boolean limitData(final OpenSearchAccessResult accessResult) {
+        if (maxDataSize <= 0) {
+            return false;
+        }
+        final AccessResultData<String> accessResultData = accessResult.getAccessResultDataIfLoaded();
+        if (accessResultData == null) {
+            return false;
+        }
+        final byte[] data = accessResultData.getData();
+        if (data == null || data.length <= maxDataSize) {
+            return false;
+        }
+        logger.warn("The data is too large to be stored, so it is dropped: sessionId={}, url={}, size={}, maxDataSize={}",
+                accessResult.getSessionId(), accessResult.getUrl(), data.length, maxDataSize);
+        accessResult.setAccessResultData(null);
+        return true;
+    }
+
+    /**
+     * Returns the maximum size in bytes of the data of an access result.
+     *
+     * @return The maximum size in bytes. 0 or less means no limit.
+     */
+    public int getMaxDataSize() {
+        return maxDataSize;
+    }
+
+    /**
+     * Sets the maximum size in bytes of the data of an access result.
+     * Raise it only together with {@code opensearch.xcontent.string.length.max} of OpenSearch.
+     *
+     * @param maxDataSize The maximum size in bytes. 0 or less means no limit.
+     */
+    public void setMaxDataSize(final int maxDataSize) {
+        this.maxDataSize = maxDataSize;
     }
 
     /**
@@ -103,6 +169,7 @@ public class OpenSearchDataService extends AbstractCrawlerService implements Dat
      */
     @Override
     public void update(final List<OpenSearchAccessResult> accessResultList) {
+        accessResultList.forEach(this::limitData);
         insertAll(accessResultList, OpType.INDEX);
     }
 

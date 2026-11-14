@@ -15,12 +15,19 @@
  */
 package org.codelibs.fess.crawler.service.impl;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.lucene.search.TotalHits;
 import org.codelibs.core.beans.util.BeanUtil;
+import org.codelibs.fess.crawler.entity.AccessResultData;
 import org.codelibs.fess.crawler.entity.OpenSearchAccessResult;
 import org.codelibs.fess.crawler.entity.OpenSearchAccessResultData;
 import org.codelibs.fess.crawler.exception.OpenSearchAccessException;
@@ -29,8 +36,11 @@ import org.codelibs.fess.crawler.util.AccessResultCallback;
 import org.codelibs.fess.crawler.util.OpenSearchCrawlerConfig;
 import org.codelibs.fess.crawler.util.OpenSearchResultList;
 import org.codelibs.fesen.opensearch.action.DocWriteRequest.OpType;
+import org.codelibs.fesen.opensearch.action.bulk.BulkRequestBuilder;
+import org.codelibs.fesen.opensearch.action.bulk.BulkResponse;
 import org.codelibs.fesen.opensearch.action.search.SearchRequestBuilder;
 import org.codelibs.fesen.opensearch.action.search.SearchResponse;
+import org.codelibs.fesen.opensearch.action.search.ShardSearchFailure;
 import org.codelibs.fesen.opensearch.common.unit.TimeValue;
 import org.codelibs.fesen.opensearch.index.query.QueryBuilders;
 import org.codelibs.fesen.opensearch.search.SearchHit;
@@ -42,6 +52,21 @@ import jakarta.annotation.PostConstruct;
  * OpenSearchDataService is an implementation of {@link DataService} for OpenSearch.
  */
 public class OpenSearchDataService extends AbstractCrawlerService implements DataService<OpenSearchAccessResult> {
+
+    private static final Logger logger = LogManager.getLogger(OpenSearchDataService.class);
+
+    /**
+     * The default value of {@link #maxDataSize}.
+     * The data is stored as a base64 string, which is 4 * ceil(n / 3) characters for n bytes, and OpenSearch fails to read
+     * a string value of more than 50,000,000 characters ({@code opensearch.xcontent.string.length.max}).
+     * Up to 37,499,999 bytes fit in it, and this leaves some room.
+     */
+    protected static final int DEFAULT_MAX_DATA_SIZE = 37_000_000;
+
+    /**
+     * The maximum size in bytes of the data of an access result. 0 or less disables the limit.
+     */
+    protected int maxDataSize = DEFAULT_MAX_DATA_SIZE;
 
     /**
      * Fields to fetch for access result list without data.
@@ -83,6 +108,7 @@ public class OpenSearchDataService extends AbstractCrawlerService implements Dat
      */
     @Override
     public void store(final OpenSearchAccessResult accessResult) {
+        limitData(accessResult);
         super.insert(accessResult, accessResult.getId() == null ? OpType.CREATE : OpType.INDEX);
     }
 
@@ -93,7 +119,54 @@ public class OpenSearchDataService extends AbstractCrawlerService implements Dat
      */
     @Override
     public void update(final OpenSearchAccessResult accessResult) {
+        limitData(accessResult);
         super.insert(accessResult, OpType.INDEX);
+    }
+
+    /**
+     * Drops the data of an access result when it is too large for OpenSearch to read back.
+     * OpenSearch stores such a document without a complaint, but cannot parse its source any more,
+     * and a search that has to read the document fails on it.
+     * The access result itself is kept, so that the crawler goes on, but there is no data to index.
+     *
+     * @param accessResult The access result to be stored.
+     * @return true if the data was dropped.
+     */
+    protected boolean limitData(final OpenSearchAccessResult accessResult) {
+        if (maxDataSize <= 0) {
+            return false;
+        }
+        final AccessResultData<String> accessResultData = accessResult.getAccessResultDataIfLoaded();
+        if (accessResultData == null) {
+            return false;
+        }
+        final byte[] data = accessResultData.getData();
+        if (data == null || data.length <= maxDataSize) {
+            return false;
+        }
+        logger.warn("The data is too large to be stored, so it is dropped: sessionId={}, url={}, size={}, maxDataSize={}",
+                accessResult.getSessionId(), accessResult.getUrl(), data.length, maxDataSize);
+        accessResult.setAccessResultData(null);
+        return true;
+    }
+
+    /**
+     * Returns the maximum size in bytes of the data of an access result.
+     *
+     * @return The maximum size in bytes. 0 or less means no limit.
+     */
+    public int getMaxDataSize() {
+        return maxDataSize;
+    }
+
+    /**
+     * Sets the maximum size in bytes of the data of an access result.
+     * Raise it only together with {@code opensearch.xcontent.string.length.max} of OpenSearch.
+     *
+     * @param maxDataSize The maximum size in bytes. 0 or less means no limit.
+     */
+    public void setMaxDataSize(final int maxDataSize) {
+        this.maxDataSize = maxDataSize;
     }
 
     /**
@@ -103,6 +176,7 @@ public class OpenSearchDataService extends AbstractCrawlerService implements Dat
      */
     @Override
     public void update(final List<OpenSearchAccessResult> accessResultList) {
+        accessResultList.forEach(this::limitData);
         insertAll(accessResultList, OpType.INDEX);
     }
 
@@ -171,24 +245,14 @@ public class OpenSearchDataService extends AbstractCrawlerService implements Dat
         targetList.setTookInMillis(response.getTook().getMillis());
         if (totalHitsValue != 0) {
             try {
+                final Set<String> readableIds = new HashSet<>();
                 for (final SearchHit searchHit : hits.getHits()) {
-                    final OpenSearchAccessResult target = new OpenSearchAccessResult();
-                    final Map<String, Object> fields = searchHit.getSourceAsMap();
-                    target.setParentUrl(getFieldValue(fields.get("parentUrl"), String.class));
-                    target.setMethod(getFieldValue(fields.get("method"), String.class));
-                    target.setMimeType(getFieldValue(fields.get("mimeType"), String.class));
-                    target.setSessionId(getFieldValue(fields.get("sessionId"), String.class));
-                    target.setUrl(getFieldValue(fields.get("url"), String.class));
-                    target.setExecutionTime(getFieldValue(fields.get("executionTime"), Integer.class));
-                    target.setContentLength(getFieldValue(fields.get("contentLength"), Long.class));
-                    target.setRuleId(getFieldValue(fields.get("ruleId"), String.class));
-                    target.setHttpStatusCode(getFieldValue(fields.get("httpStatusCode"), Integer.class));
-                    target.setStatus(getFieldValue(fields.get("status"), Integer.class));
-                    target.setCreateTime(getFieldValue(fields.get("createTime"), Long.class));
-                    target.setLastModified(getFieldValue(fields.get("lastModified"), Long.class));
-
-                    setId(target, searchHit.getId());
-                    targetList.add(target);
+                    targetList.add(toAccessResult(searchHit));
+                    readableIds.add(searchHit.getId());
+                }
+                final ShardSearchFailure[] shardFailures = response.getShardFailures();
+                if (shardFailures != null && shardFailures.length > 0) {
+                    checkUnreadable(callback, targetList, readableIds, shardFailures);
                 }
             } catch (final Exception e) {
                 throw new OpenSearchAccessException("Failed to parse access result from OpenSearch response: totalHits=" + totalHitsValue,
@@ -196,6 +260,130 @@ public class OpenSearchDataService extends AbstractCrawlerService implements Dat
             }
         }
         return targetList;
+    }
+
+    private OpenSearchAccessResult toAccessResult(final SearchHit searchHit) {
+        final OpenSearchAccessResult target = new OpenSearchAccessResult();
+        final Map<String, Object> fields = searchHit.getSourceAsMap();
+        target.setParentUrl(getFieldValue(fields.get("parentUrl"), String.class));
+        target.setMethod(getFieldValue(fields.get("method"), String.class));
+        target.setMimeType(getFieldValue(fields.get("mimeType"), String.class));
+        target.setSessionId(getFieldValue(fields.get("sessionId"), String.class));
+        target.setUrl(getFieldValue(fields.get("url"), String.class));
+        target.setExecutionTime(getFieldValue(fields.get("executionTime"), Integer.class));
+        target.setContentLength(getFieldValue(fields.get("contentLength"), Long.class));
+        target.setRuleId(getFieldValue(fields.get("ruleId"), String.class));
+        target.setHttpStatusCode(getFieldValue(fields.get("httpStatusCode"), Integer.class));
+        target.setStatus(getFieldValue(fields.get("status"), Integer.class));
+        target.setCreateTime(getFieldValue(fields.get("createTime"), Long.class));
+        target.setLastModified(getFieldValue(fields.get("lastModified"), Long.class));
+        setId(target, searchHit.getId());
+        return target;
+    }
+
+    /**
+     * Finds the access results that matched the search but that OpenSearch could not read.
+     * OpenSearch does not fail a search for a document whose source it cannot parse, e.g. a string of
+     * more than 50,000,000 characters. It fails the shard of the document instead, and leaves out all the hits of
+     * the shard, so the page has fewer documents than it should, or none at all, while the total hits count them.
+     * The same search without the source tells which documents are missing, and each of them is searched for by
+     * itself, to tell the one that is unreadable from the readable ones that were on the same shard.
+     * The readable ones are added to the page, and the unreadable ones are set to the unreadable list of the page.
+     * When a shard failed for any other reason, e.g. it is not available, nothing is classified and the page is left as it is,
+     * which is what the caller gets without this check, so that a document is not deleted by mistake.
+     *
+     * @param callback The callback to build the search request.
+     * @param targetList The page, which has the access results that were read.
+     * @param readableIds The IDs of the documents that were read.
+     * @param shardFailures The failures of the search.
+     */
+    protected void checkUnreadable(final Consumer<SearchRequestBuilder> callback,
+            final OpenSearchResultList<OpenSearchAccessResult> targetList, final Set<String> readableIds,
+            final ShardSearchFailure[] shardFailures) {
+        for (final ShardSearchFailure shardFailure : shardFailures) {
+            if (!isUnreadableSource(shardFailure)) {
+                // e.g. a shard that is not available. It may be back by the next search, and what is not read is not unreadable.
+                logger.warn("A shard failed for a reason other than an unreadable source: reason={}", shardFailure.reason());
+                return;
+            }
+        }
+        final SearchResponse response = getClient().get(c -> {
+            final SearchRequestBuilder builder = c.prepareSearch(index);
+            callback.accept(builder);
+            builder.setFetchSource(false);
+            return builder.execute();
+        });
+        final List<OpenSearchAccessResult> unreadableList = new ArrayList<>();
+        for (final SearchHit candidate : response.getHits().getHits()) {
+            if (readableIds.contains(candidate.getId())) {
+                continue;
+            }
+            final SearchResponse candidateResponse = getClient().get(c -> {
+                final SearchRequestBuilder builder = c.prepareSearch(index);
+                builder.setQuery(QueryBuilders.idsQuery().addIds(candidate.getId()));
+                builder.setSize(1);
+                builder.setFetchSource(ACCESS_RESULT_FIELDS, null);
+                return builder.execute();
+            });
+            final SearchHit[] candidateHits = candidateResponse.getHits().getHits();
+            if (candidateHits.length > 0) {
+                targetList.add(toAccessResult(candidateHits[0]));
+                continue;
+            }
+            final ShardSearchFailure[] candidateFailures = candidateResponse.getShardFailures();
+            if (candidateFailures != null && candidateFailures.length > 0) {
+                final ShardSearchFailure otherFailure =
+                        Arrays.stream(candidateFailures).filter(f -> !isUnreadableSource(f)).findFirst().orElse(null);
+                if (otherFailure != null) {
+                    logger.warn("A shard failed for a reason other than an unreadable source: id={}, reason={}", candidate.getId(),
+                            otherFailure.reason());
+                    continue;
+                }
+                final OpenSearchAccessResult target = new OpenSearchAccessResult();
+                setId(target, candidate.getId());
+                unreadableList.add(target);
+                logger.warn("OpenSearch could not read the access result: id={}, reason={}", candidate.getId(),
+                        candidateFailures[0].reason());
+            }
+        }
+        targetList.setUnreadableList(unreadableList);
+    }
+
+    /**
+     * Returns true if the shard failed because it could not parse the source of a document,
+     * e.g. a string of more than 50,000,000 characters.
+     *
+     * @param shardFailure The failure of a shard.
+     * @return true if the source of a document is unreadable.
+     */
+    protected boolean isUnreadableSource(final ShardSearchFailure shardFailure) {
+        final String reason = shardFailure.reason();
+        return reason != null && (reason.contains("stream_constraints_exception") || reason.contains("Failed to parse content")
+                || reason.contains("exceeds the maximum allowed"));
+    }
+
+    /**
+     * Deletes access results by their IDs. It does not read the documents, so that it works for the ones
+     * that OpenSearch cannot read, which cannot be updated either.
+     *
+     * @param accessResults The access results to delete, which have their IDs.
+     * @throws OpenSearchAccessException if the deletion fails.
+     */
+    public void deleteAccessResults(final List<OpenSearchAccessResult> accessResults) {
+        if (accessResults == null || accessResults.isEmpty()) {
+            return;
+        }
+        final BulkResponse bulkResponse = getClient().get(c -> {
+            final BulkRequestBuilder bulkBuilder = c.prepareBulk();
+            for (final OpenSearchAccessResult accessResult : accessResults) {
+                bulkBuilder.add(c.prepareDelete().setIndex(index).setId(accessResult.getId()));
+            }
+            return bulkBuilder.execute();
+        });
+        if (bulkResponse.hasFailures()) {
+            throw new OpenSearchAccessException(bulkResponse.buildFailureMessage());
+        }
+        refresh();
     }
 
     /**

@@ -256,6 +256,14 @@ public class TikaExtractor extends PasswordBasedExtractor {
     protected int memorySize = 1024 * 1024; //1mb
 
     /**
+     * The maximum number of bytes of the extracted text in UTF-8. The text is cut there, and 0 or less means no limit.
+     * An extracted text is stored as a base64 string, which OpenSearch cannot read back when it is over 50,000,000 characters,
+     * and base64 makes n bytes 4 * ceil(n / 3) characters. The default leaves some room for the rest of the data under
+     * the 37,000,000 bytes that OpenSearchDataService accepts.
+     */
+    protected long maxTextBytes = 36_000_000L;
+
+    /**
      * Max size of an alpha-numeric term.
      */
     protected int maxAlphanumTermSize = -1;
@@ -635,7 +643,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                     try (TikaInputStream in = openTikaInput(bytes, tempFile)) {
                         parser.parse(in, new BodyContentHandler(writer), metadata, parseContext);
                     }
-                }, contentEncoding, normalizeText);
+                }, contentEncoding, normalizeText, resourceName);
                 if (StringUtil.isBlank(content)) {
                     // OCR is slow and has already run in the first parse, so the retries skip it.
                     final ParseContext retryParseContext = createParseContext(parser, params);
@@ -649,7 +657,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                             try (TikaInputStream in = openTikaInput(bytes, tempFile)) {
                                 parser.parse(in, new BodyContentHandler(writer), metadata2, retryParseContext);
                             }
-                        }, contentEncoding, normalizeText);
+                        }, contentEncoding, normalizeText, resourceName);
                     }
                     if (StringUtil.isBlank(content) && contentType != null) {
                         if (logger.isDebugEnabled()) {
@@ -660,7 +668,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                             try (TikaInputStream in = openTikaInput(bytes, tempFile)) {
                                 parser.parse(in, new BodyContentHandler(writer), metadata3, retryParseContext);
                             }
-                        }, contentEncoding, normalizeText);
+                        }, contentEncoding, normalizeText, resourceName);
                     }
 
                     if (StringUtil.isBlank(content)) {
@@ -706,7 +714,7 @@ public class TikaExtractor extends PasswordBasedExtractor {
                             } finally {
                                 CloseableUtil.closeQuietly(br);
                             }
-                        }, contentEncoding, normalizeText);
+                        }, contentEncoding, normalizeText, resourceName);
                     }
                 }
                 // Strip HTML tags if explicitly requested via params
@@ -1174,11 +1182,37 @@ public class TikaExtractor extends PasswordBasedExtractor {
      * @throws TikaException if a Tika exception occurs.
      */
     protected String getContent(final ContentWriter out, final String encoding, final boolean normalizeText) throws TikaException {
+        return getContent(out, encoding, normalizeText, null);
+    }
+
+    /**
+     * Returns a content from a writer.
+     *
+     * @param out A content writer.
+     * @param encoding An encoding.
+     * @param normalizeText If true, normalize a text.
+     * @param resourceName A resource name, for the log.
+     * @return a content.
+     * @throws TikaException if a Tika exception occurs.
+     */
+    protected String getContent(final ContentWriter out, final String encoding, final boolean normalizeText, final String resourceName)
+            throws TikaException {
         File tempFile = null;
         final String enc = encoding == null ? Constants.UTF_8 : encoding;
         try (DeferredFileOutputStream dfos = new DeferredFileOutputStream(memorySize, "tika", ".tmp", SystemUtils.getJavaIoTmpDir())) {
             final BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(dfos, enc));
-            out.accept(writer);
+            final Utf8LimitWriter limitWriter = new Utf8LimitWriter(writer, maxTextBytes);
+            try {
+                out.accept(limitWriter);
+            } catch (final IOException | TikaException | SAXException | RuntimeException e) {
+                // the writer stops the parser by an exception when the text reaches the limit, and the text up to there is kept
+                if (!limitWriter.isLimitReached()) {
+                    throw e;
+                }
+            }
+            if (limitWriter.isLimitReached()) {
+                logger.warn("The extracted text is cut at the limit: resourceName={}, maxTextBytes={}", resourceName, maxTextBytes);
+            }
             writer.flush();
 
             if (!dfos.isInMemory()) {
@@ -1317,6 +1351,102 @@ public class TikaExtractor extends PasswordBasedExtractor {
      */
     public void setMemorySize(final int memorySize) {
         this.memorySize = memorySize;
+    }
+
+    /**
+     * Sets the maximum number of bytes of the extracted text in UTF-8. The text is cut there.
+     * @param maxTextBytes The maximum number of bytes. 0 or less means no limit.
+     */
+    public void setMaxTextBytes(final long maxTextBytes) {
+        this.maxTextBytes = maxTextBytes;
+    }
+
+    /**
+     * A writer that passes the text to another writer up to a number of bytes in UTF-8.
+     * When the next character does not fit, it throws an {@link IOException} once to stop the parser,
+     * and ignores whatever is written afterwards, in case the parser swallows the exception.
+     */
+    protected static class Utf8LimitWriter extends Writer {
+        private final Writer out;
+
+        private final long maxBytes;
+
+        private long written;
+
+        private boolean limitReached;
+
+        /** A high surrogate at the end of the last write, which waits for its low surrogate. */
+        private char pendingHighSurrogate;
+
+        /**
+         * Creates a writer.
+         * @param out The writer to pass the text to.
+         * @param maxBytes The maximum number of bytes in UTF-8. 0 or less means no limit.
+         */
+        protected Utf8LimitWriter(final Writer out, final long maxBytes) {
+            this.out = out;
+            this.maxBytes = maxBytes;
+        }
+
+        @Override
+        public void write(final char[] cbuf, final int off, final int len) throws IOException {
+            if (maxBytes <= 0) {
+                out.write(cbuf, off, len);
+                return;
+            }
+            if (limitReached) {
+                return;
+            }
+            final int end = off + len;
+            for (int i = off; i < end; i++) {
+                final char c = cbuf[i];
+                if (pendingHighSurrogate != 0) {
+                    final char high = pendingHighSurrogate;
+                    pendingHighSurrogate = 0;
+                    if (Character.isLowSurrogate(c)) {
+                        count(4);
+                        out.write(high);
+                        out.write(c);
+                        continue;
+                    }
+                    // a lone high surrogate is not valid in UTF-8, and is counted as the 3 bytes of a BMP character
+                    count(3);
+                    out.write(high);
+                }
+                if (Character.isHighSurrogate(c)) {
+                    pendingHighSurrogate = c;
+                } else {
+                    count(c <= 0x7F ? 1 : c <= 0x7FF ? 2 : 3);
+                    out.write(c);
+                }
+            }
+        }
+
+        private void count(final int bytes) throws IOException {
+            if (written + bytes > maxBytes) {
+                limitReached = true;
+                throw new IOException("The text reached the limit: maxBytes=" + maxBytes);
+            }
+            written += bytes;
+        }
+
+        /**
+         * Returns true if the text is cut at the limit.
+         * @return true if the limit was reached.
+         */
+        protected boolean isLimitReached() {
+            return limitReached;
+        }
+
+        @Override
+        public void flush() throws IOException {
+            out.flush();
+        }
+
+        @Override
+        public void close() throws IOException {
+            out.close();
+        }
     }
 
     /**

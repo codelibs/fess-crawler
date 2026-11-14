@@ -712,6 +712,8 @@ public class TikaExtractor extends PasswordBasedExtractor {
                 }
                 extractData.putValue("Content-Length", Long.toString(contentLength));
 
+                warnEmbeddedZipBomb(metadata, resourceName);
+
                 // The tk: keys (and the X-TIKA: ones they are migrated to) are Tika's internal bookkeeping, and so are the
                 // zip: ones (e.g. zip:detector-zip-file-opened=true on every OOXML file), which would end up in the content
                 legacyKeyMigrationFilter.filter(new ArrayList<>(List.of(metadata)));
@@ -763,6 +765,35 @@ public class TikaExtractor extends PasswordBasedExtractor {
                 }
             }
         }
+    }
+
+    /**
+     * Reports a suspected zip bomb in an embedded document. Tika does not fail the parse for it: it skips the embedded
+     * document, keeps the text that was written before the limit was reached, and records the exception in the
+     * metadata, which is not copied to the extracted data. Without this report the text of the archive is cut
+     * without a trace (a nested zip is cut at the zip bomb threshold, whereas the same zip bomb at the top level
+     * fails with {@code reason=zipBombDetected}).
+     *
+     * @param metadata the metadata of the parse
+     * @param resourceName the resource name, or {@code null}
+     * @return {@code true} if a suspected zip bomb was reported
+     */
+    protected boolean warnEmbeddedZipBomb(final Metadata metadata, final String resourceName) {
+        for (final String name : metadata.names()) {
+            final String lowerName = name.toLowerCase(Locale.ROOT);
+            if (!lowerName.contains("embedded") || !lowerName.contains("exception")) {
+                continue;
+            }
+            for (final String value : metadata.getValues(name)) {
+                if (value != null && value.contains("Suspected zip bomb")) {
+                    logger.warn(
+                            "The text of an embedded document is cut because of a suspected zip bomb: resourceName={}, maxCompressionRatio={}, maxUncompressionSize={}",
+                            resourceName, maxCompressionRatio, maxUncompressionSize);
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**

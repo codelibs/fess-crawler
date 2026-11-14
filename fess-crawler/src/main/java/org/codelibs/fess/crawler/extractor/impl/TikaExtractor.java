@@ -51,11 +51,13 @@ import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.tika.config.OutputLimits;
+import org.apache.tika.config.ServiceLoader;
 import org.apache.tika.detect.CharsetSupersets;
 import org.apache.tika.detect.DefaultDetector;
 import org.apache.tika.detect.DefaultEncodingDetector;
 import org.apache.tika.detect.EncodingDetector;
 import org.apache.tika.detect.EncodingResult;
+import org.apache.tika.exception.TikaConfigException;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
@@ -65,10 +67,12 @@ import org.apache.tika.metadata.filter.LegacyKeyMigrationFilter;
 import org.apache.tika.mime.MediaTypeRegistry;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.parser.AutoDetectParserConfig;
+import org.apache.tika.parser.CompositeParser;
 import org.apache.tika.parser.DefaultParser;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
 import org.apache.tika.parser.PasswordProvider;
+import org.apache.tika.parser.image.WebPParser;
 import org.apache.tika.parser.ocr.TesseractOCRConfig;
 import org.apache.tika.parser.pdf.PDFParserConfig;
 import org.apache.tika.sax.BodyContentHandler;
@@ -334,7 +338,15 @@ public class TikaExtractor extends PasswordBasedExtractor {
             final AutoDetectParserConfig config = new AutoDetectParserConfig();
             // an empty document is not an error, it just has no content
             config.setThrowOnZeroBytes(false);
-            return AutoDetectParser.build(new DefaultParser(MediaTypeRegistry.getDefaultRegistry()), new DefaultDetector(), config);
+            final MediaTypeRegistry registry = MediaTypeRegistry.getDefaultRegistry();
+            // WebPParser does not run the OCR enrichers, so WebPOcrParser takes over image/webp
+            final DefaultParser defaultParser = new DefaultParser(registry, new ServiceLoader(), List.of(WebPParser.class));
+            try {
+                return AutoDetectParser.build(new CompositeParser(registry, defaultParser, new WebPOcrParser()), new DefaultDetector(),
+                        config);
+            } catch (final TikaConfigException e) {
+                throw new IllegalStateException("Failed to create the WebP OCR parser.", e);
+            }
         }
     }
 

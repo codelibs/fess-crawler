@@ -43,6 +43,7 @@ import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
 import org.apache.tika.parser.ocr.TesseractOCRConfig;
+import org.apache.tika.parser.ocr.TesseractOCRParser;
 import org.apache.tika.parser.pdf.PDFParserConfig;
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.ResourceUtil;
@@ -712,6 +713,31 @@ public class TikaExtractorTest extends PlainTestCase {
         CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("Test"));
+    }
+
+    @Test
+    public void test_getTika_webp_skipOcr() {
+        final TesseractOCRConfig config = new TesseractOCRConfig();
+        config.setSkipOcr(true);
+        tikaExtractor.setTesseractOCRConfig(config);
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/image/test_ocr.webp");
+        final ExtractData extractData = tikaExtractor.getText(in, null);
+        CloseableUtil.closeQuietly(in);
+        assertEquals("image/webp", extractData.getValues(ExtractData.CONTENT_TYPE)[0]);
+        assertFalse(extractData.getContent().contains("Invoice"));
+    }
+
+    @Test
+    public void test_getTika_webp_ocr() throws Exception {
+        org.junit.jupiter.api.Assumptions.assumeTrue(new TesseractOCRParser().hasTesseract(), "tesseract is not installed");
+        final TesseractOCRConfig config = new TesseractOCRConfig();
+        config.setLanguage("eng");
+        tikaExtractor.setTesseractOCRConfig(config);
+        final InputStream in = ResourceUtil.getResourceAsStream("extractor/image/test_ocr.webp");
+        final ExtractData extractData = tikaExtractor.getText(in, null);
+        CloseableUtil.closeQuietly(in);
+        assertEquals("image/webp", extractData.getValues(ExtractData.CONTENT_TYPE)[0]);
+        assertTrue(extractData.getContent().contains("Invoice 2026"));
     }
 
     @Test

@@ -21,6 +21,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
@@ -1443,5 +1444,143 @@ public class TikaExtractorTest extends PlainTestCase {
 
         params.put(TikaExtractor.TIKA_PDF_CONFIG, "extractor/pdf_incremental.properties");
         assertTrue(tikaExtractor.createParseContext(null, params).get(PDFParserConfig.class).isExtractIncrementalUpdateInfo());
+    }
+
+    private InputStream numberedLines(final String prefix, final int count) {
+        final StringBuilder buf = new StringBuilder();
+        for (int i = 0; i < count; i++) {
+            buf.append(prefix).append(i).append('\n');
+        }
+        return new ByteArrayInputStream(buf.toString().getBytes(StandardCharsets.UTF_8));
+    }
+
+    @Test
+    public void test_getText_maxTextBytes_cutsTheText() {
+        tikaExtractor.setMaxTextBytes(1000);
+        final Map<String, String> params = new HashMap<>();
+        params.put("Content-Type", "text/plain");
+
+        final String content = tikaExtractor.getText(numberedLines("word", 5000), params).getContent();
+
+        assertTrue(content.startsWith("word0 word1 word2"));
+        final int bytes = content.getBytes(StandardCharsets.UTF_8).length;
+        Assertions.assertTrue(bytes > 900, "the text is kept as far as the limit: " + bytes);
+        Assertions.assertTrue(bytes <= 1000, "the text is cut at the limit: " + bytes);
+    }
+
+    @Test
+    public void test_getText_maxTextBytes_countsUtf8Bytes() {
+        tikaExtractor.setMaxTextBytes(3000);
+        final Map<String, String> params = new HashMap<>();
+        params.put("Content-Type", "text/plain");
+
+        // 3 bytes per character in UTF-8, so the half of the number of the characters reaches the limit
+        final String content = tikaExtractor.getText(numberedLines("日本語", 5000), params).getContent();
+
+        final int bytes = content.getBytes(StandardCharsets.UTF_8).length;
+        Assertions.assertTrue(bytes > 2900, "the text is kept as far as the limit: " + bytes);
+        Assertions.assertTrue(bytes <= 3000, "the text is cut at the limit: " + bytes);
+    }
+
+    @Test
+    public void test_getText_maxTextBytes_withinTheLimit() {
+        tikaExtractor.setMaxTextBytes(1_000_000);
+        final Map<String, String> params = new HashMap<>();
+        params.put("Content-Type", "text/plain");
+
+        final String content = tikaExtractor.getText(numberedLines("word", 100), params).getContent();
+
+        assertTrue(content.contains("word99"));
+    }
+
+    @Test
+    public void test_getText_maxTextBytes_disabled() {
+        tikaExtractor.setMaxTextBytes(0);
+        final Map<String, String> params = new HashMap<>();
+        params.put("Content-Type", "text/plain");
+
+        final String content = tikaExtractor.getText(numberedLines("word", 5000), params).getContent();
+
+        assertTrue(content.contains("word4999"));
+    }
+
+    @Test
+    public void test_Utf8LimitWriter_stopsAtTheLimit() throws IOException {
+        final StringWriter out = new StringWriter();
+        final TikaExtractor.Utf8LimitWriter writer = new TikaExtractor.Utf8LimitWriter(out, 5);
+
+        writer.write("abc".toCharArray(), 0, 3);
+        assertFalse(writer.isLimitReached());
+        // "d" fits, "é" (2 bytes) does not
+        Assertions.assertThrows(IOException.class, () -> writer.write("dé".toCharArray(), 0, 2));
+        assertTrue(writer.isLimitReached());
+        assertEquals("abcd", out.toString());
+
+        // it keeps quiet once it has reached the limit, so that a parser that swallows the exception does not write on
+        writer.write("xyz".toCharArray(), 0, 3);
+        assertEquals("abcd", out.toString());
+    }
+
+    @Test
+    public void test_Utf8LimitWriter_surrogatePairSplitAcrossWrites() throws IOException {
+        final StringWriter out = new StringWriter();
+        final TikaExtractor.Utf8LimitWriter writer = new TikaExtractor.Utf8LimitWriter(out, 100);
+
+        final char[] pair = Character.toChars(0x1F600);
+        writer.write(new char[] { 'a', pair[0] }, 0, 2);
+        writer.write(new char[] { pair[1], 'b' }, 0, 2);
+
+        assertEquals("a" + new String(pair) + "b", out.toString());
+        assertFalse(writer.isLimitReached());
+    }
+
+    @Test
+    public void test_Utf8LimitWriter_surrogatePairIsNotCut() throws IOException {
+        final StringWriter out = new StringWriter();
+        final TikaExtractor.Utf8LimitWriter writer = new TikaExtractor.Utf8LimitWriter(out, 5);
+
+        // 1 byte and 4 bytes fit in 5 bytes, but the next one does not
+        final char[] pair = Character.toChars(0x1F600);
+        writer.write(new char[] { 'a', pair[0], pair[1] }, 0, 3);
+        assertFalse(writer.isLimitReached());
+        Assertions.assertThrows(IOException.class, () -> writer.write(new char[] { 'b' }, 0, 1));
+
+        assertEquals("a" + new String(pair), out.toString());
+        assertTrue(out.toString().getBytes(StandardCharsets.UTF_8).length <= 5);
+    }
+
+    @Test
+    public void test_Utf8LimitWriter_noLimit() throws IOException {
+        final StringWriter out = new StringWriter();
+        final TikaExtractor.Utf8LimitWriter writer = new TikaExtractor.Utf8LimitWriter(out, 0);
+
+        writer.write("日本語".toCharArray(), 0, 3);
+
+        assertEquals("日本語", out.toString());
+        assertFalse(writer.isLimitReached());
+    }
+
+    @Test
+    public void test_getText_maxTextBytes_xlsx() throws Exception {
+        final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        try (org.apache.poi.xssf.usermodel.XSSFWorkbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook()) {
+            final org.apache.poi.ss.usermodel.Sheet sheet = workbook.createSheet("data");
+            for (int i = 0; i < 2000; i++) {
+                final org.apache.poi.ss.usermodel.Row row = sheet.createRow(i);
+                row.createCell(0).setCellValue("name" + i);
+                row.createCell(1).setCellValue("value" + i);
+            }
+            workbook.write(bytes);
+        }
+        tikaExtractor.setMaxTextBytes(5000);
+        final Map<String, String> params = new HashMap<>();
+        params.put("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+        final String content = tikaExtractor.getText(new ByteArrayInputStream(bytes.toByteArray()), params).getContent();
+
+        assertTrue(content.contains("name0"));
+        assertFalse(content.contains("name1999"));
+        final int size = content.getBytes(StandardCharsets.UTF_8).length;
+        Assertions.assertTrue(size > 4500 && size <= 5000, "the text is cut at the limit: " + size);
     }
 }

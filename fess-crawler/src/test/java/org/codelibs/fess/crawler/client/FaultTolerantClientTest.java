@@ -135,6 +135,23 @@ public class FaultTolerantClientTest extends PlainTestCase {
         assertEquals(2, testClient.count);
     }
 
+    // the message of the exception is stored as the error log of the failure URL, so it must not carry the password of the URL
+    @Test
+    public void test_doGet_with5Exception_messageHasNoUserInfo() {
+        final FaultTolerantClient client = new FaultTolerantClient();
+        client.setMaxRetryCount(2);
+        final TestClient testClient = new TestClient();
+        testClient.exceptionCount = 2;
+        client.setCrawlerClient(testClient);
+        try {
+            client.execute(RequestDataBuilder.newRequestData().get().url("http://crawluser:s3cr3tpw@test.com/").build());
+            fail();
+        } catch (final MultipleCrawlingAccessException e) {
+            assertFalse(e.getMessage().contains("s3cr3tpw"));
+            assertTrue(e.getMessage().startsWith("Failed to access to http://test.com/;"));
+        }
+    }
+
     @Test
     public void test_doGet_with4Exception_interval100() {
         final FaultTolerantClient client = new FaultTolerantClient();

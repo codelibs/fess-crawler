@@ -132,6 +132,7 @@ import org.codelibs.fess.crawler.helper.RobotsTxtHelper;
 import org.codelibs.fess.crawler.helper.RobotsTxtPolicy;
 import org.codelibs.fess.crawler.helper.RobotsTxtResponse;
 import org.codelibs.fess.crawler.util.CrawlingParameterUtil;
+import org.codelibs.fess.crawler.util.UserInfoUtil;
 
 import jakarta.annotation.Resource;
 
@@ -700,7 +701,7 @@ public class Hc4HttpClient extends HcHttpClient {
         try {
             return new HttpGet(url);
         } catch (final IllegalArgumentException e) {
-            throw new CrawlingAccessException("The url may not be valid: " + url, e);
+            throw new CrawlingAccessException("The url may not be valid: " + UserInfoUtil.removeUserInfo(url), e);
         }
     }
 
@@ -715,7 +716,7 @@ public class Hc4HttpClient extends HcHttpClient {
         try {
             httpHead = new HttpHead(url);
         } catch (final IllegalArgumentException e) {
-            throw new CrawlingAccessException("The url may not be valid: " + url, e);
+            throw new CrawlingAccessException("The url may not be valid: " + UserInfoUtil.removeUserInfo(url), e);
         }
         return doHttpMethod(url, httpHead);
     }
@@ -733,7 +734,7 @@ public class Hc4HttpClient extends HcHttpClient {
         }
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Accessing {}", url);
+            logger.debug("Accessing {}", UserInfoUtil.removeUserInfo(url));
         }
 
         // start
@@ -779,7 +780,7 @@ public class Hc4HttpClient extends HcHttpClient {
                 }
                 logger.info(buf.toString());
             } else if (logger.isDebugEnabled()) {
-                logger.debug("Crawling Access Exception at {}", url, e);
+                logger.debug("Crawling Access Exception at {}", UserInfoUtil.removeUserInfo(url), e);
             }
         }
 
@@ -809,7 +810,7 @@ public class Hc4HttpClient extends HcHttpClient {
                     responseData.setRedirectLocation(redirectLocation);
                     return responseData;
                 }
-                throw new CrawlingAccessException("Invalid redirect location at " + url);
+                throw new CrawlingAccessException("Invalid redirect location at " + UserInfoUtil.removeUserInfo(url));
             }
 
             String contentType = null;
@@ -877,7 +878,7 @@ public class Hc4HttpClient extends HcHttpClient {
                         final long declaredContentLength = parseDeclaredContentLength(declaredContentLengthHeader.getValue());
                         if (declaredContentLength >= 0 && declaredContentLength > maxLength) {
                             throw new MaxLengthExceededException("The content length (" + declaredContentLength + " byte) is over "
-                                    + maxLength + " byte. The url is " + url);
+                                    + maxLength + " byte. The url is " + UserInfoUtil.removeUserInfo(url));
                         }
                     }
                 }
@@ -908,8 +909,8 @@ public class Hc4HttpClient extends HcHttpClient {
                                 contentType = mimeTypeHelper.getContentType(is, url);
                             } catch (final Exception e) {
                                 if (logger.isDebugEnabled()) {
-                                    logger.debug("Failed to detect MIME type, using default: url={}, defaultMimeType={}", url,
-                                            defaultMimeType, e);
+                                    logger.debug("Failed to detect MIME type, using default: url={}, defaultMimeType={}",
+                                            UserInfoUtil.removeUserInfo(url), defaultMimeType, e);
                                 }
                                 contentType = defaultMimeType;
                             }
@@ -937,8 +938,8 @@ public class Hc4HttpClient extends HcHttpClient {
             if (contentLengthHelper != null) {
                 final long maxLength = contentLengthHelper.getMaxLength(contentType);
                 if (contentLength > maxLength) {
-                    throw new MaxLengthExceededException(
-                            "The content length (" + contentLength + " byte) is over " + maxLength + " byte. The url is " + url);
+                    throw new MaxLengthExceededException("The content length (" + contentLength + " byte) is over " + maxLength
+                            + " byte. The url is " + UserInfoUtil.removeUserInfo(url));
                 }
             }
 
@@ -981,25 +982,25 @@ public class Hc4HttpClient extends HcHttpClient {
             return responseData;
         } catch (final UnknownHostException e) {
             closeResources(httpRequest, responseData);
-            throw new CrawlingAccessException("Unknown host(" + e.getMessage() + "): " + url, e);
+            throw new CrawlingAccessException("Unknown host(" + e.getMessage() + "): " + UserInfoUtil.removeUserInfo(url), e);
         } catch (final NoRouteToHostException e) {
             closeResources(httpRequest, responseData);
-            throw new CrawlingAccessException("No route to host(" + e.getMessage() + "): " + url, e);
+            throw new CrawlingAccessException("No route to host(" + e.getMessage() + "): " + UserInfoUtil.removeUserInfo(url), e);
         } catch (final ConnectException e) {
             closeResources(httpRequest, responseData);
-            throw new CrawlingAccessException("Connection time out(" + e.getMessage() + "): " + url, e);
+            throw new CrawlingAccessException("Connection time out(" + e.getMessage() + "): " + UserInfoUtil.removeUserInfo(url), e);
         } catch (final SocketException e) {
             closeResources(httpRequest, responseData);
-            throw new CrawlingAccessException("Socket exception(" + e.getMessage() + "): " + url, e);
+            throw new CrawlingAccessException("Socket exception(" + e.getMessage() + "): " + UserInfoUtil.removeUserInfo(url), e);
         } catch (final IOException e) {
             closeResources(httpRequest, responseData);
-            throw new CrawlingAccessException("I/O exception(" + e.getMessage() + "): " + url, e);
+            throw new CrawlingAccessException("I/O exception(" + e.getMessage() + "): " + UserInfoUtil.removeUserInfo(url), e);
         } catch (final CrawlerSystemException e) {
             closeResources(httpRequest, responseData);
             throw e;
         } catch (final Exception e) {
             closeResources(httpRequest, responseData);
-            throw new CrawlerSystemException("Failed to access " + url, e);
+            throw new CrawlerSystemException("Failed to access " + UserInfoUtil.removeUserInfo(url), e);
         } finally {
             EntityUtils.consumeQuietly(httpEntity);
         }

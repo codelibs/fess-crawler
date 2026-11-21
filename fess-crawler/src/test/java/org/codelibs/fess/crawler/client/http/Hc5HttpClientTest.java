@@ -116,6 +116,24 @@ public class Hc5HttpClientTest extends PlainTestCase {
         }
     }
 
+    // the message of the exception is stored as the error log of the failure URL, so it must not carry the password of the URL
+    @Test
+    public void test_doGet_errorMessageHasNoUserInfo() throws Exception {
+        final int port;
+        try (final java.net.ServerSocket socket = new java.net.ServerSocket(0)) {
+            port = socket.getLocalPort();
+        }
+        final String url = "http://crawluser:s3cr3tpw@127.0.0.1:" + port + "/";
+        try {
+            httpClient.doGet(url);
+            fail();
+        } catch (final CrawlingAccessException e) {
+            assertFalse(e.getMessage().contains("s3cr3tpw"));
+            assertFalse(e.getMessage().contains("crawluser"));
+            assertTrue(e.getMessage().endsWith("): http://127.0.0.1:" + port + "/"));
+        }
+    }
+
     @Test
     public void test_parseLastModified() {
         final String value = "Mon, 01 Jun 2009 21:02:45 GMT";

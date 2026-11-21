@@ -54,6 +54,7 @@ import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
+import org.codelibs.fess.crawler.util.UserInfoUtil;
 
 import jakarta.annotation.Resource;
 
@@ -160,7 +161,7 @@ public class FileSystemClient extends AbstractCrawlerClient {
      */
     protected ResponseData getResponseData(final String uri, final boolean includeContent) {
         if (logger.isDebugEnabled()) {
-            logger.debug("Accessing file system resource: uri={}, includeContent={}", uri, includeContent);
+            logger.debug("Accessing file system resource: uri={}, includeContent={}", UserInfoUtil.removeUserInfo(uri), includeContent);
         }
         final ResponseData responseData = new ResponseData();
         try {
@@ -172,7 +173,8 @@ public class FileSystemClient extends AbstractCrawlerClient {
             try {
                 file = new File(new URI(filePath));
             } catch (final URISyntaxException e) {
-                logger.warn("Failed to parse file URI: uri={}, filePath={}", uri, filePath, e);
+                logger.warn("Failed to parse file URI: uri={}, filePath={}", UserInfoUtil.removeUserInfo(uri),
+                        UserInfoUtil.removeUserInfo(filePath), e);
             }
 
             if (file == null) {
@@ -262,7 +264,8 @@ public class FileSystemClient extends AbstractCrawlerClient {
                 }
                 throw new ChildUrlsException(requestDataSet, this.getClass().getName() + "#getResponseData");
             } else {
-                logger.warn("File not found or is special file: path={}", file != null ? file.getAbsolutePath() : uri);
+                logger.warn("File not found or is special file: path={}",
+                        file != null ? file.getAbsolutePath() : UserInfoUtil.removeUserInfo(uri));
                 responseData.setHttpStatusCode(Constants.NOT_FOUND_STATUS_CODE);
                 responseData.setCharSet(charset);
                 responseData.setContentLength(0);
@@ -272,7 +275,7 @@ public class FileSystemClient extends AbstractCrawlerClient {
             throw e;
         } catch (final Exception e) {
             CloseableUtil.closeQuietly(responseData);
-            throw new CrawlingAccessException("Could not access " + uri, e);
+            throw new CrawlingAccessException("Could not access " + UserInfoUtil.removeUserInfo(uri), e);
         }
 
         return responseData;

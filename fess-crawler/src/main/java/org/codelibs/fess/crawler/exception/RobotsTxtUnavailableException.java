@@ -15,6 +15,8 @@
  */
 package org.codelibs.fess.crawler.exception;
 
+import org.codelibs.fess.crawler.util.UserInfoUtil;
+
 /**
  * Thrown when the robots.txt of an origin could not be retrieved (429, 5xx or a network error)
  * and the URL should be retried later instead of being crawled or dropped.
@@ -66,7 +68,7 @@ public class RobotsTxtUnavailableException extends CrawlingAccessException {
      */
     public RobotsTxtUnavailableException(final String url, final long retryAfterMillis, final Throwable cause,
             final boolean fetchAttempted) {
-        this("robots.txt is unavailable for " + url, retryAfterMillis, cause, fetchAttempted, fetchAttempted);
+        this("robots.txt is unavailable for " + UserInfoUtil.removeUserInfo(url), retryAfterMillis, cause, fetchAttempted, fetchAttempted);
     }
 
     /**

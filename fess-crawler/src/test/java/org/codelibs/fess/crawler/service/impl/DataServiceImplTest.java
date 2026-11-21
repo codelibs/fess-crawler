@@ -263,6 +263,19 @@ public class DataServiceImplTest extends PlainTestCase {
     }
 
     @Test
+    public void test_update_notFound_messageHasNoUserInfo() {
+        final AccessResult accessResult = createAccessResult("update-session", "http://crawluser:s3cr3tpw@www.notfound.com/");
+
+        try {
+            dataService.update(accessResult);
+            fail();
+        } catch (final CrawlerSystemException e) {
+            assertFalse(e.getMessage().contains("s3cr3tpw"));
+            assertEquals("http://www.notfound.com/ is not found.", e.getMessage());
+        }
+    }
+
+    @Test
     public void test_update_list() {
         final String sessionId = "update-list-session";
 

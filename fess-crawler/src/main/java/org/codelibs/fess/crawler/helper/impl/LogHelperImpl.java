@@ -169,7 +169,8 @@ public class LogHelperImpl implements LogHelper {
         // UrlQueue<?> urlQueue = (UrlQueue<?>) objs[1];
         final ResponseData responseData = (ResponseData) objs[2];
         if (logger.isDebugEnabled()) {
-            logger.debug("No rule for ({}, {}). PLEASE CHECK YOUR CONFIGURATION.", responseData.getUrl(), responseData.getMimeType());
+            logger.debug("No rule for ({}, {}). PLEASE CHECK YOUR CONFIGURATION.", UserInfoUtil.removeUserInfo(responseData.getUrl()),
+                    responseData.getMimeType());
         }
     }
 
@@ -184,8 +185,8 @@ public class LogHelperImpl implements LogHelper {
         final ResponseData responseData = (ResponseData) objs[2];
         // Rule rule = (Rule) objs[3];
         if (logger.isDebugEnabled()) {
-            logger.debug("No ResponseProcessor for ({}, {}). PLEASE CHECK YOUR CONFIGURATION.", responseData.getUrl(),
-                    responseData.getMimeType());
+            logger.debug("No ResponseProcessor for ({}, {}). PLEASE CHECK YOUR CONFIGURATION.",
+                    UserInfoUtil.removeUserInfo(responseData.getUrl()), responseData.getMimeType());
         }
     }
 

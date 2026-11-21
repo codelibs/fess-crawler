@@ -17,6 +17,7 @@ package org.codelibs.fess.crawler.entity;
 
 import org.codelibs.core.beans.util.BeanUtil;
 import org.codelibs.fess.crawler.Constants;
+import org.codelibs.fess.crawler.util.UserInfoUtil;
 
 /**
  * Implementation of the {@link AccessResult} interface.
@@ -359,10 +360,11 @@ public class AccessResultImpl<IDTYPE> implements AccessResult<IDTYPE> {
      */
     @Override
     public String toString() {
-        return "AccessResultImpl [id=" + id + ", sessionId=" + sessionId + ", ruleId=" + ruleId + ", url=" + url + ", parentUrl="
-                + parentUrl + ", status=" + status + ", httpStatusCode=" + httpStatusCode + ", method=" + method + ", mimeType=" + mimeType
-                + ", createTime=" + createTime + ", executionTime=" + executionTime + ", contentLength=" + contentLength + ", lastModified="
-                + lastModified + ", accessResultData=" + accessResultData + "]";
+        return "AccessResultImpl [id=" + id + ", sessionId=" + sessionId + ", ruleId=" + ruleId + ", url="
+                + UserInfoUtil.removeUserInfo(url) + ", parentUrl=" + UserInfoUtil.removeUserInfo(parentUrl) + ", status=" + status
+                + ", httpStatusCode=" + httpStatusCode + ", method=" + method + ", mimeType=" + mimeType + ", createTime=" + createTime
+                + ", executionTime=" + executionTime + ", contentLength=" + contentLength + ", lastModified=" + lastModified
+                + ", accessResultData=" + accessResultData + "]";
     }
 
 }

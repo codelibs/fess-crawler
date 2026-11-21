@@ -32,6 +32,7 @@ import org.codelibs.fess.crawler.entity.HostState;
 import org.codelibs.fess.crawler.entity.UrlQueue;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.util.CrawlingParameterUtil;
+import org.codelibs.fess.crawler.util.UserInfoUtil;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -108,7 +109,7 @@ public class HostIntervalController extends DefaultIntervalController {
             } catch (final URISyntaxException e) {
                 // such as "[", "]" or a stray "%" in the path: only the per-host delay below is skipped
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Skipped the per-host delay for an unparsable URL: {}", url, e);
+                    logger.debug("Skipped the per-host delay for an unparsable URL: {}", UserInfoUtil.removeUserInfo(url), e);
                 }
             }
             if (host != null) {

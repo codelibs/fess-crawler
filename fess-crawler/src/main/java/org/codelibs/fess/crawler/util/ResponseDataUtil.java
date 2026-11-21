@@ -55,7 +55,7 @@ public final class ResponseDataUtil {
             }
         } catch (final Exception e) {
             FileUtil.deleteInBackground(tempFile); // clean up
-            throw new CrawlingAccessException("Could not read a response body: " + responseData.getUrl(), e);
+            throw new CrawlingAccessException("Could not read a response body: " + UserInfoUtil.removeUserInfo(responseData.getUrl()), e);
         }
         return tempFile;
     }

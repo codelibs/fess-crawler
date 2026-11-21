@@ -28,6 +28,7 @@ import org.apache.logging.log4j.Logger;
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.misc.Pair;
 import org.codelibs.fess.crawler.entity.ExtractData;
+import org.codelibs.fess.crawler.util.UserInfoUtil;
 
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
@@ -130,7 +131,7 @@ public abstract class PasswordBasedExtractor extends AbstractExtractor {
                                 .map(e -> new Pair<>(Pattern.compile(e.getKey()), e.getValue()))
                                 .collect(Collectors.toList());
                     } catch (final Exception e) {
-                        logger.warn("Failed to parse passwords for url={}", url, e);
+                        logger.warn("Failed to parse passwords for url={}", UserInfoUtil.removeUserInfo(url), e);
                         list = Collections.emptyList();
                     }
                     configPasswordMap.put(value, list);

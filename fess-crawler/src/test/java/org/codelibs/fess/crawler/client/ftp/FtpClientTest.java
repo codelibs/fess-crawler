@@ -563,4 +563,16 @@ public class FtpClientTest extends PlainTestCase {
         assertEquals(21, ftpInfo.getPort());
         assertEquals("file name.txt", ftpInfo.getName());
     }
+
+    @Test
+    public void test_ftpInfo_errorMessageHasNoUserInfo() {
+        try {
+            new FtpClient.FtpInfo("http://crawluser:s3cr3tpw@123.123.123.123/", Constants.UTF_8);
+            fail();
+        } catch (CrawlingAccessException e) {
+            assertFalse(e.getMessage().contains("s3cr3tpw"));
+            assertFalse(e.getMessage().contains("crawluser"));
+            assertTrue(e.getMessage().endsWith("for URI: http://123.123.123.123/"));
+        }
+    }
 }

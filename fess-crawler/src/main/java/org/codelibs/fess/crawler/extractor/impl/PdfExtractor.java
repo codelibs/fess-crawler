@@ -58,6 +58,7 @@ import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.extractor.Extractor;
 import org.codelibs.fess.crawler.extractor.ExtractorFactory;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
+import org.codelibs.fess.crawler.util.UserInfoUtil;
 
 /**
  * PdfExtractor extracts text content from PDF files using Apache PDFBox.
@@ -296,7 +297,7 @@ public class PdfExtractor extends PasswordBasedExtractor {
             }
         } catch (final Exception e) {
             logger.warn("Failed to extract PDF text with the fallback extractor: url={}",
-                    params != null ? params.get(ExtractData.URL) : null, e);
+                    params != null ? UserInfoUtil.removeUserInfo(params.get(ExtractData.URL)) : null, e);
         }
         return content;
     }

@@ -62,6 +62,7 @@ import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
+import org.codelibs.fess.crawler.util.UserInfoUtil;
 
 import jakarta.annotation.Resource;
 
@@ -394,7 +395,7 @@ public class FtpClient extends AbstractCrawlerClient {
                         }
                     } catch (final IOException e) {
                         disconnectInternalClient(client);
-                        throw new CrawlingAccessException("Could not access " + uri, e);
+                        throw new CrawlingAccessException("Could not access " + UserInfoUtil.removeUserInfo(uri), e);
                     }
                 }
                 ftpClientQueue.offer(client);
@@ -416,7 +417,7 @@ public class FtpClient extends AbstractCrawlerClient {
             throw e;
         } catch (final Exception e) {
             CloseableUtil.closeQuietly(responseData);
-            throw new CrawlingAccessException("Could not access " + uri, e);
+            throw new CrawlingAccessException("Could not access " + UserInfoUtil.removeUserInfo(uri), e);
         }
 
         return responseData;
@@ -543,8 +544,8 @@ public class FtpClient extends AbstractCrawlerClient {
                     ftpClientQueue.offer(client);
                     throw e;
                 } catch (final Exception e) {
-                    logger.warn("Failed to retrieve FTP file content: uri={}, fileName={}, fileSize={}", uri, file.getName(),
-                            file.getSize(), e);
+                    logger.warn("Failed to retrieve FTP file content: uri={}, fileName={}, fileSize={}", UserInfoUtil.removeUserInfo(uri),
+                            file.getName(), file.getSize(), e);
                     disconnectInternalClient(client);
                     responseData.setHttpStatusCode(Constants.SERVER_ERROR_STATUS_CODE);
                 } finally {
@@ -563,7 +564,7 @@ public class FtpClient extends AbstractCrawlerClient {
                     }
                 } catch (final IOException e) {
                     disconnectInternalClient(client);
-                    throw new CrawlingAccessException("Could not access " + uri, e);
+                    throw new CrawlingAccessException("Could not access " + UserInfoUtil.removeUserInfo(uri), e);
                 }
             }
             ftpClientQueue.offer(client);
@@ -770,12 +771,12 @@ public class FtpClient extends AbstractCrawlerClient {
             try {
                 uri = new URI(normalize(s).replace("%", "%25").replace(" ", "%20"));
             } catch (final URISyntaxException e) {
-                throw new CrawlingAccessException("Invalid FTP URL: " + s, e);
+                throw new CrawlingAccessException("Invalid FTP URL: " + UserInfoUtil.removeUserInfo(s), e);
             }
 
             if (!"ftp".equals(uri.getScheme())) {
-                throw new CrawlingAccessException(
-                        "Invalid FTP scheme: expected 'ftp://' but got '" + uri.getScheme() + "://' for URI: " + s);
+                throw new CrawlingAccessException("Invalid FTP scheme: expected 'ftp://' but got '" + uri.getScheme() + "://' for URI: "
+                        + UserInfoUtil.removeUserInfo(s));
             }
 
             final String path = uri.getPath();

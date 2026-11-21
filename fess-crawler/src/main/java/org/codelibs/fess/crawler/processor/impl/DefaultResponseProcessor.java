@@ -37,6 +37,7 @@ import org.codelibs.fess.crawler.processor.ResponseProcessor;
 import org.codelibs.fess.crawler.service.UrlQueueService;
 import org.codelibs.fess.crawler.transformer.Transformer;
 import org.codelibs.fess.crawler.util.CrawlingParameterUtil;
+import org.codelibs.fess.crawler.util.UserInfoUtil;
 import org.codelibs.fess.crawler.weight.UrlQueueWeigher;
 
 import jakarta.annotation.Resource;
@@ -113,19 +114,20 @@ public class DefaultResponseProcessor implements ResponseProcessor {
         } else if (isSuccessful(responseData)) {
             if (transformer == null) {
                 if (logger.isDebugEnabled()) {
-                    logger.debug("No Transformer for ({}). PLEASE CHECK YOUR CONFIGURATION.", responseData.getUrl());
+                    logger.debug("No Transformer for ({}). PLEASE CHECK YOUR CONFIGURATION.",
+                            UserInfoUtil.removeUserInfo(responseData.getUrl()));
                 }
             } else {
                 final ResultData resultData = transformer.transform(responseData);
                 if (resultData == null) {
-                    logger.warn("No data for ({}, {})", responseData.getUrl(), responseData.getMimeType());
+                    logger.warn("No data for ({}, {})", UserInfoUtil.removeUserInfo(responseData.getUrl()), responseData.getMimeType());
                 } else {
                     final UrlQueue<?> urlQueue = CrawlingParameterUtil.getUrlQueue();
                     processResult(urlQueue, responseData, resultData);
                 }
             }
         } else if (logger.isDebugEnabled()) {
-            logger.debug("Ignore a response({}): {}", responseData.getStatus(), responseData.getUrl());
+            logger.debug("Ignore a response({}): {}", responseData.getStatus(), UserInfoUtil.removeUserInfo(responseData.getUrl()));
         }
     }
 
@@ -191,7 +193,7 @@ public class DefaultResponseProcessor implements ResponseProcessor {
                     if (urlQueueService.visited(urlQueue)) {
                         // document already exists
                         if (logger.isDebugEnabled()) {
-                            logger.debug("{} exists.", urlQueue.getUrl(), e);
+                            logger.debug("{} exists.", urlQueue.getLogUrl(), e);
                         }
                         return;
                     }
@@ -283,7 +285,7 @@ public class DefaultResponseProcessor implements ResponseProcessor {
                 urlQueueWeigher.apply(crawlerContext.getSessionId(), childList);
             } catch (final Exception e) {
                 logger.warn("Failed to apply weigher {} to child URLs of {}. Queueing them with whatever weights it left behind.",
-                        urlQueueWeigher.getClass().getName(), url);
+                        urlQueueWeigher.getClass().getName(), UserInfoUtil.removeUserInfo(url));
                 if (logger.isDebugEnabled()) {
                     logger.debug("Weigher {} failed.", urlQueueWeigher.getClass().getName(), e);
                 }

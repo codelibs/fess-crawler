@@ -152,4 +152,12 @@ public class RobotsTxtExceptionTest extends PlainTestCase {
         assertTrue(middle == top.getCause());
         assertTrue(root == top.getCause().getCause());
     }
+
+    // the message is stored as the error log of the failure URL, so it must not carry the password of the URL
+    @Test
+    public void test_messageHasNoUserInfo() {
+        final String url = "http://crawluser:s3cr3tpw@example.com/a";
+        assertEquals("Disallowed by robots.txt: http://example.com/a", new RobotsTxtDisallowedException(url).getMessage());
+        assertEquals("robots.txt is unavailable for http://example.com/a", new RobotsTxtUnavailableException(url, 0L, null).getMessage());
+    }
 }

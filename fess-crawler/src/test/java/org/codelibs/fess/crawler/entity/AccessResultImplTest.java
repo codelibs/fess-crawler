@@ -385,4 +385,15 @@ public class AccessResultImplTest extends PlainTestCase {
         longResult.setId(987654321L);
         assertEquals(Long.valueOf(987654321L), longResult.getId());
     }
+
+    @Test
+    public void test_toString_hasNoUserInfo() {
+        final AccessResultImpl<String> result = new AccessResultImpl<>();
+        result.setUrl("http://crawluser:s3cr3tpw@example.com/a");
+        result.setParentUrl("http://crawluser:s3cr3tpw@example.com/");
+        assertFalse(result.toString().contains("s3cr3tpw"));
+        assertFalse(result.toString().contains("crawluser"));
+        assertTrue(result.toString().contains("url=http://example.com/a, parentUrl=http://example.com/,"));
+        assertEquals("http://crawluser:s3cr3tpw@example.com/a", result.getUrl());
+    }
 }

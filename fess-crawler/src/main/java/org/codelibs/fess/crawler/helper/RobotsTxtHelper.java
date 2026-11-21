@@ -46,6 +46,7 @@ import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.exception.RobotsTxtDisallowedException;
 import org.codelibs.fess.crawler.exception.RobotsTxtException;
 import org.codelibs.fess.crawler.exception.RobotsTxtUnavailableException;
+import org.codelibs.fess.crawler.util.UserInfoUtil;
 
 /**
  * Robots.txt Parser following RFC 9309 specification.
@@ -349,8 +350,8 @@ public class RobotsTxtHelper {
                         if (unavailable.cause() instanceof InterruptedException) {
                             Thread.currentThread().interrupt();
                         }
-                        throw new RobotsTxtUnavailableException("robots.txt is unavailable for " + url, 0L, unavailable.cause(), true,
-                                false);
+                        throw new RobotsTxtUnavailableException("robots.txt is unavailable for " + UserInfoUtil.removeUserInfo(url), 0L,
+                                unavailable.cause(), true, false);
                     }
                     hostState.setRobotsTxt(RobotsTxtStatus.UNAVAILABLE, null, 0L);
                     final int failureCount = hostState.incrementAndGetRobotsTxtFailureCount();

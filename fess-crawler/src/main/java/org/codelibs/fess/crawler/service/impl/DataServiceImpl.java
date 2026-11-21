@@ -27,6 +27,7 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.helper.MemoryDataHelper;
 import org.codelibs.fess.crawler.service.DataService;
 import org.codelibs.fess.crawler.util.AccessResultCallback;
+import org.codelibs.fess.crawler.util.UserInfoUtil;
 
 import jakarta.annotation.Resource;
 
@@ -174,7 +175,7 @@ public class DataServiceImpl implements DataService<AccessResultImpl<Long>> {
     public void update(final AccessResultImpl<Long> accessResult) {
         final Map<String, AccessResultImpl<Long>> arMap = dataHelper.getAccessResultMap(accessResult.getSessionId());
         if (!arMap.containsKey(accessResult.getUrl())) {
-            throw new CrawlerSystemException(accessResult.getUrl() + " is not found.");
+            throw new CrawlerSystemException(UserInfoUtil.removeUserInfo(accessResult.getUrl()) + " is not found.");
         }
         arMap.put(accessResult.getUrl(), accessResult);
     }

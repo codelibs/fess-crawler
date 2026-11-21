@@ -46,6 +46,7 @@ import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
+import org.codelibs.fess.crawler.util.UserInfoUtil;
 
 import com.google.api.gax.paging.Page;
 import com.google.auth.oauth2.ServiceAccountCredentials;
@@ -235,7 +236,7 @@ public class GcsClient extends AbstractCrawlerClient {
      */
     protected ResponseData getResponseData(final String uri, final boolean includeContent) {
         if (logger.isDebugEnabled()) {
-            logger.debug("Accessing GCS object: uri={}, includeContent={}", uri, includeContent);
+            logger.debug("Accessing GCS object: uri={}, includeContent={}", UserInfoUtil.removeUserInfo(uri), includeContent);
         }
         final ResponseData responseData = new ResponseData();
         try {
@@ -323,7 +324,7 @@ public class GcsClient extends AbstractCrawlerClient {
             throw e;
         } catch (final Exception e) {
             CloseableUtil.closeQuietly(responseData);
-            throw new CrawlingAccessException("Could not access " + uri, e);
+            throw new CrawlingAccessException("Could not access " + UserInfoUtil.removeUserInfo(uri), e);
         }
         return responseData;
     }

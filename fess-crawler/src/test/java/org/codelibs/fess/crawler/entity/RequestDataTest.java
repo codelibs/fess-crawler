@@ -343,4 +343,15 @@ public class RequestDataTest extends PlainTestCase {
         data.addHeader("If-None-Match", "\"x\"");
         assertTrue(data.toString().contains("If-None-Match"));
     }
+
+    // a log line such as "Storing child urls" prints RequestData, so it must not carry the password of the URL
+    @Test
+    public void test_toString_hasNoUserInfo() {
+        final RequestData data = new RequestData();
+        data.setUrl("http://crawluser:s3cr3tpw@example.com/a");
+        assertFalse(data.toString().contains("s3cr3tpw"));
+        assertFalse(data.toString().contains("crawluser"));
+        assertTrue(data.toString().contains("url=http://example.com/a,"));
+        assertEquals("http://crawluser:s3cr3tpw@example.com/a", data.getUrl());
+    }
 }

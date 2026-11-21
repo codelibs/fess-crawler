@@ -22,6 +22,7 @@ import java.util.Objects;
 
 import org.codelibs.core.lang.StringUtil;
 import org.codelibs.fess.crawler.Constants;
+import org.codelibs.fess.crawler.util.UserInfoUtil;
 
 /**
  * Represents a request data for crawling.
@@ -179,7 +180,8 @@ public class RequestData {
      */
     @Override
     public String toString() {
-        return "RequestData [method=" + method + ", url=" + url + ", weight=" + weight + ", headers=" + headers + "]";
+        return "RequestData [method=" + method + ", url=" + UserInfoUtil.removeUserInfo(url) + ", weight=" + weight + ", headers=" + headers
+                + "]";
     }
 
 }

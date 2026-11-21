@@ -15,6 +15,8 @@
  */
 package org.codelibs.fess.crawler.exception;
 
+import org.codelibs.fess.crawler.util.UserInfoUtil;
+
 /**
  * Thrown when robots.txt does not allow the crawler to access a URL.
  * This is an expected outcome rather than a failure, so the log level is INFO.
@@ -29,7 +31,7 @@ public class RobotsTxtDisallowedException extends CrawlingAccessException {
      * @param url the URL that robots.txt does not allow
      */
     public RobotsTxtDisallowedException(final String url) {
-        super("Disallowed by robots.txt: " + url);
+        super("Disallowed by robots.txt: " + UserInfoUtil.removeUserInfo(url));
         setLogLevel(INFO);
     }
 

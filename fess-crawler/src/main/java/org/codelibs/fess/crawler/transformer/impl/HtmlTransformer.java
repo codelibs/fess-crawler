@@ -53,6 +53,7 @@ import org.codelibs.fess.crawler.extractor.impl.TikaExtractor;
 import org.codelibs.fess.crawler.helper.EncodingHelper;
 import org.codelibs.fess.crawler.helper.UrlConvertHelper;
 import org.codelibs.fess.crawler.util.CharUtil;
+import org.codelibs.fess.crawler.util.UserInfoUtil;
 import org.codelibs.fess.crawler.util.XPathAPI;
 import org.codelibs.nekohtml.parsers.DOMParser;
 import org.w3c.dom.Document;
@@ -430,7 +431,7 @@ public class HtmlTransformer extends AbstractTransformer {
         } catch (final CrawlerSystemException e) {
             throw e;
         } catch (final Exception e) {
-            throw new CrawlerSystemException("Could not load response data: " + responseData.getUrl(), e);
+            throw new CrawlerSystemException("Could not load response data: " + UserInfoUtil.removeUserInfo(responseData.getUrl()), e);
         }
     }
 
@@ -446,7 +447,8 @@ public class HtmlTransformer extends AbstractTransformer {
             final Charset detected = TikaExtractor.detectCharset(bis, hint);
             if (detected != null) {
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Detected charset: {} (hint={}, url={})", detected, hint, responseData.getUrl());
+                    logger.debug("Detected charset: {} (hint={}, url={})", detected, hint,
+                            UserInfoUtil.removeUserInfo(responseData.getUrl()));
                 }
                 return detected.name();
             }
@@ -617,7 +619,7 @@ public class HtmlTransformer extends AbstractTransformer {
     protected List<String> getUrlFromTagAttribute(final URL url, final Document document, final String xpath, final String attr,
             final String encoding) {
         if (logger.isDebugEnabled()) {
-            logger.debug("Base URL: {}", url);
+            logger.debug("Base URL: {}", UserInfoUtil.removeUserInfo(url.toExternalForm()));
         }
         final List<String> urlList = new ArrayList<>();
         try {

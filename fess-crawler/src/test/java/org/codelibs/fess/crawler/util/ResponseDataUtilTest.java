@@ -250,4 +250,33 @@ public class ResponseDataUtilTest extends PlainTestCase {
         // Clean up
         tempFile.delete();
     }
+
+    @Test
+    public void test_createResponseBodyFile_exceptionMessageHasNoUserInfo() {
+        final ResponseData responseData = new ResponseData() {
+            @Override
+            public InputStream getResponseBody() {
+                return new InputStream() {
+                    @Override
+                    public int read() throws IOException {
+                        throw new IOException("Simulated read error");
+                    }
+                };
+            }
+
+            @Override
+            public String getUrl() {
+                return "http://crawluser:s3cr3tpw@example.com/error";
+            }
+        };
+
+        try {
+            ResponseDataUtil.createResponseBodyFile(responseData);
+            fail();
+        } catch (CrawlingAccessException e) {
+            assertFalse(e.getMessage().contains("s3cr3tpw"));
+            assertFalse(e.getMessage().contains("crawluser"));
+            assertTrue(e.getMessage().endsWith("http://example.com/error"));
+        }
+    }
 }

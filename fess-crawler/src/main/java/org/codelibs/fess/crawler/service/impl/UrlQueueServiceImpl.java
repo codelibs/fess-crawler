@@ -31,6 +31,7 @@ import org.codelibs.fess.crawler.entity.AccessResultImpl;
 import org.codelibs.fess.crawler.entity.UrlQueueImpl;
 import org.codelibs.fess.crawler.helper.MemoryDataHelper;
 import org.codelibs.fess.crawler.service.UrlQueueService;
+import org.codelibs.fess.crawler.util.UserInfoUtil;
 
 import jakarta.annotation.Resource;
 
@@ -193,7 +194,7 @@ public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> 
         final String url = urlQueue.getUrl();
         if (StringUtil.isBlank(url)) {
             if (logger.isDebugEnabled()) {
-                logger.debug("URL is a blank: {}", url);
+                logger.debug("URL is a blank: {}", UserInfoUtil.removeUserInfo(url));
             }
             return false;
         }
@@ -201,7 +202,7 @@ public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> 
         // check it in queue using O(1) Set lookup
         if (urlInQueueSet.contains(url)) {
             if (logger.isDebugEnabled()) {
-                logger.debug("URL exists in a queue: {}", url);
+                logger.debug("URL exists in a queue: {}", UserInfoUtil.removeUserInfo(url));
             }
             return false;
         }
@@ -210,7 +211,7 @@ public class UrlQueueServiceImpl implements UrlQueueService<UrlQueueImpl<Long>> 
         final AccessResult<Long> accessResult = dataHelper.getAccessResultMap(urlQueue.getSessionId()).get(url);
         if (accessResult != null) {
             if (logger.isDebugEnabled()) {
-                logger.debug("URL exists in a result: {}", url);
+                logger.debug("URL exists in a result: {}", UserInfoUtil.removeUserInfo(url));
             }
             return false;
         }

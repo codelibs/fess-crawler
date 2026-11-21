@@ -37,6 +37,7 @@ import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
+import org.codelibs.fess.crawler.util.UserInfoUtil;
 import org.codelibs.fess.crawler.util.XmlUtil;
 import org.codelibs.nekohtml.parsers.DOMParser;
 import org.w3c.dom.Document;
@@ -134,7 +135,7 @@ public class XpathTransformer extends HtmlTransformer {
             }
             parser.parse(is);
         } catch (final Exception e) {
-            throw new CrawlingAccessException("Could not parse " + responseData.getUrl(), e);
+            throw new CrawlingAccessException("Could not parse " + UserInfoUtil.removeUserInfo(responseData.getUrl()), e);
         }
         final Document document = parser.getDocument();
 

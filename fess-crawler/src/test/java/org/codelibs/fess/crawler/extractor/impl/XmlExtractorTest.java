@@ -105,6 +105,14 @@ public class XmlExtractorTest extends PlainTestCase {
         assertEquals("", content);
     }
 
+    // a document that declares Shift_JIS is written with the NEC and IBM extension characters, which only windows-31j has
+    @Test
+    public void test_getXml_declaredShiftJis_extensionCharacters() throws Exception {
+        final String xml = "<?xml version=\"1.0\" encoding=\"Shift_JIS\"?><doc><title>①㈱ 納品書 ㈲日本電気 髙橋﨑山</title></doc>";
+        final String content = xmlExtractor.getText(new ByteArrayInputStream(xml.getBytes("windows-31j")), null).getContent();
+        assertTrue(content.contains("①㈱ 納品書 ㈲日本電気 髙橋﨑山"));
+    }
+
     @Test
     public void test_getEncoding_utf8() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_utf8.xml");

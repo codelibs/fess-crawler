@@ -31,6 +31,7 @@ import org.codelibs.fess.crawler.interval.IntervalController;
 import org.codelibs.fess.crawler.rule.RuleManager;
 import org.codelibs.fess.crawler.service.DataService;
 import org.codelibs.fess.crawler.service.UrlQueueService;
+import org.codelibs.fess.crawler.util.UserInfoUtil;
 
 import jakarta.annotation.Resource;
 
@@ -159,10 +160,11 @@ public class Crawler implements Runnable, AutoCloseable {
         try {
             urlQueueService.add(crawlerContext.sessionId, url);
             if (logger.isDebugEnabled()) {
-                logger.debug("Added URL to queue: url={}, sessionId={}", url, crawlerContext.sessionId);
+                logger.debug("Added URL to queue: url={}, sessionId={}", UserInfoUtil.removeUserInfo(url), crawlerContext.sessionId);
             }
         } catch (final Exception e) {
-            logger.warn("Failed to add URL to crawling queue: url={}, sessionId={}", url, crawlerContext.sessionId, e);
+            logger.warn("Failed to add URL to crawling queue: url={}, sessionId={}", UserInfoUtil.removeUserInfo(url),
+                    crawlerContext.sessionId, e);
         }
         urlFilter.processUrl(url);
     }

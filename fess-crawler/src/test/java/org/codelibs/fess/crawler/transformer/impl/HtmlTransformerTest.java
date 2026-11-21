@@ -283,9 +283,35 @@ public class HtmlTransformerTest extends PlainTestCase {
         responseData.setResponseBody(content.getBytes("Shift_JIS"));
         responseData.setMimeType("text/html");
         final ResultData resultData = htmlTransformer.transform(responseData);
-        assertEquals("Shift_JIS", responseData.getCharSet());
-        assertEquals("Shift_JIS", resultData.getEncoding());
+        assertEquals("windows-31j", responseData.getCharSet());
+        assertEquals("windows-31j", resultData.getEncoding());
         assertEquals(content, new String(resultData.getData(), resultData.getEncoding()));
+    }
+
+    // a page that declares Shift_JIS is written with the NEC and IBM extension characters, which only windows-31j has
+    @Test
+    public void test_transform_charsetInMetaTagWindows31jExtensionCharacters() throws Exception {
+        final String content = "<html><head><meta charset=\"Shift_JIS\"></head><body><p>%s</p></body></html>";
+        final String text = "①㈱ 納品書 ㈲日本電気 髙橋﨑山";
+        final ResponseData responseData = new ResponseData();
+        responseData.setUrl("http://hoge/test.html");
+        responseData.setResponseBody(String.format(content, text).getBytes("windows-31j"));
+        responseData.setMimeType("text/html");
+        final ResultData resultData = htmlTransformer.transform(responseData);
+        assertEquals("windows-31j", responseData.getCharSet());
+        assertEquals(String.format(content, text), new String(resultData.getData(), resultData.getEncoding()));
+    }
+
+    @Test
+    public void test_transform_charsetInMetaTagEucJpExtensionCharacters() throws Exception {
+        final String content = "<html><head><meta charset=\"EUC-JP\"></head><body><p>%s</p></body></html>";
+        final String text = "①㈱ 納品書 ㈲日本電気 髙橋﨑山";
+        final ResponseData responseData = new ResponseData();
+        responseData.setUrl("http://hoge/test.html");
+        responseData.setResponseBody(String.format(content, text).getBytes("x-eucJP-Open"));
+        responseData.setMimeType("text/html");
+        final ResultData resultData = htmlTransformer.transform(responseData);
+        assertEquals(String.format(content, text), new String(resultData.getData(), resultData.getEncoding()));
     }
 
     @Test
@@ -315,7 +341,7 @@ public class HtmlTransformerTest extends PlainTestCase {
         responseData.setCharSet("EUC-JP");
         responseData.setMimeType("text/html");
         final ResultData resultData = htmlTransformer.transform(responseData);
-        assertEquals("Shift_JIS", responseData.getCharSet());
+        assertEquals("windows-31j", responseData.getCharSet());
         assertEquals(content, new String(resultData.getData(), resultData.getEncoding()));
     }
 

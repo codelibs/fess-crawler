@@ -181,8 +181,8 @@ public abstract class AbstractXmlExtractor extends AbstractExtractor {
     }
 
     /**
-     * Streams the supplied input into a string using the given charset. The
-     * total number of characters appended is bounded by {@link #maxTextLength}.
+     * Streams the supplied input into a string using the given charset, or the one that extends it, such as windows-31j for
+     * Shift_JIS. The total number of characters appended is bounded by {@link #maxTextLength}.
      *
      * @param in the input stream
      * @param charset the charset name
@@ -190,7 +190,7 @@ public abstract class AbstractXmlExtractor extends AbstractExtractor {
      * @throws IOException if reading fails
      */
     protected TextReadResult readAsString(final InputStream in, final String charset) throws IOException {
-        try (Reader reader = new InputStreamReader(in, charset)) {
+        try (Reader reader = new InputStreamReader(in, TikaExtractor.decodeAs(charset))) {
             return readWithLimit(reader, maxTextLength);
         }
     }

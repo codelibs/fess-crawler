@@ -478,6 +478,22 @@ public class TikaExtractor extends PasswordBasedExtractor {
     }
 
     /**
+     * Returns the charset to decode a text with that is declared to be in the given charset: the charset that a wider one
+     * extends, the same as for a detected charset (for example, windows-31j for Shift_JIS, which lacks the NEC and IBM
+     * extension characters such as the circled digits and the parenthesized ideographs that a text written on Windows has).
+     *
+     * @param charsetName The name of the declared charset.
+     * @return the name of the charset to decode with, or the given name if it is not a supported charset.
+     */
+    public static String decodeAs(final String charsetName) {
+        try {
+            return CharsetSupersets.decodeAs(Charset.forName(charsetName)).name();
+        } catch (final IllegalArgumentException e) {
+            return charsetName;
+        }
+    }
+
+    /**
      * Detects the charset of a text from its leading bytes with the encoding detector that {@link TikaExtractor} parses
      * with, so that the extractors that do not use Tika read a text in the same charset as a Tika-extracted one. The
      * stream is reset to the position it was at.

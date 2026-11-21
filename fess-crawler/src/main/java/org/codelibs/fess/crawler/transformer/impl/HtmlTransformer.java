@@ -420,7 +420,8 @@ public class HtmlTransformer extends AbstractTransformer {
                         : defaultEncoding != null ? defaultEncoding : Constants.UTF_8;
                 responseData.setCharSet(detectCharset(responseData, isSupportedCharset(reported) ? reported : Constants.UTF_8));
             } else {
-                responseData.setCharSet(encoding.trim());
+                // the page is written with the extension characters of Windows even when it declares Shift_JIS
+                responseData.setCharSet(TikaExtractor.decodeAs(encoding.trim()));
             }
 
             if (!isSupportedCharset(responseData.getCharSet())) {

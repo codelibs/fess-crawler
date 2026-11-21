@@ -67,6 +67,15 @@ public class HtmlXpathExtractorTest extends PlainTestCase {
         assertTrue(content.contains("テスト"));
     }
 
+    // a page that declares Shift_JIS is written with the NEC and IBM extension characters, which only windows-31j has
+    @Test
+    public void test_getHtml_declaredShiftJis_extensionCharacters() throws Exception {
+        final String page =
+                "<html><head><meta charset=\"Shift_JIS\"></head><body><p>%s</p></body></html>".replace("%s", "①㈱ 納品書 ㈲日本電気 髙橋﨑山");
+        final String content = htmlXpathExtractor.getText(new ByteArrayInputStream(page.getBytes("windows-31j")), null).getContent();
+        assertEquals("①㈱ 納品書 ㈲日本電気 髙橋﨑山", content);
+    }
+
     @Test
     public void test_getHtml_attr() {
         final InputStream in = ResourceUtil.getResourceAsStream("extractor/test_attr.html");

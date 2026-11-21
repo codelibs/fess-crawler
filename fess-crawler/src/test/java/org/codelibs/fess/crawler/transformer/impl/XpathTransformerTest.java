@@ -137,6 +137,20 @@ public class XpathTransformerTest extends PlainTestCase {
         assertEquals(result, new String(resultData.getData(), Constants.UTF_8));
     }
 
+    // a page that declares Shift_JIS is written with the NEC and IBM extension characters, which only windows-31j has
+    @Test
+    public void test_transform_declaredShiftJis_extensionCharacters() throws Exception {
+        final String page =
+                "<html><head><meta charset=\"Shift_JIS\"><title>①㈱ 納品書 ㈲日本電気 髙橋﨑山</title></head><body><p>①㈱ 納品書 ㈲日本電気 髙橋﨑山</p></body></html>";
+        final ResponseData responseData = new ResponseData();
+        responseData.setUrl("http://hoge/test.html");
+        responseData.setResponseBody(page.getBytes("windows-31j"));
+        final ResultData resultData = xpathTransformer.transform(responseData);
+        final String data = new String(resultData.getData(), resultData.getEncoding());
+        assertTrue(data.contains("<field name=\"title\"><list><item>①㈱ 納品書 ㈲日本電気 髙橋﨑山</item></list></field>"));
+        assertTrue(data.contains("<field name=\"body\"><list><item>①㈱ 納品書 ㈲日本電気 髙橋﨑山</item></list></field>"));
+    }
+
     @Test
     public void test_getData() throws Exception {
         final String value = "<?xml version=\"1.0\"?>\n"//

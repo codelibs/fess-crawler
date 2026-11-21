@@ -133,7 +133,7 @@ public class HtmlXpathExtractor extends AbstractXmlExtractor {
 
             final DOMParser parser = getDomParser();
             final InputSource inputSource = new InputSource(bis);
-            inputSource.setEncoding(enc);
+            inputSource.setEncoding(TikaExtractor.decodeAs(enc));
             parser.parse(inputSource);
             final Document document = parser.getDocument();
 

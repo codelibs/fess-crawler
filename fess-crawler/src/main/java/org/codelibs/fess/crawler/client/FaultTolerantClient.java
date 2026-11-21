@@ -29,6 +29,7 @@ import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.exception.MultipleCrawlingAccessException;
 import org.codelibs.fess.crawler.exception.RobotsTxtDisallowedException;
 import org.codelibs.fess.crawler.exception.RobotsTxtUnavailableException;
+import org.codelibs.fess.crawler.util.UserInfoUtil;
 
 /**
  * A fault-tolerant wrapper for CrawlerClient that implements retry logic for failed requests.
@@ -113,7 +114,7 @@ public class FaultTolerantClient implements CrawlerClient {
                     throw e;
                 } catch (final Exception e) {
                     if (logger.isDebugEnabled()) {
-                        logger.debug("Failed to access to {}", request.getUrl(), e);
+                        logger.debug("Failed to access to {}", UserInfoUtil.removeUserInfo(request.getUrl()), e);
                     }
 
                     if (listener != null) {
@@ -129,7 +130,7 @@ public class FaultTolerantClient implements CrawlerClient {
                 ThreadUtil.sleep(retryInterval);
                 count++;
             }
-            final String message = "Failed to access to " + request.getUrl()
+            final String message = "Failed to access to " + UserInfoUtil.removeUserInfo(request.getUrl())
                     + exceptionList.stream().map(e -> "; " + e.getMessage()).collect(Collectors.joining());
             throw new MultipleCrawlingAccessException(message, exceptionList.toArray(new Throwable[exceptionList.size()]));
         } finally {

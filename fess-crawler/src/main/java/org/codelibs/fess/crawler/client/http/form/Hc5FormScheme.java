@@ -16,6 +16,7 @@
 package org.codelibs.fess.crawler.client.http.form;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -52,6 +53,7 @@ import org.codelibs.core.lang.StringUtil;
 import org.codelibs.core.misc.Pair;
 import org.codelibs.core.stream.StreamUtil;
 import org.codelibs.fess.crawler.Constants;
+import org.codelibs.fess.crawler.util.UserInfoUtil;
 
 /**
  * The Hc5FormScheme class implements the AuthScheme interface for Apache HttpComponents 5.x
@@ -112,6 +114,12 @@ public class Hc5FormScheme implements AuthScheme {
     private static final String PASSWORD = "${password}";
 
     private static final String USERNAME = "${username}";
+
+    /** The number of bytes of the login response that are checked for a password input field. */
+    protected static final int LOGIN_RESPONSE_MAX_BYTES = 256 * 1024;
+
+    private static final Pattern PASSWORD_FIELD_PATTERN =
+            Pattern.compile("<input\\b[^>]*\\btype\\s*=\\s*[\"']?password\\b", Pattern.CASE_INSENSITIVE);
 
     private final Map<String, String> parameterMap;
 
@@ -279,11 +287,48 @@ public class Hc5FormScheme implements AuthScheme {
                     content = e.getMessage();
                 }
                 logger.warn("Failed to login on {}. The http status is {}.\n{}", originalLoginUrl, httpStatusCode, content);
+            } else if (isLoginFormReturned(entity)) {
+                warnLoginFormReturned(UserInfoUtil.removeUserInfo(originalLoginUrl));
             } else if (logger.isDebugEnabled()) {
                 logger.debug("Logged in {}", originalLoginUrl);
             }
         });
 
+    }
+
+    /**
+     * Logs that the login response was the login form again.
+     * @param loginUrl The login URL (without the user name and password).
+     */
+    protected void warnLoginFormReturned(final String loginUrl) {
+        logger.warn("The login form was returned again after the login on {}."
+                + " The login may have failed: check the user name, the password and the login parameters.", loginUrl);
+    }
+
+    /**
+     * Checks whether the response of the login request is a page with a password input field, that is,
+     * whether the login form was returned again. A site that does not accept the login often answers with
+     * the status 200 and the login form, so the status code does not tell that the login failed.
+     * Only the head of the response (up to {@link #LOGIN_RESPONSE_MAX_BYTES} bytes) is checked.
+     * @param entity The entity of the login response.
+     * @return true if the response has a password input field.
+     */
+    protected boolean isLoginFormReturned(final HttpEntity entity) {
+        if (entity == null) {
+            return false;
+        }
+        try (final InputStream in = entity.getContent()) {
+            if (in == null) {
+                return false;
+            }
+            final String content = new String(in.readNBytes(LOGIN_RESPONSE_MAX_BYTES), StandardCharsets.UTF_8);
+            return PASSWORD_FIELD_PATTERN.matcher(content).find();
+        } catch (final IOException | UnsupportedOperationException e) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Failed to read the login response.", e);
+            }
+            return false;
+        }
     }
 
     /**

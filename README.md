@@ -326,7 +326,8 @@ The limits live on `CrawlerContext` (`crawler.getCrawlerContext()`):
 
 The waiting is done by `HostIntervalController`, which `fess-crawler-lasta`'s `interval.xml` wires
 by default: before each request it waits for the origin's `Crawl-delay` (or the interval of its
-`Request-rate`, whichever is longer) and backoff, plus
+`Request-rate`, whichever is longer; a `Request-rate` with a time of day, such as `1/10 s 1800-1900`,
+counts only in that time of day, in UTC) and backoff, plus
 `delayMillisBeforeProcessing` since the last request to the same host. `DefaultIntervalController`
 waits for neither, so re-queued URLs come back at once; a custom interval controller must extend
 `HostIntervalController` to keep `Crawl-delay` and backoff waiting. Both expose four delays, in

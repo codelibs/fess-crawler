@@ -185,7 +185,7 @@ Twitter Card); `extractJsonLd` defaults to **false** and is bounded in nesting d
 
 ### Helpers
 
-- **RobotsTxtHelper**: RFC 9309 parsing, user-agent matching, crawl-delay, request-rate (`n/m` with an optional s/m/h/d unit; one with a time of day is ignored), sitemaps
+- **RobotsTxtHelper**: RFC 9309 parsing, user-agent matching, crawl-delay, request-rate (`n/m` with an optional s/m/h/d unit and an optional UTC time of day `HHMM-HHMM`), sitemaps
 - **SitemapsHelper**: Sitemap XML parsing, index handling
 - **MimeTypeHelper** / `MimeTypeHelperImpl`: MIME detection via Tika, extension-based overrides
 - **EncodingHelper**: Charset detection with BOM

@@ -175,7 +175,7 @@ public class HostIntervalController extends DefaultIntervalController {
         }
 
         final long maxCrawlDelayMillis = crawlerContext.getMaxCrawlDelayMillis();
-        final long crawlDelayMillis = hs.getCrawlDelayMillis();
+        final long crawlDelayMillis = hs.getDelayMillis(SystemUtil.currentTimeMillis());
         if (maxCrawlDelayMillis > 0 && crawlDelayMillis > maxCrawlDelayMillis && hs.markCrawlDelayCapLogged()) {
             logger.info("Crawl-delay or Request-rate {}ms of {} exceeds the maximum; using {}ms", crawlDelayMillis, HostState.toOrigin(url),
                     maxCrawlDelayMillis);
@@ -205,7 +205,7 @@ public class HostIntervalController extends DefaultIntervalController {
         long wait = 0L;
         final long lastAccess = hs.getLastAccessTime();
         if (lastAccess != 0 && maxCrawlDelayMillis > 0) {
-            final long crawlDelay = Math.min(hs.getCrawlDelayMillis(), maxCrawlDelayMillis);
+            final long crawlDelay = Math.min(hs.getDelayMillis(now), maxCrawlDelayMillis);
             if (crawlDelay > 0) {
                 wait = lastAccess + crawlDelay - now;
             }

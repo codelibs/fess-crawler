@@ -29,6 +29,7 @@ import org.codelibs.core.lang.SystemUtil;
 import org.codelibs.fess.crawler.CrawlerContext;
 import org.codelibs.fess.crawler.entity.HostState;
 import org.codelibs.fess.crawler.entity.HostState.RobotsTxtStatus;
+import org.codelibs.fess.crawler.entity.RobotsTxt;
 import org.codelibs.fess.crawler.entity.UrlQueue;
 import org.codelibs.fess.crawler.entity.UrlQueueImpl;
 import org.codelibs.fess.crawler.interval.IntervalController;
@@ -458,6 +459,24 @@ public class HostIntervalControllerTest extends PlainTestCase {
         hs.setLastAccessTime(NOW + 1500L);
         // crawl delay (2000) now exceeds the remaining backoff (1500)
         assertEquals(2000L, controller.computeWaitMillis(hs, NOW + 1500L, 60000L));
+    }
+
+    @Test
+    public void test_computeWaitMillis_requestRateOfTimeOfDay() {
+        final HostIntervalController controller = new HostIntervalController();
+        final RobotsTxt.Directive directive = new RobotsTxt.Directive("*");
+        // 22:00-23:00 UTC
+        directive.addRequestRate(new RobotsTxt.RequestRate(5000L, 22 * 60, 23 * 60));
+        final HostState hs = new HostState();
+        hs.setRobotsTxt(RobotsTxtStatus.PARSED, directive, 0L);
+        final long at2213 = 1_700_000_000_000L;
+        hs.setLastAccessTime(at2213);
+
+        assertEquals(3000L, controller.computeWaitMillis(hs, at2213 + 2000L, 60000L));
+        // the Request-rate is not active at 21:13, nor after the time of day ends
+        assertEquals(0L, controller.computeWaitMillis(hs, at2213 - 3600_000L + 1L, 60000L));
+        // the upper limit applies to a Request-rate too
+        assertEquals(1000L, controller.computeWaitMillis(hs, at2213 + 2000L, 3000L));
     }
 
     @Test

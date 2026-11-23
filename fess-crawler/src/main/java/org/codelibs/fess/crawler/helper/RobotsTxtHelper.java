@@ -42,6 +42,7 @@ import org.codelibs.fess.crawler.entity.HostState;
 import org.codelibs.fess.crawler.entity.HostState.RobotsTxtStatus;
 import org.codelibs.fess.crawler.entity.RobotsTxt;
 import org.codelibs.fess.crawler.entity.RobotsTxt.Directive;
+import org.codelibs.fess.crawler.entity.RobotsTxt.RequestRate;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.exception.RobotsTxtDisallowedException;
 import org.codelibs.fess.crawler.exception.RobotsTxtException;
@@ -58,8 +59,8 @@ import org.codelibs.fess.crawler.util.UserInfoUtil;
  * <li>Wildcard (*) in paths - matches any sequence of characters</li>
  * <li>End-of-path ($) matching - matches the end of URL path</li>
  * <li>Crawl-delay directive</li>
- * <li>Request-rate directive ({@code Request-rate: <documents>/<time>[ s|m|h|d]}, as defined by SeznamBot;
- * a rate limited to a time of day is ignored)</li>
+ * <li>Request-rate directive ({@code Request-rate: <documents>/<time>[ s|m|h|d] [HHMM-HHMM]}, as defined by SeznamBot;
+ * the optional time of day is in UTC and limits the rate to it)</li>
  * <li>Sitemap directive</li>
  * <li>Comment support (#)</li>
  * <li>Priority-based matching (longest match wins, Allow beats Disallow at equal length)</li>
@@ -95,11 +96,12 @@ public class RobotsTxtHelper {
     protected static final Pattern CRAWL_DELAY_RECORD = Pattern.compile("^crawl-delay:\\s*([^\\s]+)\\s*$", Pattern.CASE_INSENSITIVE);
 
     /**
-     * Pattern for parsing request-rate records: {@code <documents>/<time>} with an optional unit of s (default), m, h or d.
-     * A record that also limits the rate to a time of day, such as {@code 1/10 s 1800-1900}, does not match.
+     * Pattern for parsing request-rate records: {@code <documents>/<time>} with an optional unit of s (default), m, h or d,
+     * and an optional time of day in UTC such as {@code 1800-1900} or {@code 18:00-19:00}.
      */
-    protected static final Pattern REQUEST_RATE_RECORD =
-            Pattern.compile("^request-rate:\\s*(\\d+)\\s*/\\s*(\\d+)\\s*([smhd]?)\\s*$", Pattern.CASE_INSENSITIVE);
+    protected static final Pattern REQUEST_RATE_RECORD = Pattern.compile(
+            "^request-rate:\\s*(\\d+)\\s*/\\s*(\\d+)\\s*([smhd]?)(?:\\s+(\\d{2}):?(\\d{2})\\s*-\\s*(\\d{2}):?(\\d{2}))?\\s*$",
+            Pattern.CASE_INSENSITIVE);
 
     /**
      * Pattern for Sitemap record.
@@ -249,10 +251,10 @@ public class RobotsTxtHelper {
                     // a run of User-agent lines, so reading it can never loosen what the Disallow lines forbid.
                     final Matcher requestRate = REQUEST_RATE_RECORD.matcher(line);
                     if (requestRate.matches()) {
-                        final long requestRateMillis = toIntervalMillis(requestRate.group(1), requestRate.group(2), requestRate.group(3));
-                        if (!currentDirectiveList.isEmpty() && requestRateMillis > 0) {
+                        final RequestRate parsed = toRequestRate(requestRate);
+                        if (parsed != null && !currentDirectiveList.isEmpty()) {
                             for (final Directive directive : currentDirectiveList) {
-                                directive.setRequestRateMillis(requestRateMillis);
+                                directive.addRequestRate(parsed);
                             }
                         }
                         continue;
@@ -285,6 +287,37 @@ public class RobotsTxtHelper {
             // Catch any other fatal errors (e.g., encoding issues)
             throw new RobotsTxtException("Failed to parse robots.txt.", e);
         }
+    }
+
+    /**
+     * Builds a Request-rate from a match of {@link #REQUEST_RATE_RECORD}.
+     * @param m the match
+     * @return the Request-rate, or null if the rate is zero, too large to be a delay, or the time of day is not valid
+     *         (a minute over 59, an hour over 23 except 24:00 as the end, or equal start and end)
+     */
+    protected RequestRate toRequestRate(final Matcher m) {
+        final long intervalMillis = toIntervalMillis(m.group(1), m.group(2), m.group(3));
+        if (intervalMillis <= 0) {
+            return null;
+        }
+        if (m.group(4) == null) {
+            return new RequestRate(intervalMillis);
+        }
+        final int start = toMinuteOfDay(m.group(4), m.group(5), false);
+        final int end = toMinuteOfDay(m.group(6), m.group(7), true);
+        if (start < 0 || end < 0 || start == end) {
+            return null;
+        }
+        return new RequestRate(intervalMillis, start, end);
+    }
+
+    private static int toMinuteOfDay(final String hour, final String minute, final boolean allowEndOfDay) {
+        final int h = Integer.parseInt(hour);
+        final int min = Integer.parseInt(minute);
+        if (min > 59 || h > 24 || h == 24 && (min != 0 || !allowEndOfDay)) {
+            return -1;
+        }
+        return h * 60 + min;
     }
 
     /**
@@ -572,12 +605,11 @@ public class RobotsTxtHelper {
                 disallowsOnly.addDisallow(disallow);
             }
             disallowsOnly.setCrawlDelayMillis(directive.getCrawlDelayMillis());
-            disallowsOnly.setRequestRateMillis(directive.getRequestRateMillis());
+            directive.getRequestRates().forEach(disallowsOnly::addRequestRate);
             directive = disallowsOnly;
         }
-        // Request-rate is the same wait between two requests as Crawl-delay; the slower of the two applies.
-        hostState.setRobotsTxt(RobotsTxtStatus.PARSED, directive,
-                directive == null ? 0L : Math.max(directive.getCrawlDelayMillis(), directive.getRequestRateMillis()));
+        // Request-rate is read from the directive of the HostState each time, because a time of day decides whether it applies
+        hostState.setRobotsTxt(RobotsTxtStatus.PARSED, directive, directive == null ? 0L : directive.getCrawlDelayMillis());
     }
 
     /**

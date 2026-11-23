@@ -136,8 +136,7 @@ public class HostState {
      *
      * @param status the status
      * @param directive the directive that applies to this crawler, or null
-     * @param crawlDelayMillis the wait between two requests in milliseconds, 0 if none: the longer of the Crawl-delay
-     *        and the Request-rate interval
+     * @param crawlDelayMillis the Crawl-delay in milliseconds, 0 if none
      */
     public synchronized void setRobotsTxt(final RobotsTxtStatus status, final RobotsTxt.Directive directive, final long crawlDelayMillis) {
         this.robotsTxtStatus = status;
@@ -220,11 +219,22 @@ public class HostState {
     }
 
     /**
-     * Returns the wait between two requests from robots.txt: the longer of the Crawl-delay and the Request-rate interval.
-     * @return the wait in milliseconds, 0 if none
+     * Returns the Crawl-delay from robots.txt.
+     * @return the Crawl-delay in milliseconds, 0 if none
      */
     public synchronized long getCrawlDelayMillis() {
         return crawlDelayMillis;
+    }
+
+    /**
+     * Returns the interval between two requests that robots.txt asks for at a time: the longer of the Crawl-delay and the
+     * Request-rate records that are active then (a Request-rate may be limited to a time of day in UTC).
+     * @param nowMillis the time in milliseconds since the epoch
+     * @return the interval in milliseconds, 0 if none
+     */
+    public synchronized long getDelayMillis(final long nowMillis) {
+        final long requestRateMillis = directive == null ? 0L : directive.getRequestRateMillis(nowMillis);
+        return Math.max(crawlDelayMillis, requestRateMillis);
     }
 
     /**

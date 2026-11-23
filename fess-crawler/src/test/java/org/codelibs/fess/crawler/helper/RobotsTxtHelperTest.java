@@ -447,37 +447,72 @@ public class RobotsTxtHelperTest extends PlainTestCase {
     @Test
     public void testParse_requestRateMillis() {
         // the issue's form: documents/seconds
-        assertEquals(10000L, parseRobotsTxt("User-agent: TestBot\nRequest-rate: 1/10\n").getRequestRateMillis("TestBot"));
+        assertEquals(10000L, parseRobotsTxt("User-agent: TestBot\nRequest-rate: 1/10\n").getRequestRateMillis("TestBot", NOW));
         // the SeznamBot forms: a unit of s, m, h or d, with or without a space, in any case
-        assertEquals(10000L, parseRobotsTxt("User-agent: TestBot\nRequest-rate: 1/10 s\n").getRequestRateMillis("TestBot"));
-        assertEquals(10000L, parseRobotsTxt("User-agent: TestBot\nrequest-rate: 1/10S\n").getRequestRateMillis("TestBot"));
-        assertEquals(9000L, parseRobotsTxt("User-agent: TestBot\nRequest-rate: 100/15 m\n").getRequestRateMillis("TestBot"));
-        assertEquals(9000L, parseRobotsTxt("User-agent: TestBot\nRequest-rate: 400/1 h\n").getRequestRateMillis("TestBot"));
-        assertEquals(9600L, parseRobotsTxt("User-agent: TestBot\nRequest-rate: 9000/1d\n").getRequestRateMillis("TestBot"));
-        assertEquals(2000L, parseRobotsTxt("User-agent: TestBot\nRequest-rate: 30/1m # a comment\n").getRequestRateMillis("TestBot"));
-        assertEquals(250L, parseRobotsTxt("User-agent: TestBot\nRequest-rate: 4/1\n").getRequestRateMillis("TestBot"));
+        assertEquals(10000L, parseRobotsTxt("User-agent: TestBot\nRequest-rate: 1/10 s\n").getRequestRateMillis("TestBot", NOW));
+        assertEquals(10000L, parseRobotsTxt("User-agent: TestBot\nrequest-rate: 1/10S\n").getRequestRateMillis("TestBot", NOW));
+        assertEquals(9000L, parseRobotsTxt("User-agent: TestBot\nRequest-rate: 100/15 m\n").getRequestRateMillis("TestBot", NOW));
+        assertEquals(9000L, parseRobotsTxt("User-agent: TestBot\nRequest-rate: 400/1 h\n").getRequestRateMillis("TestBot", NOW));
+        assertEquals(9600L, parseRobotsTxt("User-agent: TestBot\nRequest-rate: 9000/1d\n").getRequestRateMillis("TestBot", NOW));
+        assertEquals(2000L, parseRobotsTxt("User-agent: TestBot\nRequest-rate: 30/1m # a comment\n").getRequestRateMillis("TestBot", NOW));
+        assertEquals(250L, parseRobotsTxt("User-agent: TestBot\nRequest-rate: 4/1\n").getRequestRateMillis("TestBot", NOW));
 
-        // the last one in a group wins, as Crawl-delay does
-        assertEquals(2000L, parseRobotsTxt("User-agent: TestBot\nRequest-rate: 1/10\nRequest-rate: 1/2\n").getRequestRateMillis("TestBot"));
+        // the slowest of the records of a group applies
+        assertEquals(10000L,
+                parseRobotsTxt("User-agent: TestBot\nRequest-rate: 1/10\nRequest-rate: 1/2\n").getRequestRateMillis("TestBot", NOW));
         // Crawl-delay is not touched
         final RobotsTxt both = parseRobotsTxt("User-agent: TestBot\nCrawl-delay: 3\nRequest-rate: 1/10\n");
         assertEquals(3000L, both.getCrawlDelayMillis("TestBot"));
-        assertEquals(10000L, both.getRequestRateMillis("TestBot"));
+        assertEquals(10000L, both.getRequestRateMillis("TestBot", NOW));
     }
 
     @Test
     public void testParse_requestRateIgnored() {
         final java.util.List<String> accepted = new java.util.ArrayList<>();
         for (final String value : new String[] { "abc", "1", "1/", "/10", "0/10", "1/0", "-1/10", "1/-10", "1.5/10", "1/10x", "1/10 ss",
-                "1/1m 5", "1/10 s 1800-1900", "1/10 1800-1900", "99999999999999999999999999999999/1" }) {
-            if (parseRobotsTxt("User-agent: TestBot\nRequest-rate: " + value + "\n").getRequestRateMillis("TestBot") != 0L) {
+                "1/1m 5", "1/10 s 2500-1900", "1/10 s 1860-1900", "1/10 s 1800-1800", "1/10 s 2400-1900", "1/10 s 1800-2401",
+                "1/10 s 18-19", "1/10 s 1800", "99999999999999999999999999999999/1" }) {
+            if (parseRobotsTxt("User-agent: TestBot\nRequest-rate: " + value + "\n").getRequestRateMillis("TestBot", NOW) != 0L) {
                 accepted.add(value);
             }
         }
         assertEquals(java.util.List.of(), accepted);
         // the rest of the group still applies
-        final RobotsTxt robotsTxt = parseRobotsTxt("User-agent: TestBot\nRequest-rate: 1/10 s 1800-1900\nDisallow: /test/\n");
+        final RobotsTxt robotsTxt = parseRobotsTxt("User-agent: TestBot\nRequest-rate: 1/10 s 1800-1800\nDisallow: /test/\n");
         assertFalse(robotsTxt.allows("/test/", "TestBot"));
+    }
+
+    @Test
+    public void testParse_requestRateTimeOfDay() {
+        // NOW is 22:13 UTC
+        final java.util.List<String> wrong = new java.util.ArrayList<>();
+        final String[] active = { "2200-2300", "22:00-23:00", "2213-2214", "0000-2400", "2200-0100", "2000-2214 " };
+        for (final String window : active) {
+            if (parseRobotsTxt("User-agent: TestBot\nRequest-rate: 1/10 s " + window + "\n").getRequestRateMillis("TestBot",
+                    NOW) != 10000L) {
+                wrong.add("should be active: " + window);
+            }
+        }
+        final String[] inactive = { "1800-1900", "2212-2213", "2300-0100", "0100-0200", "2214-2300" };
+        for (final String window : inactive) {
+            if (parseRobotsTxt("User-agent: TestBot\nRequest-rate: 1/10 s " + window + "\n").getRequestRateMillis("TestBot", NOW) != 0L) {
+                wrong.add("should be inactive: " + window);
+            }
+        }
+        assertEquals(java.util.List.of(), wrong);
+        // no space before the unit
+        assertEquals(10000L, parseRobotsTxt("User-agent: TestBot\nRequest-rate: 1/10s 2200-2300\n").getRequestRateMillis("TestBot", NOW));
+        // the unit is optional before the time of day
+        assertEquals(10000L, parseRobotsTxt("User-agent: TestBot\nRequest-rate: 1/10 2200-2300\n").getRequestRateMillis("TestBot", NOW));
+        assertEquals(0L, parseRobotsTxt("User-agent: TestBot\nRequest-rate: 1/10 1800-1900\n").getRequestRateMillis("TestBot", NOW));
+        // an all-day rate and a rate of another time of day: only the active ones count, the slowest wins
+        final RobotsTxt both = parseRobotsTxt(
+                "User-agent: TestBot\nRequest-rate: 1/2\nRequest-rate: 1/10 s 2200-2300\n" + "Request-rate: 1/30 s 1800-1900\n");
+        assertEquals(10000L, both.getRequestRateMillis("TestBot", NOW));
+        // 18:13 UTC
+        assertEquals(30000L, both.getRequestRateMillis("TestBot", NOW - 4 * 3600_000L));
+        // 16:13 UTC
+        assertEquals(2000L, both.getRequestRateMillis("TestBot", NOW - 6 * 3600_000L));
     }
 
     @Test
@@ -487,15 +522,15 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         assertFalse(robotsTxt.allows("/secret/", "Bot1"));
         assertFalse(robotsTxt.allows("/secret/", "Bot2"));
         // the rate belongs to Bot1, which was the only User-agent line when it was read
-        assertEquals(10000L, robotsTxt.getRequestRateMillis("Bot1"));
-        assertEquals(0L, robotsTxt.getRequestRateMillis("Bot2"));
+        assertEquals(10000L, robotsTxt.getRequestRateMillis("Bot1", NOW));
+        assertEquals(0L, robotsTxt.getRequestRateMillis("Bot2", NOW));
 
         // the same with a Request-rate that is ignored
         final RobotsTxt ignored =
-                parseRobotsTxt("User-agent: Bot1\nRequest-rate: 1/10 s 1800-1900\nUser-agent: Bot2\nDisallow: /secret/\n");
+                parseRobotsTxt("User-agent: Bot1\nRequest-rate: 1/10 s 1800-1800\nUser-agent: Bot2\nDisallow: /secret/\n");
         assertFalse(ignored.allows("/secret/", "Bot1"));
         assertFalse(ignored.allows("/secret/", "Bot2"));
-        assertEquals(0L, ignored.getRequestRateMillis("Bot1"));
+        assertEquals(0L, ignored.getRequestRateMillis("Bot1", NOW));
     }
 
     @Test
@@ -1154,7 +1189,22 @@ public class RobotsTxtHelperTest extends PlainTestCase {
                 ok("User-agent: FessCrawler\nRequest-rate: 1/10\nDisallow: /a/\n\nUser-agent: *\nCrawl-delay: 9\n"));
 
         assertAllowed(context, "http://example.com/x", fetcher, POLICY);
-        assertEquals(10000L, context.getHostState("http://example.com/").getCrawlDelayMillis());
+        assertEquals(10000L, context.getHostState("http://example.com/").getDelayMillis(NOW));
+    }
+
+    @Test
+    public void testCheckRobotsTxt_requestRateOfTimeOfDayAppliesOnlyThen() {
+        final CrawlerContext context = new CrawlerContext();
+        final ScriptedFetcher fetcher = new ScriptedFetcher().on("http://example.com/robots.txt",
+                ok("User-agent: *\nCrawl-delay: 1\nRequest-rate: 1/10 s 2200-2300\n"));
+
+        assertAllowed(context, "http://example.com/x", fetcher, POLICY);
+        final HostState hostState = context.getHostState("http://example.com/");
+        // NOW is 22:13 UTC: inside the time of day
+        assertEquals(10000L, hostState.getDelayMillis(NOW));
+        // 21:13 UTC: outside, only the Crawl-delay is left
+        assertEquals(1000L, hostState.getDelayMillis(NOW - 3600_000L));
+        assertEquals(1000L, hostState.getCrawlDelayMillis());
     }
 
     @Test
@@ -1163,13 +1213,13 @@ public class RobotsTxtHelperTest extends PlainTestCase {
                 new ScriptedFetcher().on("http://example.com/robots.txt", ok("User-agent: *\nCrawl-delay: 2\nRequest-rate: 1/10\n"));
         final CrawlerContext context1 = new CrawlerContext();
         assertAllowed(context1, "http://example.com/x", slowRate, POLICY);
-        assertEquals(10000L, context1.getHostState("http://example.com/").getCrawlDelayMillis());
+        assertEquals(10000L, context1.getHostState("http://example.com/").getDelayMillis(NOW));
 
         final ScriptedFetcher slowDelay =
                 new ScriptedFetcher().on("http://example.com/robots.txt", ok("User-agent: *\nCrawl-delay: 20\nRequest-rate: 1/10\n"));
         final CrawlerContext context2 = new CrawlerContext();
         assertAllowed(context2, "http://example.com/x", slowDelay, POLICY);
-        assertEquals(20000L, context2.getHostState("http://example.com/").getCrawlDelayMillis());
+        assertEquals(20000L, context2.getHostState("http://example.com/").getDelayMillis(NOW));
     }
 
     @Test
@@ -1179,7 +1229,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
                 ok("User-agent: *\nRequest-rate: 1/10\nDisallow: /a/\nAllow: /a/b\n"));
 
         assertDisallowed(context, "http://example.com/a/b", fetcher, new RobotsTxtPolicy(false, true, false, 3));
-        assertEquals(10000L, context.getHostState("http://example.com/").getCrawlDelayMillis());
+        assertEquals(10000L, context.getHostState("http://example.com/").getDelayMillis(NOW));
     }
 
     @Test

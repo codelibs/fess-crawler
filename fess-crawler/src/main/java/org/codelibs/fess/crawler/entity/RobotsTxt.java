@@ -16,6 +16,7 @@
 package org.codelibs.fess.crawler.entity;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -110,18 +111,20 @@ public class RobotsTxt {
 
     /**
      * Gets the interval between two requests derived from Request-rate for the specified user agent, in milliseconds.
-     * {@code Request-rate: 1/10} is 10000 and {@code Request-rate: 100/15 m} is 9000.
+     * {@code Request-rate: 1/10} is 10000 and {@code Request-rate: 100/15 m} is 9000. A Request-rate limited to a time of day
+     * counts only while that time of day lasts.
      *
      * @param userAgent The user agent string to match against robots.txt directives
+     * @param nowMillis The current time in milliseconds since the epoch
      * @return The interval in milliseconds. Returns 0 if no matching directive is found
-     *         or no Request-rate is specified for the matching directive.
+     *         or no Request-rate applies to the matching directive at that time.
      */
-    public long getRequestRateMillis(final String userAgent) {
+    public long getRequestRateMillis(final String userAgent, final long nowMillis) {
         final Directive directive = getMatchedDirective(userAgent);
         if (directive == null) {
             return 0;
         }
-        return directive.getRequestRateMillis();
+        return directive.getRequestRateMillis(nowMillis);
     }
 
     /**
@@ -454,6 +457,66 @@ public class RobotsTxt {
     }
 
     /**
+     * Represents a {@code Request-rate} record: the interval between two requests, optionally only for a time of day.
+     * The time of day is in UTC, as SeznamBot defines it, and may cross midnight ({@code 2300-0100}).
+     */
+    public static class RequestRate {
+        private static final long MILLIS_PER_MINUTE = 60_000L;
+
+        private static final int MINUTES_PER_DAY = 24 * 60;
+
+        private final long intervalMillis;
+
+        private final int startMinute;
+
+        private final int endMinute;
+
+        /**
+         * Constructs a Request-rate that applies all day.
+         * @param intervalMillis the interval between two requests in milliseconds
+         */
+        public RequestRate(final long intervalMillis) {
+            this(intervalMillis, -1, -1);
+        }
+
+        /**
+         * Constructs a Request-rate that applies in a time of day.
+         * @param intervalMillis the interval between two requests in milliseconds
+         * @param startMinute the start of the time of day in minutes since 00:00 UTC, inclusive
+         * @param endMinute the end of the time of day in minutes since 00:00 UTC, exclusive; before the start if it crosses midnight
+         */
+        public RequestRate(final long intervalMillis, final int startMinute, final int endMinute) {
+            this.intervalMillis = intervalMillis;
+            this.startMinute = startMinute;
+            this.endMinute = endMinute;
+        }
+
+        /**
+         * Gets the interval between two requests.
+         * @return the interval in milliseconds
+         */
+        public long getIntervalMillis() {
+            return intervalMillis;
+        }
+
+        /**
+         * Checks whether this Request-rate applies at a time.
+         * @param nowMillis the time in milliseconds since the epoch
+         * @return true if it applies all day or the time of day (UTC) of the time is in its range
+         */
+        public boolean isActive(final long nowMillis) {
+            if (startMinute < 0) {
+                return true;
+            }
+            final int minute = (int) Math.floorMod(Math.floorDiv(nowMillis, MILLIS_PER_MINUTE), (long) MINUTES_PER_DAY);
+            if (startMinute < endMinute) {
+                return minute >= startMinute && minute < endMinute;
+            }
+            return minute >= startMinute || minute < endMinute;
+        }
+    }
+
+    /**
      * Represents a directive in a robots.txt file.
      * A directive consists of a user agent, crawl delay, allowed paths, and disallowed paths.
      */
@@ -464,8 +527,8 @@ public class RobotsTxt {
         /** The crawl delay in milliseconds for this directive. */
         private long crawlDelayMillis;
 
-        /** The interval between two requests derived from Request-rate in milliseconds, 0 if none. */
-        private long requestRateMillis;
+        /** The Request-rate records of this directive. */
+        private final List<RequestRate> requestRates = new ArrayList<>();
 
         /** The list of allowed path patterns for this directive. */
         private final List<PathPattern> allowedPaths = new ArrayList<>();
@@ -514,20 +577,35 @@ public class RobotsTxt {
         }
 
         /**
-         * Sets the interval between two requests derived from the Request-rate of this directive.
-         * @param requestRateMillis the interval in milliseconds, 0 if none
+         * Adds a Request-rate record. Records of one directive add up: at any time the slowest of the active ones applies.
+         * @param requestRate the Request-rate
          */
-        public void setRequestRateMillis(final long requestRateMillis) {
-            this.requestRateMillis = requestRateMillis;
+        public void addRequestRate(final RequestRate requestRate) {
+            requestRates.add(requestRate);
         }
 
         /**
-         * Gets the interval between two requests derived from the Request-rate of this directive.
-         * {@code Request-rate: 1/10} is 10000.
-         * @return the interval in milliseconds, 0 if none
+         * Gets the Request-rate records of this directive.
+         * @return the records, in the order of the file
          */
-        public long getRequestRateMillis() {
-            return requestRateMillis;
+        public List<RequestRate> getRequestRates() {
+            return Collections.unmodifiableList(requestRates);
+        }
+
+        /**
+         * Gets the interval between two requests derived from the Request-rate records of this directive that are
+         * active at a time. {@code Request-rate: 1/10} is 10000.
+         * @param nowMillis the time in milliseconds since the epoch
+         * @return the longest interval of the active records in milliseconds, 0 if none is active
+         */
+        public long getRequestRateMillis(final long nowMillis) {
+            long interval = 0L;
+            for (final RequestRate requestRate : requestRates) {
+                if (requestRate.isActive(nowMillis)) {
+                    interval = Math.max(interval, requestRate.getIntervalMillis());
+                }
+            }
+            return interval;
         }
 
         /**

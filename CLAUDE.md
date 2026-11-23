@@ -312,7 +312,9 @@ All public exceptions are unchecked (extend `RuntimeException` via `CrawlerSyste
 CrawlerSystemException (RuntimeException)
   ├─ CrawlingAccessException
   │     ├─ MaxLengthExceededException
-  │     └─ MultipleCrawlingAccessException
+  │     ├─ MultipleCrawlingAccessException
+  │     ├─ RobotsTxtDisallowedException      (a Disallow rule forbids the URL)
+  │     └─ RobotsTxtUnavailableException     (robots.txt could not be fetched yet)
   ├─ ChildUrlsException
   ├─ ExtractException
   │     ├─ UnsupportedExtractException
@@ -320,6 +322,7 @@ CrawlerSystemException (RuntimeException)
   ├─ CrawlerLoginFailureException
   ├─ MimeTypeException
   ├─ RobotsTxtException
+  ├─ RobotsTxtVisitTimeException         (outside the Visit-time; deliberately not a CrawlingAccessException)
   ├─ SitemapsException
   └─ OpenSearchAccessException          (fess-crawler-opensearch module)
 ```

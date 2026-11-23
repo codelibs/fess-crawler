@@ -236,6 +236,9 @@ public class CrawlerTest extends PlainTestCase {
             final HostIntervalController intervalController = new HostIntervalController();
             // the default per-host delay would hide the robots.txt rate
             intervalController.setDelayMillisBeforeProcessing(0L);
+            // and short waits for the links of a page, so that a loaded machine cannot make an unpaced gap look like the rate
+            intervalController.setDelayMillisForWaitingNewUrl(100L);
+            intervalController.setDelayMillisAtNoUrlInQueue(100L);
             crawler.setIntervalController(intervalController);
             crawler.addUrl(url);
             crawler.crawlerContext.setMaxAccessCount(5);
@@ -280,7 +283,7 @@ public class CrawlerTest extends PlainTestCase {
     public void test_execute_web_withoutRequestRateIsNotPaced() throws Exception {
         final List<Long> arrivals = crawlPagesWithRobotsTxt("User-agent: *\nDisallow: /private/\n");
         assertEquals(5, arrivals.size());
-        // the wait for the links of the first page is about a second; no gap reaches the 2 seconds of the rate
+        // the waits of the crawler are 100 ms here; no gap reaches the 2 seconds of the rate
         final List<String> tooLong = new ArrayList<>();
         for (final long gap : gaps(arrivals)) {
             if (gap >= 1500L) {

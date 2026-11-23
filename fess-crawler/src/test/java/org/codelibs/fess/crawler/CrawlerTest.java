@@ -252,14 +252,28 @@ public class CrawlerTest extends PlainTestCase {
         return sorted;
     }
 
+    /** The gaps between the sorted arrival times. */
+    private static List<Long> gaps(final List<Long> arrivals) {
+        final List<Long> gaps = new ArrayList<>();
+        for (int i = 1; i < arrivals.size(); i++) {
+            gaps.add(arrivals.get(i) - arrivals.get(i - 1));
+        }
+        return gaps;
+    }
+
     @Test
     public void test_execute_web_requestRatePacesRequests() throws Exception {
         // 1/2 is one request per 2 seconds, although three threads crawl
         final List<Long> arrivals = crawlPagesWithRobotsTxt("User-agent: *\nRequest-rate: 1/2\n");
         assertEquals(5, arrivals.size());
-        for (int i = 1; i < arrivals.size(); i++) {
-            assertTrue(arrivals.get(i) - arrivals.get(i - 1) >= 1500L);
+        // the gaps that are shorter than the rate; the failure message shows them with the arrival times
+        final List<String> tooShort = new ArrayList<>();
+        for (final long gap : gaps(arrivals)) {
+            if (gap < 1500L) {
+                tooShort.add("gap " + gap + "ms in arrivals " + arrivals);
+            }
         }
+        assertEquals(List.of(), tooShort);
     }
 
     @Test
@@ -267,9 +281,13 @@ public class CrawlerTest extends PlainTestCase {
         final List<Long> arrivals = crawlPagesWithRobotsTxt("User-agent: *\nDisallow: /private/\n");
         assertEquals(5, arrivals.size());
         // the wait for the links of the first page is about a second; no gap reaches the 2 seconds of the rate
-        for (int i = 1; i < arrivals.size(); i++) {
-            assertTrue(arrivals.get(i) - arrivals.get(i - 1) < 1500L);
+        final List<String> tooLong = new ArrayList<>();
+        for (final long gap : gaps(arrivals)) {
+            if (gap >= 1500L) {
+                tooLong.add("gap " + gap + "ms in arrivals " + arrivals);
+            }
         }
+        assertEquals(List.of(), tooLong);
     }
 
     @Test

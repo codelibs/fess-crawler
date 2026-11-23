@@ -345,8 +345,11 @@ milliseconds:
 
 A `Visit-time: HH:MM-HH:MM` (UT, ends included, several lines allowed) asks a crawler to visit only in
 that time of day. The crawler does not wait for it, which would hold a thread of the crawl for hours: a
-URL of the origin is skipped outside it, logged at INFO once per origin, and counted neither as a
-failure nor as a retry. A site that declares one is not crawled by a job that never runs in it.
+URL of the origin is skipped outside it, as a `Disallow`ed one is, logged at INFO once per origin, and
+counted neither as a failure nor as a retry. A URL that was skipped is not tried again in the crawl, even
+if the crawl is still running when the time of day opens (a seed dequeued too early is lost), so
+start the crawl inside the time of day. A site that declares one is not crawled by a job that never
+runs inside it. A site that declares one is not crawled by a job that never runs in it.
 
 ### Content Size Limits
 

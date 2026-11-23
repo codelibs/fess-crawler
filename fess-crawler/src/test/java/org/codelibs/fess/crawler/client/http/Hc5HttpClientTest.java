@@ -66,6 +66,9 @@ import org.codelibs.fess.crawler.filter.impl.UrlFilterImpl;
 import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.MemoryDataHelper;
 import org.codelibs.fess.crawler.helper.RobotsTxtHelper;
+import org.codelibs.fess.crawler.interval.impl.HostIntervalController;
+import org.codelibs.fess.crawler.entity.UrlQueue;
+import org.codelibs.fess.crawler.entity.UrlQueueImpl;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.codelibs.fess.crawler.service.impl.UrlFilterServiceImpl;
 import org.codelibs.fess.crawler.transformer.impl.XpathTransformer;
@@ -241,6 +244,63 @@ public class Hc5HttpClientTest extends PlainTestCase {
         });
         server.start();
         return server;
+    }
+
+    /** The wait that the crawler thread spends before fetching the URL, with the robots.txt of the origin read by the real client. */
+    private long measureWaitBeforeSecondRequest(final String robotsTxt) throws Exception {
+        final SimpleHttpServer server = startRobotsServer(new ConcurrentHashMap<>(), 200, robotsTxt, "Content-Type", "text/plain");
+        try {
+            setUpCrawlerContext();
+            httpClient.init();
+            final String url = "http://127.0.0.1:" + server.port() + "/a.html";
+            // CrawlerThread reads robots.txt through the client, then the interval controller waits before each URL
+            assertEquals(200, httpClient.doGet(url).getHttpStatusCode());
+
+            final UrlQueue<?> urlQueue = new UrlQueueImpl<>();
+            urlQueue.setUrl(url);
+            CrawlingParameterUtil.setUrlQueue(urlQueue);
+            final var controller = new HostIntervalController() {
+                @Override
+                public void delayBeforeProcessing() {
+                    super.delayBeforeProcessing();
+                }
+            };
+            controller.setDelayMillisBeforeProcessing(0L);
+            controller.delayBeforeProcessing();
+            final long start = System.nanoTime();
+            controller.delayBeforeProcessing();
+            return (System.nanoTime() - start) / 1000000L;
+        } finally {
+            CrawlingParameterUtil.setUrlQueue(null);
+            server.stop();
+        }
+    }
+
+    @Test
+    public void test_robotsTxt_requestRateMakesCrawlerWait() throws Exception {
+        // 1/2 is one request per 2 seconds
+        final long waited = measureWaitBeforeSecondRequest("User-agent: *\nRequest-rate: 1/2\n");
+        assertTrue(waited >= 1500L);
+        assertTrue(waited < 5000L);
+    }
+
+    @Test
+    public void test_robotsTxt_crawlDelayMakesCrawlerWait() throws Exception {
+        final long waited = measureWaitBeforeSecondRequest("User-agent: *\nCrawl-delay: 2\n");
+        assertTrue(waited >= 1500L);
+        assertTrue(waited < 5000L);
+    }
+
+    @Test
+    public void test_robotsTxt_withoutRequestRateCrawlerDoesNotWait() throws Exception {
+        final long waited = measureWaitBeforeSecondRequest("User-agent: *\nDisallow: /private/\n");
+        assertTrue(waited < 500L);
+    }
+
+    @Test
+    public void test_robotsTxt_requestRateWithTimeOfDayIsIgnored() throws Exception {
+        final long waited = measureWaitBeforeSecondRequest("User-agent: *\nRequest-rate: 1/2 s 0000-2359\n");
+        assertTrue(waited < 500L);
     }
 
     @Test

@@ -16,6 +16,11 @@
 package org.codelibs.fess.crawler;
 
 import java.io.File;
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.hc.client5.http.cookie.StandardCookieSpec;
@@ -35,6 +40,7 @@ import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.EncodingHelper;
 import org.codelibs.fess.crawler.helper.MemoryDataHelper;
 import org.codelibs.fess.crawler.helper.RobotsTxtHelper;
+import org.codelibs.fess.crawler.interval.impl.HostIntervalController;
 import org.codelibs.fess.crawler.helper.SitemapsHelper;
 import org.codelibs.fess.crawler.helper.UrlConvertHelper;
 import org.codelibs.fess.crawler.helper.impl.LogHelperImpl;
@@ -181,6 +187,83 @@ public class CrawlerTest extends PlainTestCase {
         } finally {
             server.stop();
         }
+    }
+
+    /**
+     * Crawls a site of five linked pages whose robots.txt is given, with {@link HostIntervalController} as Fess wires it,
+     * and returns the times (ms since the first request) at which the pages were requested.
+     */
+    private List<Long> crawlPagesWithRobotsTxt(final String robotsTxt) throws Exception {
+        final List<Long> arrivals = Collections.synchronizedList(new ArrayList<>());
+        final long[] first = { 0L };
+        final com.sun.net.httpserver.HttpServer server = com.sun.net.httpserver.HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext("/", exchange -> {
+            final String path = exchange.getRequestURI().getPath();
+            final byte[] body;
+            final String type;
+            if ("/robots.txt".equals(path)) {
+                body = robotsTxt.getBytes(StandardCharsets.UTF_8);
+                type = "text/plain";
+            } else {
+                synchronized (first) {
+                    if (first[0] == 0L) {
+                        first[0] = System.nanoTime();
+                    }
+                    arrivals.add((System.nanoTime() - first[0]) / 1000000L);
+                }
+                final StringBuilder html = new StringBuilder("<html><body>");
+                if ("/".equals(path)) {
+                    for (int i = 1; i <= 4; i++) {
+                        html.append("<a href=\"/p").append(i).append(".html\">p").append(i).append("</a>");
+                    }
+                }
+                body = html.append("</body></html>").toString().getBytes(StandardCharsets.UTF_8);
+                type = "text/html; charset=UTF-8";
+            }
+            exchange.getResponseHeaders().add("Content-Type", type);
+            exchange.sendResponseHeaders(200, body.length);
+            exchange.getResponseBody().write(body);
+            exchange.close();
+        });
+        server.start();
+        try {
+            final String url = "http://127.0.0.1:" + server.getAddress().getPort() + "/";
+            final File file = File.createTempFile("crawler-", "");
+            file.delete();
+            file.mkdirs();
+            file.deleteOnExit();
+            fileTransformer.setPath(file.getAbsolutePath());
+            crawler.setIntervalController(new HostIntervalController());
+            crawler.addUrl(url);
+            crawler.crawlerContext.setMaxAccessCount(5);
+            crawler.crawlerContext.setNumOfThread(3);
+            crawler.urlFilter.addInclude(url + ".*");
+            final String sessionId = crawler.execute();
+            assertEquals(5, dataService.getCount(sessionId));
+            dataService.delete(sessionId);
+        } finally {
+            server.stop(0);
+        }
+        final List<Long> sorted = new ArrayList<>(arrivals);
+        Collections.sort(sorted);
+        return sorted;
+    }
+
+    @Test
+    public void test_execute_web_requestRatePacesRequests() throws Exception {
+        // 1/1 is one request per second, although three threads crawl
+        final List<Long> arrivals = crawlPagesWithRobotsTxt("User-agent: *\nRequest-rate: 1/1\n");
+        assertEquals(5, arrivals.size());
+        for (int i = 1; i < arrivals.size(); i++) {
+            assertTrue(arrivals.get(i) - arrivals.get(i - 1) >= 700L);
+        }
+    }
+
+    @Test
+    public void test_execute_web_withoutRequestRateIsNotPaced() throws Exception {
+        final List<Long> arrivals = crawlPagesWithRobotsTxt("User-agent: *\nDisallow: /private/\n");
+        assertEquals(5, arrivals.size());
+        assertTrue(arrivals.get(arrivals.size() - 1) < 3000L);
     }
 
     @Test

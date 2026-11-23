@@ -457,27 +457,63 @@ public class RobotsTxt {
     }
 
     /**
-     * Represents a {@code Request-rate} record: the interval between two requests, optionally only for a time of day.
-     * The time of day is in UT (GMT) as the extended robots exclusion proposal defines it, both ends are included
-     * ("between the times given"), and it may cross midnight ({@code 2300-0100}).
+     * Represents a time of day in UT (GMT), as the extended robots exclusion proposal defines it for {@code Visit-time} and
+     * {@code Request-rate}: {@code HH:MM-HH:MM} with both ends included ("between the times given"). It may cross midnight
+     * ({@code 2300-0100}).
      */
-    public static class RequestRate {
+    public static class TimeWindow {
         private static final long MILLIS_PER_MINUTE = 60_000L;
 
         private static final int MINUTES_PER_DAY = 24 * 60;
-
-        private final long intervalMillis;
 
         private final int startMinute;
 
         private final int endMinute;
 
         /**
+         * Constructs a time of day.
+         * @param startMinute the start in minutes since 00:00 UTC, inclusive
+         * @param endMinute the end in minutes since 00:00 UTC, inclusive; before the start if it crosses midnight
+         */
+        public TimeWindow(final int startMinute, final int endMinute) {
+            this.startMinute = startMinute;
+            this.endMinute = endMinute;
+        }
+
+        /**
+         * Checks whether a time is in this time of day.
+         * @param nowMillis the time in milliseconds since the epoch
+         * @return true if the time of day (UTC) of the time is in the range
+         */
+        public boolean contains(final long nowMillis) {
+            final int minute = (int) Math.floorMod(Math.floorDiv(nowMillis, MILLIS_PER_MINUTE), (long) MINUTES_PER_DAY);
+            if (startMinute <= endMinute) {
+                return minute >= startMinute && minute <= endMinute;
+            }
+            return minute >= startMinute || minute <= endMinute;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("%02d:%02d-%02d:%02d", startMinute / 60, startMinute % 60, endMinute / 60, endMinute % 60);
+        }
+    }
+
+    /**
+     * Represents a {@code Request-rate} record: the interval between two requests, optionally only for a time of day.
+     */
+    public static class RequestRate {
+        private final long intervalMillis;
+
+        private final TimeWindow timeWindow;
+
+        /**
          * Constructs a Request-rate that applies all day.
          * @param intervalMillis the interval between two requests in milliseconds
          */
         public RequestRate(final long intervalMillis) {
-            this(intervalMillis, -1, -1);
+            this.intervalMillis = intervalMillis;
+            this.timeWindow = null;
         }
 
         /**
@@ -488,8 +524,17 @@ public class RobotsTxt {
          */
         public RequestRate(final long intervalMillis, final int startMinute, final int endMinute) {
             this.intervalMillis = intervalMillis;
-            this.startMinute = startMinute;
-            this.endMinute = endMinute;
+            this.timeWindow = new TimeWindow(startMinute, endMinute);
+        }
+
+        /**
+         * Constructs a Request-rate that applies in a time of day.
+         * @param intervalMillis the interval between two requests in milliseconds
+         * @param timeWindow the time of day
+         */
+        public RequestRate(final long intervalMillis, final TimeWindow timeWindow) {
+            this.intervalMillis = intervalMillis;
+            this.timeWindow = timeWindow;
         }
 
         /**
@@ -506,14 +551,7 @@ public class RobotsTxt {
          * @return true if it applies all day or the time of day (UTC) of the time is in its range
          */
         public boolean isActive(final long nowMillis) {
-            if (startMinute < 0) {
-                return true;
-            }
-            final int minute = (int) Math.floorMod(Math.floorDiv(nowMillis, MILLIS_PER_MINUTE), (long) MINUTES_PER_DAY);
-            if (startMinute <= endMinute) {
-                return minute >= startMinute && minute <= endMinute;
-            }
-            return minute >= startMinute || minute <= endMinute;
+            return timeWindow == null || timeWindow.contains(nowMillis);
         }
     }
 
@@ -527,6 +565,9 @@ public class RobotsTxt {
 
         /** The crawl delay in milliseconds for this directive. */
         private long crawlDelayMillis;
+
+        /** The Visit-time records of this directive: the crawler is asked to visit only in them. */
+        private final List<TimeWindow> visitTimes = new ArrayList<>();
 
         /** The Request-rate records of this directive. */
         private final List<RequestRate> requestRates = new ArrayList<>();
@@ -575,6 +616,39 @@ public class RobotsTxt {
          */
         public long getCrawlDelayMillis() {
             return crawlDelayMillis;
+        }
+
+        /**
+         * Adds a Visit-time record. Records of one directive add up: the crawler may visit in any of them.
+         * @param visitTime the time of day
+         */
+        public void addVisitTime(final TimeWindow visitTime) {
+            visitTimes.add(visitTime);
+        }
+
+        /**
+         * Gets the Visit-time records of this directive.
+         * @return the records, in the order of the file
+         */
+        public List<TimeWindow> getVisitTimes() {
+            return Collections.unmodifiableList(visitTimes);
+        }
+
+        /**
+         * Checks whether the Visit-time records of this directive allow a visit at a time.
+         * @param nowMillis the time in milliseconds since the epoch
+         * @return true if there is no Visit-time record or the time is in one of them
+         */
+        public boolean isVisitAllowed(final long nowMillis) {
+            if (visitTimes.isEmpty()) {
+                return true;
+            }
+            for (final TimeWindow visitTime : visitTimes) {
+                if (visitTime.contains(nowMillis)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /**

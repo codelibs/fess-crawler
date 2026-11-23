@@ -516,6 +516,52 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         assertEquals(2000L, both.getRequestRateMillis("TestBot", NOW - 6 * 3600_000L));
     }
 
+    private static boolean visitAllowed(final RobotsTxt robotsTxt, final String userAgent, final long nowMillis) {
+        return robotsTxt.getMatchedDirective(userAgent).isVisitAllowed(nowMillis);
+    }
+
+    @Test
+    public void testParse_visitTime() {
+        // NOW is 22:13 UTC
+        final java.util.List<String> wrong = new java.util.ArrayList<>();
+        for (final String window : new String[] { "2200-2300", "22:00-23:00", "2213-2213", "2212-2213", "0000-2359", "2200-0100" }) {
+            if (!visitAllowed(parseRobotsTxt("User-agent: TestBot\nVisit-time: " + window + "\n"), "TestBot", NOW)) {
+                wrong.add("should allow: " + window);
+            }
+        }
+        for (final String window : new String[] { "1800-1900", "2211-2212", "2214-2300", "2300-0100", "0100-0200" }) {
+            if (visitAllowed(parseRobotsTxt("User-agent: TestBot\nVisit-time: " + window + "\n"), "TestBot", NOW)) {
+                wrong.add("should refuse: " + window);
+            }
+        }
+        // no Visit-time: always allowed; malformed ones add no restriction
+        for (final String line : new String[] { "", "Visit-time: abc\n", "Visit-time: 2500-2600\n", "Visit-time: 2260-2300\n",
+                "Visit-time: 1800\n", "Visit-time: 1800-2400\n", "Visit-time:\n" }) {
+            if (!visitAllowed(parseRobotsTxt("User-agent: TestBot\n" + line), "TestBot", NOW)) {
+                wrong.add("should ignore: " + line);
+            }
+        }
+        assertEquals(java.util.List.of(), wrong);
+
+        // several records are several windows
+        final RobotsTxt two = parseRobotsTxt("User-agent: TestBot\nVisit-time: 0100-0200\nVisit-time: 2200-2300\n");
+        assertTrue(visitAllowed(two, "TestBot", NOW));
+        assertTrue(visitAllowed(two, "TestBot", NOW - 21 * 3600_000L)); // 01:13
+        assertFalse(visitAllowed(two, "TestBot", NOW - 10 * 3600_000L)); // 12:13
+        // a valid one and a malformed one: the valid one still restricts
+        assertFalse(visitAllowed(parseRobotsTxt("User-agent: TestBot\nVisit-time: abc\nVisit-time: 1800-1900\n"), "TestBot", NOW));
+    }
+
+    @Test
+    public void testParse_visitTimeDoesNotEndUserAgentGroup() {
+        // like another record in RFC 9309 section 2.2.4, it does not terminate a group
+        final RobotsTxt robotsTxt = parseRobotsTxt("User-agent: Bot1\nVisit-time: 1800-1900\nUser-agent: Bot2\nDisallow: /secret/\n");
+        assertFalse(robotsTxt.allows("/secret/", "Bot1"));
+        assertFalse(robotsTxt.allows("/secret/", "Bot2"));
+        assertFalse(visitAllowed(robotsTxt, "Bot1", NOW));
+        assertTrue(visitAllowed(robotsTxt, "Bot2", NOW));
+    }
+
     @Test
     public void testParse_requestRateDoesNotEndUserAgentGroup() {
         // RFC 9309 section 2.2.4: another record must not terminate a group, so Bot1 and Bot2 still share Disallow
@@ -1206,6 +1252,57 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         // 21:13 UTC: outside, only the Crawl-delay is left
         assertEquals(1000L, hostState.getDelayMillis(NOW - 3600_000L));
         assertEquals(1000L, hostState.getCrawlDelayMillis());
+    }
+
+    @Test
+    public void testCheckRobotsTxt_visitTimeRefusesUrlsOutsideIt() {
+        final CrawlerContext context = new CrawlerContext();
+        final ScriptedFetcher fetcher =
+                new ScriptedFetcher().on("http://example.com/robots.txt", ok("User-agent: *\nVisit-time: 2200-2300\nDisallow: /a/\n"));
+
+        // 22:13: inside
+        assertAllowed(context, "http://example.com/x", fetcher, POLICY);
+        assertDisallowed(context, "http://example.com/a/b", fetcher, POLICY);
+        // 23:01: the time of day has ended; robots.txt is not fetched again, and every URL is refused
+        clock.set(NOW + 48 * 60_000L);
+        assertDisallowed(context, "http://example.com/x", fetcher, POLICY);
+        assertEquals(1, fetcher.count("http://example.com/robots.txt"));
+        // the next day at 22:13 it is open again
+        clock.set(NOW + 86400_000L);
+        assertAllowed(context, "http://example.com/x", fetcher, POLICY);
+    }
+
+    @Test
+    public void testCheckRobotsTxt_visitTimeRefusesTheFirstUrlOutsideIt() {
+        final CrawlerContext context = new CrawlerContext();
+        final ScriptedFetcher fetcher =
+                new ScriptedFetcher().on("http://example.com/robots.txt", ok("User-agent: *\nVisit-time: 1800-1900\n"));
+
+        assertDisallowed(context, "http://example.com/x", fetcher, POLICY);
+        // the other origins are not affected
+        final ScriptedFetcher other = new ScriptedFetcher().on("http://other.example.com/robots.txt", ok("User-agent: *\nDisallow:\n"));
+        assertAllowed(context, "http://other.example.com/x", other, POLICY);
+        // it is not a failure of the origin
+        assertFalse(context.getHostState("http://example.com/").getRobotsTxtStatus() == HostState.RobotsTxtStatus.UNAVAILABLE);
+    }
+
+    @Test
+    public void testCheckRobotsTxt_visitTimeKeptWhenUseAllowsFalse() {
+        final CrawlerContext context = new CrawlerContext();
+        final ScriptedFetcher fetcher = new ScriptedFetcher().on("http://example.com/robots.txt",
+                ok("User-agent: *\nVisit-time: 1800-1900\nDisallow: /a/\nAllow: /a/b\n"));
+
+        assertDisallowed(context, "http://example.com/x", fetcher, new RobotsTxtPolicy(false, true, false, 3));
+    }
+
+    @Test
+    public void testCheckRobotsTxt_visitTimeIgnoredWhenDisallowsAreNotUsed() {
+        final CrawlerContext context = new CrawlerContext();
+        final ScriptedFetcher fetcher =
+                new ScriptedFetcher().on("http://example.com/robots.txt", ok("User-agent: *\nVisit-time: 1800-1900\n"));
+
+        // the policy that does not use Disallow does not use anything else of the rules either
+        assertAllowed(context, "http://example.com/x", fetcher, new RobotsTxtPolicy(true, false, false, 3));
     }
 
     @Test

@@ -665,6 +665,9 @@ public class CrawlerThread implements Runnable {
             logger.info("Disallowed by robots.txt (unavailable, given up): {}", urlQueue.getLogUrl());
         } else {
             logger.info("Disallowed by robots.txt: {}", urlQueue.getLogUrl());
+            if (hostState != null) {
+                RobotsTxtHelper.logVisitTimeOnce(hostState, urlQueue.getUrl());
+            }
         }
     }
 

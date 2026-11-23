@@ -43,6 +43,7 @@ import org.codelibs.fess.crawler.entity.HostState.RobotsTxtStatus;
 import org.codelibs.fess.crawler.entity.RobotsTxt;
 import org.codelibs.fess.crawler.entity.RobotsTxt.Directive;
 import org.codelibs.fess.crawler.entity.RobotsTxt.RequestRate;
+import org.codelibs.fess.crawler.entity.RobotsTxt.TimeWindow;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.exception.RobotsTxtDisallowedException;
 import org.codelibs.fess.crawler.exception.RobotsTxtException;
@@ -61,6 +62,8 @@ import org.codelibs.fess.crawler.util.UserInfoUtil;
  * <li>Crawl-delay directive</li>
  * <li>Request-rate directive ({@code Request-rate: <documents>/<time>[ s|m|h|d] [HHMM-HHMM]}, as defined by SeznamBot;
  * the optional time of day, in UT (GMT), limits the rate to it)</li>
+ * <li>Visit-time directive ({@code Visit-time: HH:MM-HH:MM}, in UT (GMT)): URLs of the origin are not crawled outside it,
+ * not waited for</li>
  * <li>Sitemap directive</li>
  * <li>Comment support (#)</li>
  * <li>Priority-based matching (longest match wins, Allow beats Disallow at equal length)</li>
@@ -103,6 +106,13 @@ public class RobotsTxtHelper {
     protected static final Pattern REQUEST_RATE_RECORD = Pattern.compile(
             "^request-rate:\\s*(\\d+)\\s*/\\s*(\\d+)\\s*([smhd]?)(?:\\s+(\\d{2}):?(\\d{2})\\s*-\\s*(\\d{2}):?(\\d{2}))?\\s*$",
             Pattern.CASE_INSENSITIVE);
+
+    /**
+     * Pattern for parsing visit-time records: {@code HH:MM-HH:MM} in the extended robots exclusion proposal or
+     * {@code HHMM-HHMM} as SeznamBot writes a time of day, in UT (GMT).
+     */
+    protected static final Pattern VISIT_TIME_RECORD =
+            Pattern.compile("^visit-time:\\s*(\\d{2}):?(\\d{2})\\s*-\\s*(\\d{2}):?(\\d{2})\\s*$", Pattern.CASE_INSENSITIVE);
 
     /**
      * Pattern for Sitemap record.
@@ -261,6 +271,20 @@ public class RobotsTxtHelper {
                         continue;
                     }
 
+                    // Try to parse as Visit-time directive. Like Request-rate it is "another record" (RFC 9309 section 2.2.4).
+                    // A malformed one is ignored, so it adds no restriction.
+                    final Matcher visitTime = VISIT_TIME_RECORD.matcher(line);
+                    if (visitTime.matches()) {
+                        final TimeWindow parsed =
+                                toTimeWindow(visitTime.group(1), visitTime.group(2), visitTime.group(3), visitTime.group(4));
+                        if (parsed != null && !currentDirectiveList.isEmpty()) {
+                            for (final Directive directive : currentDirectiveList) {
+                                directive.addVisitTime(parsed);
+                            }
+                        }
+                        continue;
+                    }
+
                     // Try to parse as Sitemap directive (not a group-member record per RFC 9309)
                     value = getValue(SITEMAP_RECORD, line);
                     if (value != null && value.length() > 0) {
@@ -304,12 +328,28 @@ public class RobotsTxtHelper {
         if (m.group(4) == null) {
             return new RequestRate(intervalMillis);
         }
-        final int start = toMinuteOfDay(m.group(4), m.group(5));
-        final int end = toMinuteOfDay(m.group(6), m.group(7));
+        final TimeWindow timeWindow = toTimeWindow(m.group(4), m.group(5), m.group(6), m.group(7));
+        if (timeWindow == null) {
+            return null;
+        }
+        return new RequestRate(intervalMillis, timeWindow);
+    }
+
+    /**
+     * Builds a time of day from its digits.
+     * @param startHour the hour of the start
+     * @param startMinute the minute of the start
+     * @param endHour the hour of the end
+     * @param endMinute the minute of the end
+     * @return the time of day, or null if an hour is over 23 or a minute is over 59
+     */
+    protected TimeWindow toTimeWindow(final String startHour, final String startMinute, final String endHour, final String endMinute) {
+        final int start = toMinuteOfDay(startHour, startMinute);
+        final int end = toMinuteOfDay(endHour, endMinute);
         if (start < 0 || end < 0) {
             return null;
         }
-        return new RequestRate(intervalMillis, start, end);
+        return new TimeWindow(start, end);
     }
 
     private static int toMinuteOfDay(final String hour, final String minute) {
@@ -461,7 +501,22 @@ public class RobotsTxtHelper {
         }
 
         if (!hostState.isAllowedByRobotsTxt(url)) {
+            logVisitTimeOnce(hostState, url);
             throw new RobotsTxtDisallowedException(url);
+        }
+    }
+
+    /**
+     * Reports, once per origin, that the Visit-time of its robots.txt makes the crawler skip its URLs now.
+     * Does nothing if the URL is not refused because of Visit-time.
+     *
+     * @param hostState the state of the origin of the URL
+     * @param url the URL that is not crawled
+     */
+    public static void logVisitTimeOnce(final HostState hostState, final String url) {
+        if (hostState.isOutsideVisitTime() && hostState.markVisitTimeLogged()) {
+            logger.info("robots.txt of {} asks for visits only at {} (UTC); its URLs are skipped outside it", HostState.toOrigin(url),
+                    hostState.getVisitTimes());
         }
     }
 
@@ -604,6 +659,7 @@ public class RobotsTxtHelper {
             }
             disallowsOnly.setCrawlDelayMillis(directive.getCrawlDelayMillis());
             directive.getRequestRates().forEach(disallowsOnly::addRequestRate);
+            directive.getVisitTimes().forEach(disallowsOnly::addVisitTime);
             directive = disallowsOnly;
         }
         // Request-rate is read from the directive of the HostState each time, because a time of day decides whether it applies

@@ -343,6 +343,11 @@ milliseconds:
 </component>
 ```
 
+A `Visit-time: HH:MM-HH:MM` (UT, ends included, several lines allowed) asks a crawler to visit only in
+that time of day. The crawler does not wait for it, which would hold a thread of the crawl for hours: a
+URL of the origin is skipped outside it, logged at INFO once per origin, and counted neither as a
+failure nor as a retry. A site that declares one is not crawled by a job that never runs in it.
+
 ### Content Size Limits
 
 Size limits are owned by `ContentLengthHelper`, not by the transformers. The default cap is 10 MB and

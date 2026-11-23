@@ -19,6 +19,8 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.codelibs.core.lang.SystemUtil;
+
 /**
  * Holds the politeness state of one origin ({@code scheme://host[:port]}): the resolved robots.txt rules,
  * the Crawl-delay, the last access time and the failure backoff. One instance is shared by all crawler
@@ -67,6 +69,8 @@ public class HostState {
     private int consecutiveFailures;
 
     private boolean crawlDelayCapLogged;
+
+    private boolean visitTimeLogged;
 
     /**
      * Creates an empty state: robots.txt not resolved, no delay, no backoff.
@@ -214,8 +218,41 @@ public class HostState {
         if (directive == null) {
             return true;
         }
+        if (!directive.isVisitAllowed(SystemUtil.currentTimeMillis())) {
+            return false;
+        }
         final String pathAndQuery = toPathAndQuery(url);
         return pathAndQuery == null || directive.allows(pathAndQuery);
+    }
+
+    /**
+     * Checks whether the Visit-time of robots.txt, which asks the crawler to visit only in a time of day, does not
+     * allow a visit now.
+     * @return true if the resolved robots.txt has a Visit-time and now is outside it
+     */
+    public synchronized boolean isOutsideVisitTime() {
+        return robotsTxtStatus == RobotsTxtStatus.PARSED && directive != null && !directive.isVisitAllowed(SystemUtil.currentTimeMillis());
+    }
+
+    /**
+     * Returns the Visit-time records of the resolved robots.txt.
+     * @return the times of day, empty if there is none
+     */
+    public synchronized java.util.List<RobotsTxt.TimeWindow> getVisitTimes() {
+        return directive == null ? java.util.List.of() : directive.getVisitTimes();
+    }
+
+    /**
+     * Marks that the Visit-time of this origin has been reported, so that it is logged only once.
+     *
+     * @return true the first time it is called, false afterwards
+     */
+    public synchronized boolean markVisitTimeLogged() {
+        if (visitTimeLogged) {
+            return false;
+        }
+        visitTimeLogged = true;
+        return true;
     }
 
     /**

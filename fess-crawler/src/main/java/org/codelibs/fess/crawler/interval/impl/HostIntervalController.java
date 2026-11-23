@@ -46,7 +46,7 @@ import com.google.common.cache.CacheBuilder;
  * The delay is calculated based on the configured delayMillisBeforeProcessing parameter.
  * If the time since the last request to the host is less than the configured delay,
  * the thread waits until the delay has elapsed.
- * In addition, when a {@link CrawlerContext} is available, the robots.txt Crawl-delay (capped at
+ * In addition, when a {@link CrawlerContext} is available, the robots.txt Crawl-delay or Request-rate interval (capped at
  * {@link CrawlerContext#getMaxCrawlDelayMillis()}) and the failure backoff recorded in the
  * {@link HostState} of the origin of the URL are waited for.
  * This class is thread-safe.
@@ -177,7 +177,7 @@ public class HostIntervalController extends DefaultIntervalController {
         final long maxCrawlDelayMillis = crawlerContext.getMaxCrawlDelayMillis();
         final long crawlDelayMillis = hs.getCrawlDelayMillis();
         if (maxCrawlDelayMillis > 0 && crawlDelayMillis > maxCrawlDelayMillis && hs.markCrawlDelayCapLogged()) {
-            logger.info("Crawl-delay {}ms of {} exceeds the maximum; using {}ms", crawlDelayMillis, HostState.toOrigin(url),
+            logger.info("Crawl-delay or Request-rate {}ms of {} exceeds the maximum; using {}ms", crawlDelayMillis, HostState.toOrigin(url),
                     maxCrawlDelayMillis);
         }
 
@@ -193,7 +193,7 @@ public class HostIntervalController extends DefaultIntervalController {
     }
 
     /**
-     * Computes how long to wait before the next access to an origin: the larger of the remaining Crawl-delay
+     * Computes how long to wait before the next access to an origin: the larger of the remaining Crawl-delay (or Request-rate interval)
      * (capped at {@code maxCrawlDelayMillis}, counted from the last access) and the remaining failure backoff.
      *
      * @param hs the state of the origin

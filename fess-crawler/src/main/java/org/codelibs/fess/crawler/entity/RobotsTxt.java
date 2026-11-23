@@ -109,6 +109,22 @@ public class RobotsTxt {
     }
 
     /**
+     * Gets the interval between two requests derived from Request-rate for the specified user agent, in milliseconds.
+     * {@code Request-rate: 1/10} is 10000 and {@code Request-rate: 100/15 m} is 9000.
+     *
+     * @param userAgent The user agent string to match against robots.txt directives
+     * @return The interval in milliseconds. Returns 0 if no matching directive is found
+     *         or no Request-rate is specified for the matching directive.
+     */
+    public long getRequestRateMillis(final String userAgent) {
+        final Directive directive = getMatchedDirective(userAgent);
+        if (directive == null) {
+            return 0;
+        }
+        return directive.getRequestRateMillis();
+    }
+
+    /**
      * Returns the most specific directive matching the given user agent.
      * The method finds the longest matching user agent pattern in the directives,
      * excluding the general "*" pattern which matches all bots.
@@ -448,6 +464,9 @@ public class RobotsTxt {
         /** The crawl delay in milliseconds for this directive. */
         private long crawlDelayMillis;
 
+        /** The interval between two requests derived from Request-rate in milliseconds, 0 if none. */
+        private long requestRateMillis;
+
         /** The list of allowed path patterns for this directive. */
         private final List<PathPattern> allowedPaths = new ArrayList<>();
 
@@ -492,6 +511,23 @@ public class RobotsTxt {
          */
         public long getCrawlDelayMillis() {
             return crawlDelayMillis;
+        }
+
+        /**
+         * Sets the interval between two requests derived from the Request-rate of this directive.
+         * @param requestRateMillis the interval in milliseconds, 0 if none
+         */
+        public void setRequestRateMillis(final long requestRateMillis) {
+            this.requestRateMillis = requestRateMillis;
+        }
+
+        /**
+         * Gets the interval between two requests derived from the Request-rate of this directive.
+         * {@code Request-rate: 1/10} is 10000.
+         * @return the interval in milliseconds, 0 if none
+         */
+        public long getRequestRateMillis() {
+            return requestRateMillis;
         }
 
         /**

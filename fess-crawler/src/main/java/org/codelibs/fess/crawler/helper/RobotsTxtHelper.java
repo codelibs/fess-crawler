@@ -58,6 +58,8 @@ import org.codelibs.fess.crawler.util.UserInfoUtil;
  * <li>Wildcard (*) in paths - matches any sequence of characters</li>
  * <li>End-of-path ($) matching - matches the end of URL path</li>
  * <li>Crawl-delay directive</li>
+ * <li>Request-rate directive ({@code Request-rate: <documents>/<time>[ s|m|h|d]}, as defined by SeznamBot;
+ * a rate limited to a time of day is ignored)</li>
  * <li>Sitemap directive</li>
  * <li>Comment support (#)</li>
  * <li>Priority-based matching (longest match wins, Allow beats Disallow at equal length)</li>
@@ -91,6 +93,13 @@ public class RobotsTxtHelper {
 
     /** Pattern for parsing crawl-delay records. */
     protected static final Pattern CRAWL_DELAY_RECORD = Pattern.compile("^crawl-delay:\\s*([^\\s]+)\\s*$", Pattern.CASE_INSENSITIVE);
+
+    /**
+     * Pattern for parsing request-rate records: {@code <documents>/<time>} with an optional unit of s (default), m, h or d.
+     * A record that also limits the rate to a time of day, such as {@code 1/10 s 1800-1900}, does not match.
+     */
+    protected static final Pattern REQUEST_RATE_RECORD =
+            Pattern.compile("^request-rate:\\s*(\\d+)\\s*/\\s*(\\d+)\\s*([smhd]?)\\s*$", Pattern.CASE_INSENSITIVE);
 
     /**
      * Pattern for Sitemap record.
@@ -235,6 +244,20 @@ public class RobotsTxtHelper {
                         continue;
                     }
 
+                    // Try to parse as Request-rate directive. It is not part of RFC 9309, so it is "another record"
+                    // (section 2.2.4) that must not interfere with the groups: unlike Crawl-delay, it does not end
+                    // a run of User-agent lines, so reading it can never loosen what the Disallow lines forbid.
+                    final Matcher requestRate = REQUEST_RATE_RECORD.matcher(line);
+                    if (requestRate.matches()) {
+                        final long requestRateMillis = toIntervalMillis(requestRate.group(1), requestRate.group(2), requestRate.group(3));
+                        if (!currentDirectiveList.isEmpty() && requestRateMillis > 0) {
+                            for (final Directive directive : currentDirectiveList) {
+                                directive.setRequestRateMillis(requestRateMillis);
+                            }
+                        }
+                        continue;
+                    }
+
                     // Try to parse as Sitemap directive (not a group-member record per RFC 9309)
                     value = getValue(SITEMAP_RECORD, line);
                     if (value != null && value.length() > 0) {
@@ -262,6 +285,27 @@ public class RobotsTxtHelper {
             // Catch any other fatal errors (e.g., encoding issues)
             throw new RobotsTxtException("Failed to parse robots.txt.", e);
         }
+    }
+
+    /**
+     * Converts a request rate of {@code documents} per {@code time} {@code unit} to the interval between two requests.
+     * @param documents the number of documents, digits only
+     * @param time the length of the period, digits only
+     * @param unit s, m, h or d (any case); empty means seconds
+     * @return the interval in milliseconds, or 0 if the rate is zero, too large to be a delay, or not a number
+     */
+    protected long toIntervalMillis(final String documents, final String time, final String unit) {
+        final double unitMillis = switch (unit.toLowerCase(Locale.ENGLISH)) {
+        case "m" -> 60_000d;
+        case "h" -> 3_600_000d;
+        case "d" -> 86_400_000d;
+        default -> 1_000d;
+        };
+        final double interval = Double.parseDouble(time) * unitMillis / Double.parseDouble(documents);
+        if (Double.isNaN(interval) || Double.isInfinite(interval)) {
+            return 0L;
+        }
+        return Math.round(interval);
     }
 
     /**
@@ -528,9 +572,12 @@ public class RobotsTxtHelper {
                 disallowsOnly.addDisallow(disallow);
             }
             disallowsOnly.setCrawlDelayMillis(directive.getCrawlDelayMillis());
+            disallowsOnly.setRequestRateMillis(directive.getRequestRateMillis());
             directive = disallowsOnly;
         }
-        hostState.setRobotsTxt(RobotsTxtStatus.PARSED, directive, directive == null ? 0L : directive.getCrawlDelayMillis());
+        // Request-rate is the same wait between two requests as Crawl-delay; the slower of the two applies.
+        hostState.setRobotsTxt(RobotsTxtStatus.PARSED, directive,
+                directive == null ? 0L : Math.max(directive.getCrawlDelayMillis(), directive.getRequestRateMillis()));
     }
 
     /**

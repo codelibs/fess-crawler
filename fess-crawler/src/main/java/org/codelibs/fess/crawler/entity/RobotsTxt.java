@@ -458,7 +458,8 @@ public class RobotsTxt {
 
     /**
      * Represents a {@code Request-rate} record: the interval between two requests, optionally only for a time of day.
-     * The time of day is in UTC, as SeznamBot defines it, and may cross midnight ({@code 2300-0100}).
+     * The time of day is in UT (GMT) as the extended robots exclusion proposal defines it, both ends are included
+     * ("between the times given"), and it may cross midnight ({@code 2300-0100}).
      */
     public static class RequestRate {
         private static final long MILLIS_PER_MINUTE = 60_000L;
@@ -483,7 +484,7 @@ public class RobotsTxt {
          * Constructs a Request-rate that applies in a time of day.
          * @param intervalMillis the interval between two requests in milliseconds
          * @param startMinute the start of the time of day in minutes since 00:00 UTC, inclusive
-         * @param endMinute the end of the time of day in minutes since 00:00 UTC, exclusive; before the start if it crosses midnight
+         * @param endMinute the end of the time of day in minutes since 00:00 UTC, inclusive; before the start if it crosses midnight
          */
         public RequestRate(final long intervalMillis, final int startMinute, final int endMinute) {
             this.intervalMillis = intervalMillis;
@@ -509,10 +510,10 @@ public class RobotsTxt {
                 return true;
             }
             final int minute = (int) Math.floorMod(Math.floorDiv(nowMillis, MILLIS_PER_MINUTE), (long) MINUTES_PER_DAY);
-            if (startMinute < endMinute) {
-                return minute >= startMinute && minute < endMinute;
+            if (startMinute <= endMinute) {
+                return minute >= startMinute && minute <= endMinute;
             }
-            return minute >= startMinute || minute < endMinute;
+            return minute >= startMinute || minute <= endMinute;
         }
     }
 

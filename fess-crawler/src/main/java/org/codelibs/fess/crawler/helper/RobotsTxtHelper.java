@@ -60,7 +60,7 @@ import org.codelibs.fess.crawler.util.UserInfoUtil;
  * <li>End-of-path ($) matching - matches the end of URL path</li>
  * <li>Crawl-delay directive</li>
  * <li>Request-rate directive ({@code Request-rate: <documents>/<time>[ s|m|h|d] [HHMM-HHMM]}, as defined by SeznamBot;
- * the optional time of day is in UTC and limits the rate to it)</li>
+ * the optional time of day, in UT (GMT), limits the rate to it)</li>
  * <li>Sitemap directive</li>
  * <li>Comment support (#)</li>
  * <li>Priority-based matching (longest match wins, Allow beats Disallow at equal length)</li>
@@ -97,7 +97,8 @@ public class RobotsTxtHelper {
 
     /**
      * Pattern for parsing request-rate records: {@code <documents>/<time>} with an optional unit of s (default), m, h or d,
-     * and an optional time of day in UTC such as {@code 1800-1900} or {@code 18:00-19:00}.
+     * and an optional time of day in UT (GMT), {@code HH:MM-HH:MM} in the extended robots exclusion proposal and
+     * {@code HHMM-HHMM} as SeznamBot writes it.
      */
     protected static final Pattern REQUEST_RATE_RECORD = Pattern.compile(
             "^request-rate:\\s*(\\d+)\\s*/\\s*(\\d+)\\s*([smhd]?)(?:\\s+(\\d{2}):?(\\d{2})\\s*-\\s*(\\d{2}):?(\\d{2}))?\\s*$",
@@ -293,7 +294,7 @@ public class RobotsTxtHelper {
      * Builds a Request-rate from a match of {@link #REQUEST_RATE_RECORD}.
      * @param m the match
      * @return the Request-rate, or null if the rate is zero, too large to be a delay, or the time of day is not valid
-     *         (a minute over 59, an hour over 23 except 24:00 as the end, or equal start and end)
+     *         (an hour over 23 or a minute over 59)
      */
     protected RequestRate toRequestRate(final Matcher m) {
         final long intervalMillis = toIntervalMillis(m.group(1), m.group(2), m.group(3));
@@ -303,21 +304,18 @@ public class RobotsTxtHelper {
         if (m.group(4) == null) {
             return new RequestRate(intervalMillis);
         }
-        final int start = toMinuteOfDay(m.group(4), m.group(5), false);
-        final int end = toMinuteOfDay(m.group(6), m.group(7), true);
-        if (start < 0 || end < 0 || start == end) {
+        final int start = toMinuteOfDay(m.group(4), m.group(5));
+        final int end = toMinuteOfDay(m.group(6), m.group(7));
+        if (start < 0 || end < 0) {
             return null;
         }
         return new RequestRate(intervalMillis, start, end);
     }
 
-    private static int toMinuteOfDay(final String hour, final String minute, final boolean allowEndOfDay) {
+    private static int toMinuteOfDay(final String hour, final String minute) {
         final int h = Integer.parseInt(hour);
         final int min = Integer.parseInt(minute);
-        if (min > 59 || h > 24 || h == 24 && (min != 0 || !allowEndOfDay)) {
-            return -1;
-        }
-        return h * 60 + min;
+        return h > 23 || min > 59 ? -1 : h * 60 + min;
     }
 
     /**

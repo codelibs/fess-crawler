@@ -470,7 +470,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
     public void testParse_requestRateIgnored() {
         final java.util.List<String> accepted = new java.util.ArrayList<>();
         for (final String value : new String[] { "abc", "1", "1/", "/10", "0/10", "1/0", "-1/10", "1/-10", "1.5/10", "1/10x", "1/10 ss",
-                "1/1m 5", "1/10 s 2500-1900", "1/10 s 1860-1900", "1/10 s 1800-1800", "1/10 s 2400-1900", "1/10 s 1800-2401",
+                "1/1m 5", "1/10 s 2500-1900", "1/10 s 1860-1900", "1/10 s 1800-2400", "1/10 s 2400-1900", "1/10 s 1800-2401",
                 "1/10 s 18-19", "1/10 s 1800", "99999999999999999999999999999999/1" }) {
             if (parseRobotsTxt("User-agent: TestBot\nRequest-rate: " + value + "\n").getRequestRateMillis("TestBot", NOW) != 0L) {
                 accepted.add(value);
@@ -478,7 +478,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         }
         assertEquals(java.util.List.of(), accepted);
         // the rest of the group still applies
-        final RobotsTxt robotsTxt = parseRobotsTxt("User-agent: TestBot\nRequest-rate: 1/10 s 1800-1800\nDisallow: /test/\n");
+        final RobotsTxt robotsTxt = parseRobotsTxt("User-agent: TestBot\nRequest-rate: 1/10 s 1860-1900\nDisallow: /test/\n");
         assertFalse(robotsTxt.allows("/test/", "TestBot"));
     }
 
@@ -486,14 +486,15 @@ public class RobotsTxtHelperTest extends PlainTestCase {
     public void testParse_requestRateTimeOfDay() {
         // NOW is 22:13 UTC
         final java.util.List<String> wrong = new java.util.ArrayList<>();
-        final String[] active = { "2200-2300", "22:00-23:00", "2213-2214", "0000-2400", "2200-0100", "2000-2214 " };
+        final String[] active =
+                { "2200-2300", "22:00-23:00", "2213-2214", "2213-2213", "2212-2213", "0000-2359", "2200-0100", "2000-2214 " };
         for (final String window : active) {
             if (parseRobotsTxt("User-agent: TestBot\nRequest-rate: 1/10 s " + window + "\n").getRequestRateMillis("TestBot",
                     NOW) != 10000L) {
                 wrong.add("should be active: " + window);
             }
         }
-        final String[] inactive = { "1800-1900", "2212-2213", "2300-0100", "0100-0200", "2214-2300" };
+        final String[] inactive = { "1800-1900", "2211-2212", "2300-0100", "0100-0200", "2214-2300" };
         for (final String window : inactive) {
             if (parseRobotsTxt("User-agent: TestBot\nRequest-rate: 1/10 s " + window + "\n").getRequestRateMillis("TestBot", NOW) != 0L) {
                 wrong.add("should be inactive: " + window);
@@ -527,7 +528,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
 
         // the same with a Request-rate that is ignored
         final RobotsTxt ignored =
-                parseRobotsTxt("User-agent: Bot1\nRequest-rate: 1/10 s 1800-1800\nUser-agent: Bot2\nDisallow: /secret/\n");
+                parseRobotsTxt("User-agent: Bot1\nRequest-rate: 1/10 s 1860-1900\nUser-agent: Bot2\nDisallow: /secret/\n");
         assertFalse(ignored.allows("/secret/", "Bot1"));
         assertFalse(ignored.allows("/secret/", "Bot2"));
         assertEquals(0L, ignored.getRequestRateMillis("Bot1", NOW));

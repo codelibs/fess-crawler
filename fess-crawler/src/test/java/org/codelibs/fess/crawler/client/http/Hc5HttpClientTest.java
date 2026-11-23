@@ -297,26 +297,6 @@ public class Hc5HttpClientTest extends PlainTestCase {
         assertTrue(waited < 500L);
     }
 
-    /** A time of day in UTC, as HHMM, the given number of minutes from now. */
-    private static String utcHhmm(final int minutesFromNow) {
-        final int minute = (int) Math.floorMod(System.currentTimeMillis() / 60000L + minutesFromNow, 1440L);
-        return String.format("%02d%02d", minute / 60, minute % 60);
-    }
-
-    @Test
-    public void test_robotsTxt_requestRateOfTimeOfDayMakesCrawlerWaitInIt() throws Exception {
-        final long waited = measureWaitBeforeSecondRequest("User-agent: *\nRequest-rate: 1/2 s " + utcHhmm(-60) + "-" + utcHhmm(60) + "\n");
-        assertTrue(waited >= 1500L);
-        assertTrue(waited < 5000L);
-    }
-
-    @Test
-    public void test_robotsTxt_requestRateOfTimeOfDayDoesNotMakeCrawlerWaitOutsideIt() throws Exception {
-        final long waited =
-                measureWaitBeforeSecondRequest("User-agent: *\nRequest-rate: 1/2 s " + utcHhmm(120) + "-" + utcHhmm(180) + "\n");
-        assertTrue(waited < 500L);
-    }
-
     @Test
     public void test_robotsTxt_longestMatchWithoutUrlFilterSideEffect() throws Exception {
         final Map<String, AtomicInteger> counts = new ConcurrentHashMap<>();

@@ -233,7 +233,10 @@ public class CrawlerTest extends PlainTestCase {
             file.mkdirs();
             file.deleteOnExit();
             fileTransformer.setPath(file.getAbsolutePath());
-            crawler.setIntervalController(new HostIntervalController());
+            final HostIntervalController intervalController = new HostIntervalController();
+            // the default per-host delay would hide the robots.txt rate
+            intervalController.setDelayMillisBeforeProcessing(0L);
+            crawler.setIntervalController(intervalController);
             crawler.addUrl(url);
             crawler.crawlerContext.setMaxAccessCount(5);
             crawler.crawlerContext.setNumOfThread(3);
@@ -251,11 +254,11 @@ public class CrawlerTest extends PlainTestCase {
 
     @Test
     public void test_execute_web_requestRatePacesRequests() throws Exception {
-        // 1/1 is one request per second, although three threads crawl
-        final List<Long> arrivals = crawlPagesWithRobotsTxt("User-agent: *\nRequest-rate: 1/1\n");
+        // 1/2 is one request per 2 seconds, although three threads crawl
+        final List<Long> arrivals = crawlPagesWithRobotsTxt("User-agent: *\nRequest-rate: 1/2\n");
         assertEquals(5, arrivals.size());
         for (int i = 1; i < arrivals.size(); i++) {
-            assertTrue(arrivals.get(i) - arrivals.get(i - 1) >= 700L);
+            assertTrue(arrivals.get(i) - arrivals.get(i - 1) >= 1500L);
         }
     }
 
@@ -263,7 +266,10 @@ public class CrawlerTest extends PlainTestCase {
     public void test_execute_web_withoutRequestRateIsNotPaced() throws Exception {
         final List<Long> arrivals = crawlPagesWithRobotsTxt("User-agent: *\nDisallow: /private/\n");
         assertEquals(5, arrivals.size());
-        assertTrue(arrivals.get(arrivals.size() - 1) < 3000L);
+        // the wait for the links of the first page is about a second; no gap reaches the 2 seconds of the rate
+        for (int i = 1; i < arrivals.size(); i++) {
+            assertTrue(arrivals.get(i) - arrivals.get(i - 1) < 1500L);
+        }
     }
 
     @Test

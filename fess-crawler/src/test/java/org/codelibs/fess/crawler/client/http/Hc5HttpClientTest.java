@@ -63,6 +63,7 @@ import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.exception.RobotsTxtDisallowedException;
 import org.codelibs.fess.crawler.exception.RobotsTxtUnavailableException;
+import org.codelibs.fess.crawler.exception.RobotsTxtVisitTimeException;
 import org.codelibs.fess.crawler.filter.UrlFilter;
 import org.codelibs.fess.crawler.filter.impl.UrlFilterImpl;
 import org.codelibs.fess.crawler.helper.ContentLengthHelper;
@@ -314,7 +315,7 @@ public class Hc5HttpClientTest extends PlainTestCase {
             try {
                 httpClient.doGet(base + "/a.html");
                 fail();
-            } catch (final RobotsTxtDisallowedException e) {
+            } catch (final RobotsTxtVisitTimeException e) {
                 // expected
             }
             assertEquals(1, counts.get("/robots.txt").get());
@@ -331,7 +332,7 @@ public class Hc5HttpClientTest extends PlainTestCase {
             try {
                 httpClient.doGet(base + "/b.html");
                 fail();
-            } catch (final RobotsTxtDisallowedException e) {
+            } catch (final RobotsTxtVisitTimeException e) {
                 // expected
             }
             assertNull(counts.get("/b.html"));

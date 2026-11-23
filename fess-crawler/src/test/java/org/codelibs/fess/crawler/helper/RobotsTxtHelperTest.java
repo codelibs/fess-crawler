@@ -41,6 +41,9 @@ import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.exception.RobotsTxtDisallowedException;
 import org.codelibs.fess.crawler.exception.RobotsTxtException;
 import org.codelibs.fess.crawler.exception.RobotsTxtUnavailableException;
+import org.codelibs.fess.crawler.exception.CrawlerSystemException;
+import org.codelibs.fess.crawler.exception.CrawlingAccessException;
+import org.codelibs.fess.crawler.exception.RobotsTxtVisitTimeException;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -780,6 +783,16 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         }
     }
 
+    private void assertOutsideVisitTime(final CrawlerContext context, final String url, final RobotsTxtFetcher fetcher,
+            final RobotsTxtPolicy policy) {
+        try {
+            robotsTxtHelper.checkRobotsTxt(context, url, UA, fetcher, policy);
+            fail();
+        } catch (final RobotsTxtVisitTimeException e) {
+            assertTrue(e.getMessage().contains(url));
+        }
+    }
+
     private RobotsTxtUnavailableException assertUnavailable(final CrawlerContext context, final String url, final RobotsTxtFetcher fetcher,
             final RobotsTxtPolicy policy) {
         try {
@@ -1265,7 +1278,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         assertDisallowed(context, "http://example.com/a/b", fetcher, POLICY);
         // 23:01: the time of day has ended; robots.txt is not fetched again, and every URL is refused
         clock.set(NOW + 48 * 60_000L);
-        assertDisallowed(context, "http://example.com/x", fetcher, POLICY);
+        assertOutsideVisitTime(context, "http://example.com/x", fetcher, POLICY);
         assertEquals(1, fetcher.count("http://example.com/robots.txt"));
         // the next day at 22:13 it is open again
         clock.set(NOW + 86400_000L);
@@ -1278,7 +1291,7 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         final ScriptedFetcher fetcher =
                 new ScriptedFetcher().on("http://example.com/robots.txt", ok("User-agent: *\nVisit-time: 1800-1900\n"));
 
-        assertDisallowed(context, "http://example.com/x", fetcher, POLICY);
+        assertOutsideVisitTime(context, "http://example.com/x", fetcher, POLICY);
         // the other origins are not affected
         final ScriptedFetcher other = new ScriptedFetcher().on("http://other.example.com/robots.txt", ok("User-agent: *\nDisallow:\n"));
         assertAllowed(context, "http://other.example.com/x", other, POLICY);
@@ -1292,7 +1305,26 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         final ScriptedFetcher fetcher = new ScriptedFetcher().on("http://example.com/robots.txt",
                 ok("User-agent: *\nVisit-time: 1800-1900\nDisallow: /a/\nAllow: /a/b\n"));
 
-        assertDisallowed(context, "http://example.com/x", fetcher, new RobotsTxtPolicy(false, true, false, 3));
+        assertOutsideVisitTime(context, "http://example.com/x", fetcher, new RobotsTxtPolicy(false, true, false, 3));
+    }
+
+    @Test
+    public void testCheckRobotsTxt_disallowComesBeforeVisitTime() {
+        final CrawlerContext context = new CrawlerContext();
+        final ScriptedFetcher fetcher =
+                new ScriptedFetcher().on("http://example.com/robots.txt", ok("User-agent: *\nVisit-time: 1800-1900\nDisallow: /a/\n"));
+
+        // 22:13, outside the Visit-time: a URL that Disallow forbids is still a refusal of access
+        assertDisallowed(context, "http://example.com/a/b", fetcher, POLICY);
+        assertOutsideVisitTime(context, "http://example.com/x", fetcher, POLICY);
+    }
+
+    @Test
+    public void testVisitTimeExceptionIsNotACrawlingAccessException() {
+        // a CrawlingAccessException is logged as a failure URL by the crawler: the Visit-time is not a failure
+        assertTrue(CrawlingAccessException.class.isAssignableFrom(RobotsTxtDisallowedException.class));
+        assertFalse(CrawlingAccessException.class.isAssignableFrom(RobotsTxtVisitTimeException.class));
+        assertTrue(CrawlerSystemException.class.isAssignableFrom(RobotsTxtVisitTimeException.class));
     }
 
     @Test

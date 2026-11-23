@@ -218,9 +218,6 @@ public class HostState {
         if (directive == null) {
             return true;
         }
-        if (!directive.isVisitAllowed(SystemUtil.currentTimeMillis())) {
-            return false;
-        }
         final String pathAndQuery = toPathAndQuery(url);
         return pathAndQuery == null || directive.allows(pathAndQuery);
     }

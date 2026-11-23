@@ -39,6 +39,7 @@ import org.codelibs.fess.crawler.exception.ChildUrlsException;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.exception.RobotsTxtDisallowedException;
 import org.codelibs.fess.crawler.exception.RobotsTxtUnavailableException;
+import org.codelibs.fess.crawler.exception.RobotsTxtVisitTimeException;
 import org.codelibs.fess.crawler.helper.LogHelper;
 import org.codelibs.fess.crawler.helper.RobotsTxtHelper;
 import org.codelibs.fess.crawler.interval.IntervalController;
@@ -219,6 +220,11 @@ public class CrawlerThread implements Runnable {
                     handleDisallowedByRobotsTxt(urlQueue);
                     continue;
                 }
+                if (urlQueue != null && isOutsideVisitTime(urlQueue.getUrl())) {
+                    // not a failure and not due: skipped like a disallowed URL, and not put back
+                    handleOutsideVisitTime(urlQueue);
+                    continue;
+                }
                 if (isValid(urlQueue)) {
                     ResponseData responseData = null;
                     log(logHelper, LogType.START_CRAWLING, crawlerContext, urlQueue);
@@ -296,6 +302,9 @@ public class CrawlerThread implements Runnable {
                         }
                     } catch (final RobotsTxtDisallowedException e) {
                         handleDisallowedByRobotsTxt(urlQueue);
+                    } catch (final RobotsTxtVisitTimeException e) {
+                        // not a CrawlingAccessException, so it is neither reported nor stored as a failure URL
+                        handleOutsideVisitTime(urlQueue);
                     } catch (final RobotsTxtUnavailableException e) {
                         try {
                             if (e.isFetchAttempted()) {
@@ -499,7 +508,7 @@ public class CrawlerThread implements Runnable {
         for (final RequestData d : childUrlList) {
             final String childUrl = d.getUrl();
             if (StringUtil.isBlank(childUrl) || !urlSet.add(childUrl) || !crawlerContext.urlFilter.match(childUrl)
-                    || isDisallowedByRobotsTxt(childUrl)) {
+                    || isDisallowedByRobotsTxt(childUrl) || isOutsideVisitTime(childUrl)) {
                 continue;
             }
             final UrlQueue<?> uq = crawlerContainer.getComponent("urlQueue");
@@ -528,7 +537,8 @@ public class CrawlerThread implements Runnable {
         }
 
         // add url and filter
-        if (StringUtil.isNotBlank(childUrl) && crawlerContext.urlFilter.match(childUrl) && !isDisallowedByRobotsTxt(childUrl)) {
+        if (StringUtil.isNotBlank(childUrl) && crawlerContext.urlFilter.match(childUrl) && !isDisallowedByRobotsTxt(childUrl)
+                && !isOutsideVisitTime(childUrl)) {
             final List<UrlQueue<?>> childList = new ArrayList<>(1);
             final UrlQueue<?> uq = crawlerContainer.getComponent("urlQueue");
             uq.setCreateTime(SystemUtil.currentTimeMillis());
@@ -579,7 +589,7 @@ public class CrawlerThread implements Runnable {
             return false;
         }
 
-        return !isDisallowedByRobotsTxt(urlQueue.getUrl());
+        return !isDisallowedByRobotsTxt(urlQueue.getUrl()) && !isOutsideVisitTime(urlQueue.getUrl());
     }
 
     /**
@@ -592,6 +602,32 @@ public class CrawlerThread implements Runnable {
     protected boolean isDisallowedByRobotsTxt(final String url) {
         final HostState hostState = crawlerContext.peekHostState(url);
         return hostState != null && !hostState.isAllowedByRobotsTxt(url);
+    }
+
+    /**
+     * Returns whether the Visit-time of the robots.txt already resolved for the origin of a URL asks the crawler to stay away
+     * now. A URL whose origin has no state yet is not outside it; no state is created for it.
+     *
+     * @param url the URL
+     * @return true if the URL must not be crawled now
+     */
+    protected boolean isOutsideVisitTime(final String url) {
+        final HostState hostState = crawlerContext.peekHostState(url);
+        return hostState != null && hostState.isOutsideVisitTime();
+    }
+
+    /**
+     * Handles a URL that is outside the Visit-time of robots.txt. It is neither a failure nor re-queued (a re-queued
+     * URL would be polled again at once), so it is only logged: at INFO, and once per origin with the times of day.
+     *
+     * @param urlQueue the URL queue entry
+     */
+    protected void handleOutsideVisitTime(final UrlQueue<?> urlQueue) {
+        final HostState hostState = crawlerContext.peekHostState(urlQueue.getUrl());
+        if (hostState != null) {
+            RobotsTxtHelper.logVisitTimeOnce(hostState, urlQueue.getUrl());
+        }
+        logger.info("Outside the Visit-time of robots.txt: {}", urlQueue.getLogUrl());
     }
 
     /**
@@ -665,9 +701,6 @@ public class CrawlerThread implements Runnable {
             logger.info("Disallowed by robots.txt (unavailable, given up): {}", urlQueue.getLogUrl());
         } else {
             logger.info("Disallowed by robots.txt: {}", urlQueue.getLogUrl());
-            if (hostState != null) {
-                RobotsTxtHelper.logVisitTimeOnce(hostState, urlQueue.getUrl());
-            }
         }
     }
 

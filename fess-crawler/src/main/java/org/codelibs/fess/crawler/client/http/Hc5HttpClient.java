@@ -136,6 +136,7 @@ import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.exception.RobotsTxtDisallowedException;
 import org.codelibs.fess.crawler.exception.RobotsTxtUnavailableException;
+import org.codelibs.fess.crawler.exception.RobotsTxtVisitTimeException;
 import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.MimeTypeHelper;
 import org.codelibs.fess.crawler.helper.RobotsTxtFetcher;
@@ -893,6 +894,7 @@ public class Hc5HttpClient extends HcHttpClient {
      *
      * @param url The URL to check
      * @throws RobotsTxtDisallowedException if robots.txt does not allow the URL
+     * @throws RobotsTxtVisitTimeException if the Visit-time of robots.txt does not allow a visit now
      * @throws RobotsTxtUnavailableException if robots.txt is unavailable and the URL should be retried later
      */
     protected void processRobotsTxt(final String url) {
@@ -1097,7 +1099,7 @@ public class Hc5HttpClient extends HcHttpClient {
     protected ResponseData processHttpMethod(final String url, final ClassicHttpRequest httpRequest) {
         try {
             processRobotsTxt(url);
-        } catch (final RobotsTxtDisallowedException | RobotsTxtUnavailableException e) {
+        } catch (final RobotsTxtDisallowedException | RobotsTxtVisitTimeException | RobotsTxtUnavailableException e) {
             throw e;
         } catch (final CrawlingAccessException e) {
             if (logger.isInfoEnabled()) {

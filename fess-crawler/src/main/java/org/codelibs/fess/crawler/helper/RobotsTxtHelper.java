@@ -48,6 +48,7 @@ import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.exception.RobotsTxtDisallowedException;
 import org.codelibs.fess.crawler.exception.RobotsTxtException;
 import org.codelibs.fess.crawler.exception.RobotsTxtUnavailableException;
+import org.codelibs.fess.crawler.exception.RobotsTxtVisitTimeException;
 import org.codelibs.fess.crawler.util.UserInfoUtil;
 
 /**
@@ -438,6 +439,7 @@ public class RobotsTxtHelper {
      * @param fetcher fetches robots.txt without following redirects
      * @param policy how the rules are applied
      * @throws RobotsTxtDisallowedException if robots.txt does not allow the URL
+     * @throws RobotsTxtVisitTimeException if the Visit-time of robots.txt does not allow a visit now
      * @throws RobotsTxtUnavailableException if robots.txt is unavailable and the URL should be retried later
      */
     public void checkRobotsTxt(final CrawlerContext context, final String url, final String userAgent, final RobotsTxtFetcher fetcher,
@@ -501,14 +503,17 @@ public class RobotsTxtHelper {
         }
 
         if (!hostState.isAllowedByRobotsTxt(url)) {
-            logVisitTimeOnce(hostState, url);
             throw new RobotsTxtDisallowedException(url);
+        }
+        if (hostState.isOutsideVisitTime()) {
+            logVisitTimeOnce(hostState, url);
+            throw new RobotsTxtVisitTimeException(url);
         }
     }
 
     /**
      * Reports, once per origin, that the Visit-time of its robots.txt makes the crawler skip its URLs now.
-     * Does nothing if the URL is not refused because of Visit-time.
+     * Does nothing if the Visit-time allows a visit now.
      *
      * @param hostState the state of the origin of the URL
      * @param url the URL that is not crawled

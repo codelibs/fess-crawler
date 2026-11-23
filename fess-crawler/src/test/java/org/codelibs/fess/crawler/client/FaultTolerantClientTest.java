@@ -28,6 +28,7 @@ import org.codelibs.fess.crawler.exception.CrawlerSystemException;
 import org.codelibs.fess.crawler.exception.MultipleCrawlingAccessException;
 import org.codelibs.fess.crawler.exception.RobotsTxtDisallowedException;
 import org.codelibs.fess.crawler.exception.RobotsTxtUnavailableException;
+import org.codelibs.fess.crawler.exception.RobotsTxtVisitTimeException;
 import org.junit.jupiter.api.Test;
 import org.dbflute.utflute.core.PlainTestCase;
 
@@ -301,6 +302,7 @@ public class FaultTolerantClientTest extends PlainTestCase {
     @Test
     public void test_robotsTxtExceptionsNotRetried() {
         for (final RuntimeException exception : new RuntimeException[] { new RobotsTxtDisallowedException("http://test.com/a"),
+                new RobotsTxtVisitTimeException("http://test.com/a"),
                 new RobotsTxtUnavailableException("http://test.com/a", 1000L, null) }) {
             final FaultTolerantClient client = new FaultTolerantClient();
             client.setRetryInterval(10L);

@@ -18,7 +18,7 @@ embedded in any JVM application on its own.
 - **Multi-threaded** crawling with configurable thread pools, depth limits and access-count limits
 - **Fault tolerant**: retry wrapper (`FaultTolerantClient`) and an HTTP client that can fall back
   between Apache HttpComponents 5.x and 4.x
-- **Polite**: `robots.txt` (RFC 9309) and sitemap support, per-site `Crawl-delay` and 429/503
+- **Polite**: `robots.txt` (RFC 9309) and sitemap support, per-site `Crawl-delay` and `Request-rate`, 429/503
   backoff, plus configurable request intervals
 - **Bounded by design**: content-length caps enforced *while* downloading, archive-bomb and Zip Slip
   defenses, and bounded recursion in nested extractors
@@ -321,11 +321,13 @@ The limits live on `CrawlerContext` (`crawler.getCrawlerContext()`):
 | `setBackoffBaseMillis(long)` | 10000 | First exponential backoff |
 | `setMaxBackoffMillis(long)` | 300000 | Upper limit of a backoff, `Retry-After` included |
 | `setMaxRetryCount(int)` | 3 | Re-queues of one URL after 429/503 or a failed robots.txt fetch |
-| `setMaxCrawlDelayMillis(long)` | 60000 | Upper limit of `Crawl-delay`; 0 disables it |
+| `setMaxCrawlDelayMillis(long)` | 60000 | Upper limit of `Crawl-delay` and `Request-rate`; 0 disables them |
 | `setRobotsTxtMaxRetries(int)` | 3 | robots.txt retries after the first failed fetch of an origin |
 
 The waiting is done by `HostIntervalController`, which `fess-crawler-lasta`'s `interval.xml` wires
-by default: before each request it waits for the origin's `Crawl-delay` and backoff, plus
+by default: before each request it waits for the origin's `Crawl-delay` (or the interval of its
+`Request-rate`, whichever is longer; a `Request-rate` with a time of day, such as `1/10 s 1800-1900`,
+counts only in that time of day, in UTC) and backoff, plus
 `delayMillisBeforeProcessing` since the last request to the same host. `DefaultIntervalController`
 waits for neither, so re-queued URLs come back at once; a custom interval controller must extend
 `HostIntervalController` to keep `Crawl-delay` and backoff waiting. Both expose four delays, in
@@ -340,6 +342,14 @@ milliseconds:
     <property name="delayMillisForWaitingNewUrl">1000</property>
 </component>
 ```
+
+A `Visit-time: HH:MM-HH:MM` (UT, ends included, several lines allowed) asks a crawler to visit only in
+that time of day. The crawler does not wait for it, which would hold a thread of the crawl for hours: a
+URL of the origin is skipped outside it, as a `Disallow`ed one is, logged at INFO once per origin, and
+counted neither as a failure nor as a retry. A URL that was skipped is not tried again in the crawl, even
+if the crawl is still running when the time of day opens (a seed dequeued too early is lost), so
+start the crawl inside the time of day. A site that declares one is not crawled by a job that never
+runs inside it. A site that declares one is not crawled by a job that never runs in it.
 
 ### Content Size Limits
 

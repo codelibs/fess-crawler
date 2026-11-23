@@ -185,7 +185,7 @@ Twitter Card); `extractJsonLd` defaults to **false** and is bounded in nesting d
 
 ### Helpers
 
-- **RobotsTxtHelper**: RFC 9309 parsing, user-agent matching, crawl-delay, sitemaps
+- **RobotsTxtHelper**: RFC 9309 parsing, user-agent matching, crawl-delay, request-rate (`n/m` with an optional s/m/h/d unit and an optional UT time of day `HH:MM-HH:MM`), visit-time (URLs of the origin are refused outside it, not waited for), sitemaps
 - **SitemapsHelper**: Sitemap XML parsing, index handling
 - **MimeTypeHelper** / `MimeTypeHelperImpl`: MIME detection via Tika, extension-based overrides
 - **EncodingHelper**: Charset detection with BOM
@@ -312,7 +312,9 @@ All public exceptions are unchecked (extend `RuntimeException` via `CrawlerSyste
 CrawlerSystemException (RuntimeException)
   ├─ CrawlingAccessException
   │     ├─ MaxLengthExceededException
-  │     └─ MultipleCrawlingAccessException
+  │     ├─ MultipleCrawlingAccessException
+  │     ├─ RobotsTxtDisallowedException      (a Disallow rule forbids the URL)
+  │     └─ RobotsTxtUnavailableException     (robots.txt could not be fetched yet)
   ├─ ChildUrlsException
   ├─ ExtractException
   │     ├─ UnsupportedExtractException
@@ -320,6 +322,7 @@ CrawlerSystemException (RuntimeException)
   ├─ CrawlerLoginFailureException
   ├─ MimeTypeException
   ├─ RobotsTxtException
+  ├─ RobotsTxtVisitTimeException         (outside the Visit-time; deliberately not a CrawlingAccessException)
   ├─ SitemapsException
   └─ OpenSearchAccessException          (fess-crawler-opensearch module)
 ```

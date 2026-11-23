@@ -590,4 +590,25 @@ public class RobotsTxtTest extends PlainTestCase {
         assertEquals(2500L, robotsTxt.getCrawlDelayMillis("AnyBot"));
         assertEquals(0L, new RobotsTxt().getCrawlDelayMillis("AnyBot"));
     }
+
+    @Test
+    public void test_requestRate_timeOfDay() {
+        final long day = 1_700_000_000_000L - 22 * 3600_000L - 13 * 60_000L - 20_000L; // 00:00:00 UTC
+        // 22:00-23:00: both ends are included
+        final RobotsTxt.RequestRate window = new RobotsTxt.RequestRate(5000L, 22 * 60, 23 * 60);
+        assertFalse(window.isActive(day + 21 * 3600_000L + 59 * 60_000L));
+        assertTrue(window.isActive(day + 22 * 3600_000L));
+        assertTrue(window.isActive(day + 23 * 3600_000L + 59_000L));
+        assertFalse(window.isActive(day + 23 * 3600_000L + 60_000L));
+        // 23:00-01:00 crosses midnight
+        final RobotsTxt.RequestRate night = new RobotsTxt.RequestRate(5000L, 23 * 60, 60);
+        assertTrue(night.isActive(day + 23 * 3600_000L));
+        assertTrue(night.isActive(day));
+        assertTrue(night.isActive(day + 3600_000L + 59_000L));
+        assertFalse(night.isActive(day + 3600_000L + 60_000L));
+        assertFalse(night.isActive(day + 12 * 3600_000L));
+        // no time of day: all day, on any day
+        assertTrue(new RobotsTxt.RequestRate(5000L).isActive(day + 12 * 3600_000L + 7 * 86400_000L));
+        assertTrue(window.isActive(day + 22 * 3600_000L + 7 * 86400_000L));
+    }
 }

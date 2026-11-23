@@ -32,6 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.GZIPOutputStream;
 
 import org.apache.hc.client5.http.auth.AuthSchemeFactory;
@@ -45,6 +46,7 @@ import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.NoHttpResponseException;
 import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
 import org.apache.hc.core5.http.message.BasicClassicHttpResponse;
+import org.codelibs.core.lang.SystemUtil;
 import org.codelibs.fess.crawler.client.http.config.CredentialsConfig;
 import org.codelibs.fess.crawler.client.http.config.WebAuthenticationConfig;
 import org.codelibs.fess.crawler.client.http.config.WebAuthenticationConfig.AuthSchemeType;
@@ -61,11 +63,15 @@ import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.exception.RobotsTxtDisallowedException;
 import org.codelibs.fess.crawler.exception.RobotsTxtUnavailableException;
+import org.codelibs.fess.crawler.exception.RobotsTxtVisitTimeException;
 import org.codelibs.fess.crawler.filter.UrlFilter;
 import org.codelibs.fess.crawler.filter.impl.UrlFilterImpl;
 import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.MemoryDataHelper;
 import org.codelibs.fess.crawler.helper.RobotsTxtHelper;
+import org.codelibs.fess.crawler.interval.impl.HostIntervalController;
+import org.codelibs.fess.crawler.entity.UrlQueue;
+import org.codelibs.fess.crawler.entity.UrlQueueImpl;
 import org.codelibs.fess.crawler.helper.impl.MimeTypeHelperImpl;
 import org.codelibs.fess.crawler.service.impl.UrlFilterServiceImpl;
 import org.codelibs.fess.crawler.transformer.impl.XpathTransformer;
@@ -241,6 +247,105 @@ public class Hc5HttpClientTest extends PlainTestCase {
         });
         server.start();
         return server;
+    }
+
+    /** The wait that the crawler thread spends before fetching the URL, with the robots.txt of the origin read by the real client. */
+    private long measureWaitBeforeSecondRequest(final String robotsTxt) throws Exception {
+        final SimpleHttpServer server = startRobotsServer(new ConcurrentHashMap<>(), 200, robotsTxt, "Content-Type", "text/plain");
+        try {
+            setUpCrawlerContext();
+            httpClient.init();
+            final String url = "http://127.0.0.1:" + server.port() + "/a.html";
+            // CrawlerThread reads robots.txt through the client, then the interval controller waits before each URL
+            assertEquals(200, httpClient.doGet(url).getHttpStatusCode());
+
+            final UrlQueue<?> urlQueue = new UrlQueueImpl<>();
+            urlQueue.setUrl(url);
+            CrawlingParameterUtil.setUrlQueue(urlQueue);
+            final var controller = new HostIntervalController() {
+                @Override
+                public void delayBeforeProcessing() {
+                    super.delayBeforeProcessing();
+                }
+            };
+            controller.setDelayMillisBeforeProcessing(0L);
+            controller.delayBeforeProcessing();
+            final long start = System.nanoTime();
+            controller.delayBeforeProcessing();
+            return (System.nanoTime() - start) / 1000000L;
+        } finally {
+            CrawlingParameterUtil.setUrlQueue(null);
+            server.stop();
+        }
+    }
+
+    /** Fails with the measured wait, so that a failure of a timing test can be read. */
+    private static void assertWaited(final long waited, final long minMillis, final long maxMillis) {
+        if (waited < minMillis || waited >= maxMillis) {
+            throw new AssertionError("waited " + waited + "ms, expected [" + minMillis + "ms, " + maxMillis + "ms)");
+        }
+    }
+
+    @Test
+    public void test_robotsTxt_requestRateMakesCrawlerWait() throws Exception {
+        // 1/2 is one request per 2 seconds
+        final long waited = measureWaitBeforeSecondRequest("User-agent: *\nRequest-rate: 1/2\n");
+        assertWaited(waited, 1500L, 5000L);
+    }
+
+    @Test
+    public void test_robotsTxt_crawlDelayMakesCrawlerWait() throws Exception {
+        final long waited = measureWaitBeforeSecondRequest("User-agent: *\nCrawl-delay: 2\n");
+        assertWaited(waited, 1500L, 5000L);
+    }
+
+    @Test
+    public void test_robotsTxt_visitTimeSkipsUrlsOutsideItWithoutRequest() throws Exception {
+        final Map<String, AtomicInteger> counts = new ConcurrentHashMap<>();
+        final SimpleHttpServer server =
+                startRobotsServer(counts, 200, "User-agent: *\nVisit-time: 1800-1900\n", "Content-Type", "text/plain");
+        final AtomicLong clock = new AtomicLong(1_700_000_000_000L); // 22:13 UTC
+        SystemUtil.setTimeProvider(clock::get);
+        try {
+            setUpCrawlerContext();
+            httpClient.init();
+            final String base = "http://127.0.0.1:" + server.port();
+
+            // outside 18:00-19:00 the page is not requested, only robots.txt is
+            try {
+                httpClient.doGet(base + "/a.html");
+                fail();
+            } catch (final RobotsTxtVisitTimeException e) {
+                // expected
+            }
+            assertEquals(1, counts.get("/robots.txt").get());
+            assertNull(counts.get("/a.html"));
+
+            // 18:30 of the same day: the cached robots.txt now allows the visit
+            clock.set(1_700_000_000_000L - 3 * 3600_000L - 43 * 60_000L);
+            assertEquals(200, httpClient.doGet(base + "/a.html").getHttpStatusCode());
+            assertEquals(1, counts.get("/robots.txt").get());
+            assertEquals(1, counts.get("/a.html").get());
+
+            // 19:01: the time of day has ended
+            clock.addAndGet(31 * 60_000L);
+            try {
+                httpClient.doGet(base + "/b.html");
+                fail();
+            } catch (final RobotsTxtVisitTimeException e) {
+                // expected
+            }
+            assertNull(counts.get("/b.html"));
+        } finally {
+            SystemUtil.setTimeProvider(null);
+            server.stop();
+        }
+    }
+
+    @Test
+    public void test_robotsTxt_withoutRequestRateCrawlerDoesNotWait() throws Exception {
+        final long waited = measureWaitBeforeSecondRequest("User-agent: *\nDisallow: /private/\n");
+        assertWaited(waited, 0L, 500L);
     }
 
     @Test

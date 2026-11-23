@@ -29,6 +29,7 @@ import org.codelibs.fess.crawler.exception.MaxLengthExceededException;
 import org.codelibs.fess.crawler.exception.MultipleCrawlingAccessException;
 import org.codelibs.fess.crawler.exception.RobotsTxtDisallowedException;
 import org.codelibs.fess.crawler.exception.RobotsTxtUnavailableException;
+import org.codelibs.fess.crawler.exception.RobotsTxtVisitTimeException;
 import org.codelibs.fess.crawler.util.UserInfoUtil;
 
 /**
@@ -109,7 +110,8 @@ public class FaultTolerantClient implements CrawlerClient {
 
                 try {
                     return client.execute(request);
-                } catch (final MaxLengthExceededException | RobotsTxtDisallowedException | RobotsTxtUnavailableException e) {
+                } catch (final MaxLengthExceededException | RobotsTxtDisallowedException | RobotsTxtVisitTimeException
+                        | RobotsTxtUnavailableException e) {
                     // not transient within this request: retrying here would only repeat the same outcome
                     throw e;
                 } catch (final Exception e) {

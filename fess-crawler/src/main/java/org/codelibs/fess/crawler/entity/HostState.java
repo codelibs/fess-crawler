@@ -19,6 +19,8 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.codelibs.core.lang.SystemUtil;
+
 /**
  * Holds the politeness state of one origin ({@code scheme://host[:port]}): the resolved robots.txt rules,
  * the Crawl-delay, the last access time and the failure backoff. One instance is shared by all crawler
@@ -67,6 +69,8 @@ public class HostState {
     private int consecutiveFailures;
 
     private boolean crawlDelayCapLogged;
+
+    private boolean visitTimeLogged;
 
     /**
      * Creates an empty state: robots.txt not resolved, no delay, no backoff.
@@ -219,11 +223,52 @@ public class HostState {
     }
 
     /**
+     * Checks whether the Visit-time of robots.txt, which asks the crawler to visit only in a time of day, does not
+     * allow a visit now.
+     * @return true if the resolved robots.txt has a Visit-time and now is outside it
+     */
+    public synchronized boolean isOutsideVisitTime() {
+        return robotsTxtStatus == RobotsTxtStatus.PARSED && directive != null && !directive.isVisitAllowed(SystemUtil.currentTimeMillis());
+    }
+
+    /**
+     * Returns the Visit-time records of the resolved robots.txt.
+     * @return the times of day, empty if there is none
+     */
+    public synchronized java.util.List<RobotsTxt.TimeWindow> getVisitTimes() {
+        return directive == null ? java.util.List.of() : directive.getVisitTimes();
+    }
+
+    /**
+     * Marks that the Visit-time of this origin has been reported, so that it is logged only once.
+     *
+     * @return true the first time it is called, false afterwards
+     */
+    public synchronized boolean markVisitTimeLogged() {
+        if (visitTimeLogged) {
+            return false;
+        }
+        visitTimeLogged = true;
+        return true;
+    }
+
+    /**
      * Returns the Crawl-delay from robots.txt.
      * @return the Crawl-delay in milliseconds, 0 if none
      */
     public synchronized long getCrawlDelayMillis() {
         return crawlDelayMillis;
+    }
+
+    /**
+     * Returns the interval between two requests that robots.txt asks for at a time: the longer of the Crawl-delay and the
+     * Request-rate records that are active then (a Request-rate may be limited to a time of day in UTC).
+     * @param nowMillis the time in milliseconds since the epoch
+     * @return the interval in milliseconds, 0 if none
+     */
+    public synchronized long getDelayMillis(final long nowMillis) {
+        final long requestRateMillis = directive == null ? 0L : directive.getRequestRateMillis(nowMillis);
+        return Math.max(crawlDelayMillis, requestRateMillis);
     }
 
     /**

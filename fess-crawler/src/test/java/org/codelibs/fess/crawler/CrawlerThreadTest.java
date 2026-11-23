@@ -47,6 +47,7 @@ import org.codelibs.fess.crawler.entity.UrlQueue;
 import org.codelibs.fess.crawler.entity.UrlQueueImpl;
 import org.codelibs.fess.crawler.exception.CrawlingAccessException;
 import org.codelibs.fess.crawler.exception.RobotsTxtDisallowedException;
+import org.codelibs.fess.crawler.exception.RobotsTxtVisitTimeException;
 import org.codelibs.fess.crawler.exception.RobotsTxtUnavailableException;
 import org.codelibs.fess.crawler.filter.UrlFilter;
 import org.codelibs.fess.crawler.helper.LogHelper;
@@ -956,6 +957,70 @@ public class CrawlerThreadTest extends PlainTestCase {
 
         crawlerThread.run();
 
+        verify(client, times(1)).execute(any());
+        assertEquals(0, inserted.size());
+        assertFalse(loggedTypes.contains(LogType.CRAWLING_ACCESS_EXCEPTION));
+        assertFalse(loggedTypes.contains(LogType.CRAWLING_EXCEPTION));
+    }
+
+    /**
+     * Outside the Visit-time of robots.txt a dequeued URL is skipped: it is not fetched, not re-queued and not a failure,
+     * so that the crawl ends and the failure count of the URL does not grow.
+     */
+    @Test
+    public void test_run_outsideVisitTimeIsSkippedWithoutFailure() throws Exception {
+        final AtomicLong clock = new AtomicLong(1_700_000_000_000L); // 22:13 UTC
+        SystemUtil.setTimeProvider(clock::get);
+        try {
+            final UrlQueueImpl<Long> first = newUrlQueue();
+            first.setUrl("http://example.com/a");
+            final UrlQueueImpl<Long> second = newUrlQueue();
+            second.setUrl("http://example.com/b");
+            prepareRun(first, second);
+            final RobotsTxt.Directive directive = new RobotsTxt.Directive("*");
+            // 18:00-19:00 only
+            directive.addVisitTime(new RobotsTxt.TimeWindow(18 * 60, 19 * 60));
+            crawlerContext.getHostState(URL).setRobotsTxt(HostState.RobotsTxtStatus.PARSED, directive, 0L);
+
+            crawlerThread.run();
+
+            verify(client, times(0)).execute(any());
+            assertEquals(0, inserted.size());
+            assertFalse(loggedTypes.contains(LogType.CRAWLING_ACCESS_EXCEPTION));
+            assertFalse(loggedTypes.contains(LogType.CRAWLING_EXCEPTION));
+        } finally {
+            SystemUtil.setTimeProvider(null);
+        }
+    }
+
+    /**
+     * The client reports the Visit-time of robots.txt while fetching a URL (the rules were not known when the URL was
+     * dequeued). It is not a CrawlingAccessException, so it must be neither logged as one, which stores a failure URL,
+     * nor treated as an unexpected error, which stores one too; and the URL is not put back.
+     */
+    @Test
+    public void test_run_visitTimeFromClientIsNotAFailure() throws Exception {
+        final UrlQueueImpl<Long> first = newUrlQueue();
+        first.setUrl("http://example.com/a");
+        final UrlQueueImpl<Long> second = newUrlQueue();
+        second.setUrl("http://example.com/b");
+        prepareRun(first, second);
+        when(client.execute(any())).thenAnswer(invocation -> {
+            final RobotsTxt.Directive directive = new RobotsTxt.Directive("*");
+            directive.addVisitTime(new RobotsTxt.TimeWindow(0, 0));
+            crawlerContext.getHostState(URL).setRobotsTxt(HostState.RobotsTxtStatus.PARSED, directive, 0L);
+            // 22:13 UTC is outside 00:00-00:00
+            throw new RobotsTxtVisitTimeException("http://example.com/a");
+        });
+        final AtomicLong clock = new AtomicLong(1_700_000_000_000L);
+        SystemUtil.setTimeProvider(clock::get);
+        try {
+            crawlerThread.run();
+        } finally {
+            SystemUtil.setTimeProvider(null);
+        }
+
+        // the second URL is skipped before the client is called again, because the origin is now known to be outside
         verify(client, times(1)).execute(any());
         assertEquals(0, inserted.size());
         assertFalse(loggedTypes.contains(LogType.CRAWLING_ACCESS_EXCEPTION));

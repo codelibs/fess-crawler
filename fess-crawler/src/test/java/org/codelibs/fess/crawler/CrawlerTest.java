@@ -16,6 +16,11 @@
 package org.codelibs.fess.crawler;
 
 import java.io.File;
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.hc.client5.http.cookie.StandardCookieSpec;
@@ -35,6 +40,7 @@ import org.codelibs.fess.crawler.helper.ContentLengthHelper;
 import org.codelibs.fess.crawler.helper.EncodingHelper;
 import org.codelibs.fess.crawler.helper.MemoryDataHelper;
 import org.codelibs.fess.crawler.helper.RobotsTxtHelper;
+import org.codelibs.fess.crawler.interval.impl.HostIntervalController;
 import org.codelibs.fess.crawler.helper.SitemapsHelper;
 import org.codelibs.fess.crawler.helper.UrlConvertHelper;
 import org.codelibs.fess.crawler.helper.impl.LogHelperImpl;
@@ -181,6 +187,110 @@ public class CrawlerTest extends PlainTestCase {
         } finally {
             server.stop();
         }
+    }
+
+    /**
+     * Crawls a site of five linked pages whose robots.txt is given, with {@link HostIntervalController} as Fess wires it,
+     * and returns the times (ms since the first request) at which the pages were requested.
+     */
+    private List<Long> crawlPagesWithRobotsTxt(final String robotsTxt) throws Exception {
+        final List<Long> arrivals = Collections.synchronizedList(new ArrayList<>());
+        final long[] first = { 0L };
+        final com.sun.net.httpserver.HttpServer server = com.sun.net.httpserver.HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext("/", exchange -> {
+            final String path = exchange.getRequestURI().getPath();
+            final byte[] body;
+            final String type;
+            if ("/robots.txt".equals(path)) {
+                body = robotsTxt.getBytes(StandardCharsets.UTF_8);
+                type = "text/plain";
+            } else {
+                synchronized (first) {
+                    if (first[0] == 0L) {
+                        first[0] = System.nanoTime();
+                    }
+                    arrivals.add((System.nanoTime() - first[0]) / 1000000L);
+                }
+                final StringBuilder html = new StringBuilder("<html><body>");
+                if ("/".equals(path)) {
+                    for (int i = 1; i <= 4; i++) {
+                        html.append("<a href=\"/p").append(i).append(".html\">p").append(i).append("</a>");
+                    }
+                }
+                body = html.append("</body></html>").toString().getBytes(StandardCharsets.UTF_8);
+                type = "text/html; charset=UTF-8";
+            }
+            exchange.getResponseHeaders().add("Content-Type", type);
+            exchange.sendResponseHeaders(200, body.length);
+            exchange.getResponseBody().write(body);
+            exchange.close();
+        });
+        server.start();
+        try {
+            final String url = "http://127.0.0.1:" + server.getAddress().getPort() + "/";
+            final File file = File.createTempFile("crawler-", "");
+            file.delete();
+            file.mkdirs();
+            file.deleteOnExit();
+            fileTransformer.setPath(file.getAbsolutePath());
+            final HostIntervalController intervalController = new HostIntervalController();
+            // the default per-host delay would hide the robots.txt rate
+            intervalController.setDelayMillisBeforeProcessing(0L);
+            // and short waits for the links of a page, so that a loaded machine cannot make an unpaced gap look like the rate
+            intervalController.setDelayMillisForWaitingNewUrl(100L);
+            intervalController.setDelayMillisAtNoUrlInQueue(100L);
+            crawler.setIntervalController(intervalController);
+            crawler.addUrl(url);
+            crawler.crawlerContext.setMaxAccessCount(5);
+            crawler.crawlerContext.setNumOfThread(3);
+            crawler.urlFilter.addInclude(url + ".*");
+            final String sessionId = crawler.execute();
+            assertEquals(5, dataService.getCount(sessionId));
+            dataService.delete(sessionId);
+        } finally {
+            server.stop(0);
+        }
+        final List<Long> sorted = new ArrayList<>(arrivals);
+        Collections.sort(sorted);
+        return sorted;
+    }
+
+    /** The gaps between the sorted arrival times. */
+    private static List<Long> gaps(final List<Long> arrivals) {
+        final List<Long> gaps = new ArrayList<>();
+        for (int i = 1; i < arrivals.size(); i++) {
+            gaps.add(arrivals.get(i) - arrivals.get(i - 1));
+        }
+        return gaps;
+    }
+
+    @Test
+    public void test_execute_web_requestRatePacesRequests() throws Exception {
+        // 1/2 is one request per 2 seconds, although three threads crawl
+        final List<Long> arrivals = crawlPagesWithRobotsTxt("User-agent: *\nRequest-rate: 1/2\n");
+        assertEquals(5, arrivals.size());
+        // the gaps that are shorter than the rate; the failure message shows them with the arrival times
+        final List<String> tooShort = new ArrayList<>();
+        for (final long gap : gaps(arrivals)) {
+            if (gap < 1500L) {
+                tooShort.add("gap " + gap + "ms in arrivals " + arrivals);
+            }
+        }
+        assertEquals(List.of(), tooShort);
+    }
+
+    @Test
+    public void test_execute_web_withoutRequestRateIsNotPaced() throws Exception {
+        final List<Long> arrivals = crawlPagesWithRobotsTxt("User-agent: *\nDisallow: /private/\n");
+        assertEquals(5, arrivals.size());
+        // the waits of the crawler are 100 ms here; no gap reaches the 2 seconds of the rate
+        final List<String> tooLong = new ArrayList<>();
+        for (final long gap : gaps(arrivals)) {
+            if (gap >= 1500L) {
+                tooLong.add("gap " + gap + "ms in arrivals " + arrivals);
+            }
+        }
+        assertEquals(List.of(), tooLong);
     }
 
     @Test

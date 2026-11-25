@@ -15,11 +15,20 @@
  */
 package org.codelibs.fess.crawler.client.smb;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import java.net.URL;
+import java.util.HashSet;
+import java.util.Set;
 
+import org.codelibs.jcifs.smb.CIFSContext;
+import org.codelibs.jcifs.smb.SID;
+import org.codelibs.jcifs.smb.SidResolver;
 import org.codelibs.jcifs.smb.impl.SmbFile;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.Test;
@@ -46,6 +55,33 @@ public class SmbClientGroupServerTest extends PlainTestCase {
     @Test
     public void test_otherPort_followsTheHost() throws Exception {
         assertEquals("fileserver:1445", smbClient.getServerOf(file("fileserver", "http://fileserver:1445/share/a.txt")));
+    }
+
+    @Test
+    public void test_port445_followsTheHost() throws Exception {
+        // an explicit default port is kept: the resolver finds the connection of the file under host:445 as well
+        assertEquals("fileserver:445", smbClient.getServerOf(file("fileserver", "http://fileserver:445/share/a.txt")));
+    }
+
+    @Test
+    public void test_groupMembers_areLookedUpOnTheServerAndPortOfTheFile() throws Exception {
+        final SmbFile file = file("fileserver", "http://fileserver:1445/share/a.txt");
+        final CIFSContext context = mock(CIFSContext.class);
+        final SidResolver resolver = mock(SidResolver.class);
+        doReturn(context).when(file).getContext();
+        doReturn(resolver).when(context).getSIDResolver();
+        final SID domainSid = mock(SID.class);
+        final SID group = mock(SID.class);
+        doReturn(SID.SID_TYPE_DOM_GRP).when(group).getType();
+        doReturn(domainSid).when(group).getDomainSid();
+        doReturn(1104).when(group).getRid();
+        doReturn(new SID[0]).when(resolver).getGroupMemberSids(any(), any(), any(), anyInt(), anyInt());
+
+        final Set<SID> sids = new HashSet<>();
+        smbClient.processAllowedSIDs(file, group, sids);
+
+        verify(resolver).getGroupMemberSids(eq(context), eq("fileserver:1445"), eq(domainSid), eq(1104), anyInt());
+        assertTrue(sids.contains(group));
     }
 
     @Test

@@ -481,7 +481,7 @@ public class SmbClient extends AbstractCrawlerClient {
                     logger.debug("Resolving group SIDs: {}", sid);
                 }
                 final SID[] children = context.getSIDResolver()
-                        .getGroupMemberSids(context, file.getServer(), sid.getDomainSid(), sid.getRid(),
+                        .getGroupMemberSids(context, getServerOf(file), sid.getDomainSid(), sid.getRid(),
                                 org.codelibs.jcifs.smb.impl.SID.SID_FLAG_RESOLVE_SIDS);
                 for (final SID child : children) {
                     if (!sidSet.contains(child)) {
@@ -502,6 +502,23 @@ public class SmbClient extends AbstractCrawlerClient {
                 }
             }
         }
+    }
+
+    /**
+     * Returns the server of the file for resolving the members of a group.
+     * The port of the URL is part of it, as the SID resolver looks up the connection of the file by the
+     * server and the port; the host name alone does not find the connection of a server on a port other than 445.
+     *
+     * @param file the SMB file
+     * @return the host name, followed by ":" and the port when the URL of the file has one
+     */
+    protected String getServerOf(final SmbFile file) {
+        final String server = file.getServer();
+        final int port = file.getURL().getPort();
+        if (server == null || port <= 0 || server.indexOf(':') >= 0) {
+            return server;
+        }
+        return server + ":" + port;
     }
 
     /**

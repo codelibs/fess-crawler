@@ -504,18 +504,21 @@ public class SmbClient extends AbstractCrawlerClient {
         }
     }
 
+    /** The default port of SMB, for which the host name alone is given to the group member lookup. */
+    private static final int DEFAULT_SMB_PORT = 445;
+
     /**
      * Returns the server of the file for resolving the members of a group.
      * The port of the URL is part of it, as the SID resolver looks up the connection of the file by the
      * server and the port; the host name alone does not find the connection of a server on a port other than 445.
      *
      * @param file the SMB file
-     * @return the host name, followed by ":" and the port when the URL of the file has one
+     * @return the host name, followed by ":" and the port when the URL of the file has one other than 445
      */
     protected String getServerOf(final SmbFile file) {
         final String server = file.getServer();
         final int port = file.getURL().getPort();
-        if (server == null || port <= 0 || server.indexOf(':') >= 0) {
+        if (server == null || port <= 0 || port == DEFAULT_SMB_PORT || server.indexOf(':') >= 0) {
             return server;
         }
         return server + ":" + port;

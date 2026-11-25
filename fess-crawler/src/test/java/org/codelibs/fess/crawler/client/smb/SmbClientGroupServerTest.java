@@ -58,9 +58,9 @@ public class SmbClientGroupServerTest extends PlainTestCase {
     }
 
     @Test
-    public void test_port445_followsTheHost() throws Exception {
-        // an explicit default port is kept: the resolver finds the connection of the file under host:445 as well
-        assertEquals("fileserver:445", smbClient.getServerOf(file("fileserver", "http://fileserver:445/share/a.txt")));
+    public void test_port445_isTheHostOnly() throws Exception {
+        // an explicit default port is looked up like no port, as before
+        assertEquals("fileserver", smbClient.getServerOf(file("fileserver", "http://fileserver:445/share/a.txt")));
     }
 
     @Test

@@ -49,6 +49,11 @@ public class SmbClientGroupServerTest extends PlainTestCase {
     }
 
     @Test
+    public void test_port445_isTheHostOnly() throws Exception {
+        assertEquals("fileserver", smbClient.getServerOf(file("fileserver", "http://fileserver:445/share/a.txt")));
+    }
+
+    @Test
     public void test_serverWithColon_isLeftAsIs() throws Exception {
         assertEquals("::1", smbClient.getServerOf(file("::1", "http://[::1]:1139/share/a.txt")));
     }

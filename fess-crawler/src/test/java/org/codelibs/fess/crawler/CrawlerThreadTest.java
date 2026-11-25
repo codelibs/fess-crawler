@@ -914,6 +914,23 @@ public class CrawlerThreadTest extends PlainTestCase {
     }
 
     /**
+     * The message of the failure of a given-up origin names the URL, and the failure is stored with it, so the user name
+     * and password of a crawling URL stay out of it.
+     */
+    @Test
+    public void test_createRobotsTxtGivenUpException_leavesTheUserInfoOutOfTheMessage() throws Exception {
+        final String url = "http://user:dummy-pw@example.com/dir/page.html";
+        giveUp(url, 4, new IOException("connection reset"));
+
+        final RobotsTxtUnavailableException e = crawlerThread.createRobotsTxtGivenUpException(url, crawlerContext.getHostState(url));
+
+        assertTrue(e.getMessage().endsWith(": http://example.com/dir/page.html"));
+        assertFalse(e.getMessage().contains("dummy-pw"));
+        assertFalse(e.getMessage().contains("user:"));
+        assertTrue(e.getMessage().contains("robots.txt of http://example.com was unavailable"));
+    }
+
+    /**
      * The client resolves robots.txt and gives the origin up while fetching the URL (RobotsTxtDisallowedException for
      * DISALLOW_ALL): the URL is reported as a failure.
      */

@@ -28,6 +28,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -1538,11 +1539,11 @@ public class TikaExtractorTest extends PlainTestCase {
         writer.write("abc".toCharArray(), 0, 3);
         assertFalse(writer.isLimitReached());
         // "d" fits, "é" (2 bytes) does not
-        Assertions.assertThrows(IOException.class, () -> writer.write("dé".toCharArray(), 0, 2));
+        writer.write("dé".toCharArray(), 0, 2);
         assertTrue(writer.isLimitReached());
         assertEquals("abcd", out.toString());
 
-        // it keeps quiet once it has reached the limit, so that a parser that swallows the exception does not write on
+        // it ignores what is written afterwards, and does not stop the parser, so that Tika can still find a zip bomb
         writer.write("xyz".toCharArray(), 0, 3);
         assertEquals("abcd", out.toString());
     }
@@ -1569,7 +1570,8 @@ public class TikaExtractorTest extends PlainTestCase {
         final char[] pair = Character.toChars(0x1F600);
         writer.write(new char[] { 'a', pair[0], pair[1] }, 0, 3);
         assertFalse(writer.isLimitReached());
-        Assertions.assertThrows(IOException.class, () -> writer.write(new char[] { 'b' }, 0, 1));
+        writer.write(new char[] { 'b' }, 0, 1);
+        assertTrue(writer.isLimitReached());
 
         assertEquals("a" + new String(pair), out.toString());
         assertTrue(out.toString().getBytes(StandardCharsets.UTF_8).length <= 5);
@@ -1608,5 +1610,73 @@ public class TikaExtractorTest extends PlainTestCase {
         assertFalse(content.contains("name1999"));
         final int size = content.getBytes(StandardCharsets.UTF_8).length;
         Assertions.assertTrue(size > 4500 && size <= 5000, "the text is cut at the limit: " + size);
+    }
+
+    // A zip of NUL bytes is written as U+FFFD, 3 bytes each in UTF-8, so its text reached maxTextBytes before Tika's
+    // zip bomb check (characters against the source bytes) could find it, and the zip was indexed with the entry name
+    @Test
+    public void test_getText_zipBombOfNulBytesOverTheTextLimit() throws IOException {
+        final byte[] zip = zip("zeros.txt", new byte[10 << 20]);
+        tikaExtractor.maxCompressionRatio = 100;
+        tikaExtractor.maxUncompressionSize = 1_000_000;
+        // the cut at 666,666 characters comes before the check at zip.length * 100 (about 1,020,000) characters
+        tikaExtractor.setMaxTextBytes(2_000_000);
+        Assertions.assertTrue(2_000_000 / 3 < zip.length * 100L, "zip=" + zip.length);
+
+        try {
+            tikaExtractor.getText(new ByteArrayInputStream(zip), null);
+            fail();
+        } catch (final ExtractException e) {
+            Assertions.assertTrue(e.getMessage().contains("reason=zipBombDetected"), e.getMessage());
+        }
+    }
+
+    // the same for a zip of text whose source is larger than maxTextBytes / maxCompressionRatio
+    @Test
+    public void test_getText_zipBombOfTextOverTheTextLimit() throws IOException {
+        final byte[] data = new byte[10 << 20];
+        Arrays.fill(data, (byte) 'a');
+        final byte[] zip = zip("a.txt", data);
+        tikaExtractor.maxCompressionRatio = 100;
+        tikaExtractor.maxUncompressionSize = 1_000_000;
+        tikaExtractor.setMaxTextBytes(800_000);
+        Assertions.assertTrue(800_000 < zip.length * 100L, "zip=" + zip.length);
+
+        try {
+            tikaExtractor.getText(new ByteArrayInputStream(zip), null);
+            fail();
+        } catch (final ExtractException e) {
+            Assertions.assertTrue(e.getMessage().contains("reason=zipBombDetected"), e.getMessage());
+        }
+    }
+
+    // an ordinary text zip is indexed in full with the same limits
+    @Test
+    public void test_getText_textZipBelowTheRatio() throws IOException {
+        final byte[] zip = zip("lines.txt", numberedLines("word", 300_000).readAllBytes());
+        tikaExtractor.maxCompressionRatio = 100;
+        tikaExtractor.maxUncompressionSize = 1_000_000;
+        tikaExtractor.setMaxTextBytes(36_000_000);
+
+        final String content = tikaExtractor.getText(new ByteArrayInputStream(zip), null).getContent();
+
+        assertTrue(content.contains("word0 word1 word2"));
+        assertTrue(content.contains("word299999"));
+    }
+
+    // a text zip over maxTextBytes below the ratio is cut at the limit, and is not a zip bomb
+    @Test
+    public void test_getText_textZipBelowTheRatioOverTheTextLimit() throws IOException {
+        final byte[] zip = zip("lines.txt", numberedLines("word", 300_000).readAllBytes());
+        tikaExtractor.maxCompressionRatio = 100;
+        tikaExtractor.maxUncompressionSize = 1_000_000;
+        tikaExtractor.setMaxTextBytes(1_000_000);
+
+        final String content = tikaExtractor.getText(new ByteArrayInputStream(zip), null).getContent();
+
+        assertTrue(content.contains("word0 word1 word2"));
+        assertFalse(content.contains("word299999"));
+        final int bytes = content.getBytes(StandardCharsets.UTF_8).length;
+        Assertions.assertTrue(bytes > 900_000 && bytes <= 1_000_000, "the text is cut at the limit: " + bytes);
     }
 }

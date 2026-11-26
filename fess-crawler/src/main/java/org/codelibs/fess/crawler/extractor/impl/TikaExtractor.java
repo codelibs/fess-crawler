@@ -1232,8 +1232,8 @@ public class TikaExtractor extends PasswordBasedExtractor {
             try {
                 out.accept(limitWriter);
             } catch (final IOException | TikaException | SAXException | RuntimeException e) {
-                // the writer stops the parser by an exception when the text reaches the limit, and the text up to there is kept
-                if (!limitWriter.isLimitReached()) {
+                // a failure after the text reached the limit keeps the text up to there, but a zip bomb is still one
+                if (!limitWriter.isLimitReached() || isZipBomb(e)) {
                     throw e;
                 }
             }
@@ -1389,9 +1389,10 @@ public class TikaExtractor extends PasswordBasedExtractor {
     }
 
     /**
-     * A writer that passes the text to another writer up to a number of bytes in UTF-8.
-     * When the next character does not fit, it throws an {@link IOException} once to stop the parser,
-     * and ignores whatever is written afterwards, in case the parser swallows the exception.
+     * A writer that passes the text to another writer up to a number of bytes in UTF-8, and ignores whatever is
+     * written after the next character does not fit. It does not stop the parser there: the zip bomb check of Tika
+     * counts the characters of the whole text, so a zip bomb whose text reaches the limit first, e.g. NUL bytes that
+     * are written as U+FFFD (3 bytes each), has to be parsed on until the check finds it.
      */
     protected static class Utf8LimitWriter extends Writer {
         private final Writer out;
@@ -1431,30 +1432,37 @@ public class TikaExtractor extends PasswordBasedExtractor {
                     final char high = pendingHighSurrogate;
                     pendingHighSurrogate = 0;
                     if (Character.isLowSurrogate(c)) {
-                        count(4);
+                        if (!count(4)) {
+                            return;
+                        }
                         out.write(high);
                         out.write(c);
                         continue;
                     }
                     // a lone high surrogate is not valid in UTF-8, and is counted as the 3 bytes of a BMP character
-                    count(3);
+                    if (!count(3)) {
+                        return;
+                    }
                     out.write(high);
                 }
                 if (Character.isHighSurrogate(c)) {
                     pendingHighSurrogate = c;
                 } else {
-                    count(c <= 0x7F ? 1 : c <= 0x7FF ? 2 : 3);
+                    if (!count(c <= 0x7F ? 1 : c <= 0x7FF ? 2 : 3)) {
+                        return;
+                    }
                     out.write(c);
                 }
             }
         }
 
-        private void count(final int bytes) throws IOException {
+        private boolean count(final int bytes) {
             if (written + bytes > maxBytes) {
                 limitReached = true;
-                throw new IOException("The text reached the limit: maxBytes=" + maxBytes);
+                return false;
             }
             written += bytes;
+            return true;
         }
 
         /**

@@ -28,6 +28,7 @@ import org.codelibs.fess.crawler.entity.RequestData;
 import org.codelibs.fess.crawler.entity.ResponseData;
 import org.codelibs.fess.crawler.entity.ResultData;
 import org.codelibs.fess.crawler.exception.CrawlerSystemException;
+import org.codelibs.fess.crawler.extractor.impl.TikaExtractor;
 import org.codelibs.nekohtml.parsers.DOMParser;
 import org.dbflute.utflute.core.PlainTestCase;
 import org.junit.jupiter.api.BeforeEach;
@@ -312,6 +313,31 @@ public class HtmlTransformerTest extends PlainTestCase {
         responseData.setMimeType("text/html");
         final ResultData resultData = htmlTransformer.transform(responseData);
         assertEquals(String.format(content, text), new String(resultData.getData(), resultData.getEncoding()));
+    }
+
+    // a Western page that declares ISO-8859-1 is written with the curly quotes, dashes and euro sign of windows-1252 (0x80-0x9F),
+    // and a browser decodes it as windows-1252 (WHATWG Encoding Standard)
+    @Test
+    public void test_transform_charsetInMetaTagIso88591Windows1252Characters() throws Exception {
+        final String content = "<html><head><meta charset=\"iso-8859-1\"></head><body><p>%s</p></body></html>";
+        final String text = "Caf\u00e9 \u20ac10 \u2019quoted\u2019 \u201cdouble\u201d \u2013 dash";
+        final ResponseData responseData = new ResponseData();
+        responseData.setUrl("http://hoge/test.html");
+        responseData.setResponseBody(String.format(content, text).getBytes("windows-1252"));
+        responseData.setMimeType("text/html");
+        final ResultData resultData = htmlTransformer.transform(responseData);
+        assertEquals("windows-1252", responseData.getCharSet());
+        assertEquals(String.format(content, text), new String(resultData.getData(), resultData.getEncoding()));
+    }
+
+    @Test
+    public void test_decodeAs_latin1AndAscii() {
+        assertEquals("windows-1252", TikaExtractor.decodeAs("ISO-8859-1"));
+        assertEquals("windows-1252", TikaExtractor.decodeAs("latin1"));
+        assertEquals("windows-1252", TikaExtractor.decodeAs("US-ASCII"));
+        assertEquals("windows-31j", TikaExtractor.decodeAs("Shift_JIS"));
+        assertEquals("UTF-8", TikaExtractor.decodeAs("UTF-8"));
+        assertEquals("no-such-charset", TikaExtractor.decodeAs("no-such-charset"));
     }
 
     @Test

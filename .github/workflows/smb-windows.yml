@@ -1,0 +1,102 @@
+# Runs the SMB client against a real Windows (NTFS) share.
+#
+# windows-latest is Windows Server 2025, and the runner has administrator rights
+# with UAC disabled, so the job creates a local account and a share on the runner
+# itself and crawls it over SMB. SmbClientWindowsTest changes files on the disk of
+# that share, which is why it runs on the machine hosting it; the Testcontainers
+# SMB tests need Linux containers and stay in maven.yml.
+
+name: SMB tests (Windows)
+
+on:
+  push:
+    branches:
+    - main
+    - "*.x"
+  # No branch filter, as in maven.yml: a stacked pull request needs the job too.
+  pull_request:
+    paths:
+    - "fess-crawler/src/main/java/org/codelibs/fess/crawler/client/smb/**"
+    - "fess-crawler/src/test/java/org/codelibs/fess/crawler/client/smb/SmbClientWindowsTest.java"
+    - ".github/workflows/smb-windows.yml"
+  workflow_dispatch:
+
+jobs:
+  windows-smb:
+
+    runs-on: windows-latest
+    env:
+      PARENT_BRANCH: main
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+    - uses: actions/cache@v4
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          ${{ runner.os }}-maven-
+    - name: Checkout fess-parent
+      uses: actions/checkout@v4
+      with:
+        repository: codelibs/fess-parent
+        ref: ${{ env.PARENT_BRANCH }}
+        path: fess-parent
+    - name: Install fess-parent
+      shell: bash
+      run: |
+        cd fess-parent
+        mvn -B install -Dgpg.skip=true
+
+    - name: Create the SMB share
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = 'Stop'
+        # A throwaway account that exists on this runner for the life of the job.
+        $password = 'Aa1!' + [Guid]::NewGuid().ToString('N')
+        Write-Output "::add-mask::$password"
+        $user = 'crawleruser'
+        New-LocalUser -Name $user -Password (ConvertTo-SecureString -String $password -AsPlainText -Force) `
+            -PasswordNeverExpires -AccountNeverExpires | Out-Null
+        $path = 'C:\crawlershare'
+        New-Item -Path $path -ItemType Directory -Force | Out-Null
+        icacls $path /grant "${user}:(OI)(CI)R" /Q | Out-Null
+        New-SmbShare -Name 'crawlershare' -Path $path -ReadAccess $user | Out-Null
+        @(
+          "FESS_CRAWLER_SMB_WINDOWS_HOST=$env:COMPUTERNAME"
+          "FESS_CRAWLER_SMB_WINDOWS_SHARE=crawlershare"
+          "FESS_CRAWLER_SMB_WINDOWS_SHARE_PATH=$path"
+          "FESS_CRAWLER_SMB_WINDOWS_USER=$user"
+          "FESS_CRAWLER_SMB_WINDOWS_PASSWORD=$password"
+        ) | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+    # bash, not the default PowerShell: PowerShell splits an unquoted
+    # -Dsurefire.failIfNoSpecifiedTests=false at the dot.
+    - name: Run the Windows SMB tests
+      shell: bash
+      run: mvn -B test -pl fess-crawler -Dtest=SmbClientWindowsTest -Dsurefire.failIfNoSpecifiedTests=false
+      env:
+        FESS_CRAWLER_SMB_WINDOWS_REQUIRED: "true"
+
+    - name: Check that the tests ran
+      if: always()
+      shell: bash
+      run: |
+        report=fess-crawler/target/surefire-reports/TEST-org.codelibs.fess.crawler.client.smb.SmbClientWindowsTest.xml
+        test -f "$report" || { echo "no test report: $report"; exit 1; }
+        head -2 "$report"
+        grep -q 'tests="4"' "$report" || { echo "expected 4 tests"; exit 1; }
+        grep -q 'skipped="0"' "$report" || { echo "a test was skipped"; exit 1; }
+        grep -q 'failures="0"' "$report" && grep -q 'errors="0"' "$report" || { echo "a test failed"; exit 1; }
+
+    - name: Upload test reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-smb-test-reports
+        path: fess-crawler/target/surefire-reports/

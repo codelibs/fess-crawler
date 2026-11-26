@@ -477,17 +477,28 @@ public class TikaExtractor extends PasswordBasedExtractor {
         }
     }
 
+    /** The charset that a browser decodes a page declared as ISO-8859-1 or US-ASCII with. */
+    private static final String WINDOWS_1252 = "windows-1252";
+
     /**
      * Returns the charset to decode a text with that is declared to be in the given charset: the charset that a wider one
      * extends, the same as for a detected charset (for example, windows-31j for Shift_JIS, which lacks the NEC and IBM
      * extension characters such as the circled digits and the parenthesized ideographs that a text written on Windows has).
+     *
+     * <p>A page that declares ISO-8859-1 or US-ASCII is decoded as windows-1252, as a browser does (the WHATWG Encoding
+     * Standard maps these labels to windows-1252): a Western page written on Windows has the curly quotes, the dashes and
+     * the euro sign in 0x80-0x9F, which ISO-8859-1 decodes as C1 control characters.</p>
      *
      * @param charsetName The name of the declared charset.
      * @return the name of the charset to decode with, or the given name if it is not a supported charset.
      */
     public static String decodeAs(final String charsetName) {
         try {
-            return CharsetSupersets.decodeAs(Charset.forName(charsetName)).name();
+            final Charset charset = Charset.forName(charsetName);
+            if (StandardCharsets.ISO_8859_1.equals(charset) || StandardCharsets.US_ASCII.equals(charset)) {
+                return WINDOWS_1252;
+            }
+            return CharsetSupersets.decodeAs(charset).name();
         } catch (final IllegalArgumentException e) {
             return charsetName;
         }

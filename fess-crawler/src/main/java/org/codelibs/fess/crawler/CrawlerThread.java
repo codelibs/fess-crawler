@@ -49,6 +49,7 @@ import org.codelibs.fess.crawler.rule.Rule;
 import org.codelibs.fess.crawler.service.DataService;
 import org.codelibs.fess.crawler.service.UrlQueueService;
 import org.codelibs.fess.crawler.util.CrawlingParameterUtil;
+import org.codelibs.fess.crawler.util.UserInfoUtil;
 import org.codelibs.fess.crawler.weight.UrlQueueWeigher;
 
 import jakarta.annotation.Resource;
@@ -684,7 +685,7 @@ public class CrawlerThread implements Runnable {
         if (reason != null) {
             message.append(" (last failure: ").append(reason).append(')');
         }
-        message.append(": ").append(url);
+        message.append(": ").append(UserInfoUtil.removeUserInfo(url));
         return new RobotsTxtUnavailableException(message.toString(), 0L, hostState.getRobotsTxtLastFailure(), true, true);
     }
 

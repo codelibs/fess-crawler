@@ -927,6 +927,25 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         assertTrue(hostState.getRobotsTxtLastFailure() == uhe);
     }
 
+    // the message is the first line of the error log of the failure url: the user name and password of the crawl url stay out of it
+    @Test
+    public void testCheckRobotsTxt_unavailableMessageLeavesTheUserInfoOut() {
+        final CrawlerContext context = new CrawlerContext();
+        final UnknownHostException uhe = new UnknownHostException("failure.url");
+        final ScriptedFetcher fetcher = new ScriptedFetcher().on("http://failure.url/robots.txt", uhe);
+
+        RobotsTxtUnavailableException e = null;
+        try {
+            robotsTxtHelper.checkRobotsTxt(context, "http://user:secret@failure.url/x/start.html", UA, fetcher, POLICY);
+            fail();
+        } catch (final RobotsTxtUnavailableException rue) {
+            e = rue;
+        }
+        assertEquals("robots.txt of http://failure.url is unavailable (UnknownHostException: failure.url): http://failure.url/x/start.html",
+                e.getMessage());
+        assertFalse(e.getMessage().contains("secret"));
+    }
+
     @Test
     public void testCheckRobotsTxt_failureStatusNamedInMessage() {
         for (final int code : new int[] { 429, 500, 503 }) {

@@ -490,7 +490,7 @@ public class SmbClient extends AbstractCrawlerClient {
         sidSet.add(sid);
         if (type == SID.SID_TYPE_DOM_GRP || type == SID.SID_TYPE_ALIAS) {
             try {
-                final SID[] children = sid.getGroupMemberSids(file.getServer(), (NtlmPasswordAuthentication) file.getPrincipal(),
+                final SID[] children = sid.getGroupMemberSids(getServerOf(file), (NtlmPasswordAuthentication) file.getPrincipal(),
                         SID.SID_FLAG_RESOLVE_SIDS);
                 for (final SID child : children) {
                     if (!sidSet.contains(child)) {
@@ -503,6 +503,26 @@ public class SmbClient extends AbstractCrawlerClient {
                 }
             }
         }
+    }
+
+    /** The default port of SMB, for which the host name alone is given to the group member lookup. */
+    private static final int DEFAULT_SMB_PORT = 445;
+
+    /**
+     * Returns the server of the file for resolving the members of a group.
+     * The port of the URL is part of it, so that the members are looked up on the server the file was read from;
+     * the host name alone addresses the default port.
+     *
+     * @param file the SMB1 file
+     * @return the host name, followed by ":" and the port when the URL of the file has one other than 445
+     */
+    protected String getServerOf(final SmbFile file) {
+        final String server = file.getServer();
+        final int port = file.getURL().getPort();
+        if (server == null || port <= 0 || port == DEFAULT_SMB_PORT || server.indexOf(':') >= 0) {
+            return server;
+        }
+        return server + ":" + port;
     }
 
     /**

@@ -494,9 +494,8 @@ public class RobotsTxtHelper {
                                     unavailable.reason(), failureCount, wait, unavailable.cause());
                         }
                         // the cause is the network error, if any, so that the failure of the URL is named after it
-                        throw new RobotsTxtUnavailableException(
-                                "robots.txt of " + origin + " is unavailable (" + unavailable.reason() + "): " + url, retryAfterMillis,
-                                unavailable.cause(), true, true);
+                        throw new RobotsTxtUnavailableException("robots.txt of " + origin + " is unavailable (" + unavailable.reason()
+                                + "): " + UserInfoUtil.removeUserInfo(url), retryAfterMillis, unavailable.cause(), true, true);
                     }
                 }
             }

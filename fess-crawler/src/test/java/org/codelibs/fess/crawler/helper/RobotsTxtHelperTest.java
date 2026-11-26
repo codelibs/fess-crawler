@@ -927,6 +927,45 @@ public class RobotsTxtHelperTest extends PlainTestCase {
         assertTrue(hostState.getRobotsTxtLastFailure() == uhe);
     }
 
+    // the message is the first line of the error log of the failure url: the user name and password of the crawl url stay out of it
+    @Test
+    public void testCheckRobotsTxt_unavailableMessageLeavesTheUserInfoOut() {
+        final CrawlerContext context = new CrawlerContext();
+        final UnknownHostException uhe = new UnknownHostException("failure.url");
+        final ScriptedFetcher fetcher = new ScriptedFetcher().on("http://failure.url/robots.txt", uhe);
+
+        RobotsTxtUnavailableException e = null;
+        try {
+            robotsTxtHelper.checkRobotsTxt(context, "http://user:secret@failure.url/x/start.html", UA, fetcher, POLICY);
+            fail();
+        } catch (final RobotsTxtUnavailableException rue) {
+            e = rue;
+        }
+        assertEquals("robots.txt of http://failure.url is unavailable (UnknownHostException: failure.url): http://failure.url/x/start.html",
+                e.getMessage());
+        assertFalse(e.getMessage().contains("secret"));
+
+        // a URL of the origin checked during the backoff fails without a request, and its message has no user info either
+        try {
+            robotsTxtHelper.checkRobotsTxt(context, "http://user:secret@failure.url/x/next.html", UA, fetcher, POLICY);
+            fail();
+        } catch (final RobotsTxtUnavailableException rue) {
+            assertFalse(rue.isFetchAttempted());
+            assertEquals("robots.txt is unavailable for http://failure.url/x/next.html", rue.getMessage());
+        }
+    }
+
+    @Test
+    public void testCheckRobotsTxt_disallowedMessageLeavesTheUserInfoOut() {
+        final ScriptedFetcher fetcher = new ScriptedFetcher().on("http://example.com/robots.txt", ok("User-agent: *\nDisallow: /a/\n"));
+        try {
+            robotsTxtHelper.checkRobotsTxt(new CrawlerContext(), "http://user:secret@example.com/a/x.html", UA, fetcher, POLICY);
+            fail();
+        } catch (final RobotsTxtDisallowedException e) {
+            assertEquals("Disallowed by robots.txt: http://example.com/a/x.html", e.getMessage());
+        }
+    }
+
     @Test
     public void testCheckRobotsTxt_failureStatusNamedInMessage() {
         for (final int code : new int[] { 429, 500, 503 }) {

@@ -303,7 +303,7 @@ public class SmbClient extends AbstractCrawlerClient {
                 checkMaxContentLength(responseData);
                 responseData.setHttpStatusCode(Constants.OK_STATUS_CODE);
                 responseData.setCharSet(getCharSet(file));
-                responseData.setLastModified(new Date(file.lastModified()));
+                responseData.setLastModified(new Date(getLastModifiedOf(file)));
                 responseData.addMetaData(SMB_CREATE_TIME, new Date(file.createTime()));
                 try {
                     if (logger.isDebugEnabled()) {
@@ -506,6 +506,21 @@ public class SmbClient extends AbstractCrawlerClient {
 
     /** The default port of SMB, for which the host name alone is given to the group member lookup. */
     private static final int DEFAULT_SMB_PORT = 445;
+
+    /**
+     * Returns the time the file was last changed, for the last modified time of the response.
+     * It is the later of the last write time and the change time: a change to the metadata alone, such as a new
+     * access control list, moves the change time but not the last write time, and a differential crawl decides from
+     * this time whether to fetch the file (and its permissions) again. A server that sends no change time (0) or the
+     * last write time as the change time (Samba) gives the last write time.
+     *
+     * @param file the SMB file
+     * @return the later of the last write time and the change time, in milliseconds since the epoch
+     * @throws SmbException if the attributes of the file cannot be read
+     */
+    protected long getLastModifiedOf(final SmbFile file) throws SmbException {
+        return Math.max(file.lastModified(), file.changeTime());
+    }
 
     /**
      * Returns the server of the file for resolving the members of a group.

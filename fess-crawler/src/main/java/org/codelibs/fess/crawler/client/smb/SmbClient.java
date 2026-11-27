@@ -410,7 +410,7 @@ public class SmbClient extends AbstractCrawlerClient {
             throw e;
         } catch (final SmbException e) {
             CloseableUtil.closeQuietly(responseData);
-            throw new CrawlingAccessException("Could not access " + UserInfoUtil.removeUserInfo(uri), e);
+            throw new CrawlingAccessException(createAccessFailureMessage(uri, e), e);
         }
 
         return responseData;
@@ -444,8 +444,26 @@ public class SmbClient extends AbstractCrawlerClient {
                 responseData.addMetaData(SMB_DENIED_SID_ENTRIES, sidDenySet.toArray(new SID[sidDenySet.size()]));
             }
         } catch (final IOException e) {
-            throw new CrawlingAccessException("Could not access " + UserInfoUtil.removeUserInfo(file.getPath()), e);
+            throw new CrawlingAccessException(createAccessFailureMessage(file.getPath(), e), e);
         }
+    }
+
+    /**
+     * Creates the message of the exception thrown when an SMB file cannot be accessed. The message is the first line
+     * of the error log of the failure URL, so it names the cause, such as a server that requires encryption, and not
+     * only the URL. The user name and password are removed from the URL and from the cause.
+     *
+     * @param url the URL of the SMB file
+     * @param e the exception that made the access fail
+     * @return the message
+     */
+    protected String createAccessFailureMessage(final String url, final Exception e) {
+        final StringBuilder buf = new StringBuilder("Could not access ").append(UserInfoUtil.removeUserInfo(url));
+        final String reason = UserInfoUtil.removeUserInfoFromText(e.getMessage());
+        if (StringUtil.isNotBlank(reason)) {
+            buf.append(": ").append(reason);
+        }
+        return buf.toString();
     }
 
     /**

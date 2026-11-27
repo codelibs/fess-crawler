@@ -15,10 +15,12 @@
  */
 package org.codelibs.fess.crawler.extractor.impl;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -26,6 +28,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.codelibs.core.io.CloseableUtil;
 import org.codelibs.core.io.ResourceUtil;
@@ -94,6 +97,53 @@ public class PdfExtractorTest extends PlainTestCase {
         CloseableUtil.closeQuietly(in);
         logger.info(content);
         assertTrue(content.contains("テスト"));
+    }
+
+    @Test
+    public void test_getText_encryptedWithoutPassword() {
+        final Map<String, String> params = new HashMap<String, String>();
+        params.put(ExtractData.URL, "http://example.com/test_pass.pdf");
+        final ExtractException e = getTextFailure(pdfExtractor, "extractor/test_pass.pdf", params);
+        assertEquals("Failed to load PDF: the PDF is encrypted and no password is configured for it.", e.getMessage());
+        assertTrue(e.getCause() instanceof InvalidPasswordException);
+    }
+
+    @Test
+    public void test_getText_encryptedWithWrongPassword() {
+        final Map<String, String> params = new HashMap<String, String>();
+        params.put(ExtractData.URL, "http://example.com/test_pass.pdf");
+        params.put(ExtractData.FILE_PASSWORDS, "{\".*test_pass.pdf\":\"wrong\"}");
+        final ExtractException e = getTextFailure(pdfExtractor, "extractor/test_pass.pdf", params);
+        assertEquals("Failed to load PDF: the PDF is encrypted and the configured password is incorrect.", e.getMessage());
+        assertFalse(e.getMessage().contains("wrong"));
+        assertTrue(e.getCause() instanceof InvalidPasswordException);
+    }
+
+    @Test
+    public void test_getText_brokenPdf() {
+        final ExtractException e;
+        try {
+            pdfExtractor.getText(new ByteArrayInputStream("This is not a PDF.".getBytes(StandardCharsets.UTF_8)), null);
+            fail();
+            return;
+        } catch (final ExtractException ex) {
+            e = ex;
+        }
+        assertEquals("Failed to load PDF.", e.getMessage());
+        assertFalse(e.getCause() instanceof InvalidPasswordException);
+    }
+
+    private ExtractException getTextFailure(final PdfExtractor extractor, final String path, final Map<String, String> params) {
+        final InputStream in = ResourceUtil.getResourceAsStream(path);
+        try {
+            extractor.getText(in, params);
+            fail();
+            return null;
+        } catch (final ExtractException e) {
+            return e;
+        } finally {
+            CloseableUtil.closeQuietly(in);
+        }
     }
 
     @Test

@@ -45,6 +45,7 @@ import org.apache.pdfbox.pdmodel.common.PDNameTreeNode;
 import org.apache.pdfbox.pdmodel.common.filespecification.PDComplexFileSpecification;
 import org.apache.pdfbox.pdmodel.common.filespecification.PDEmbeddedFile;
 import org.apache.pdfbox.pdmodel.common.filespecification.PDFileSpecification;
+import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationFileAttachment;
 import org.apache.pdfbox.text.PDFTextStripper;
@@ -266,6 +267,13 @@ public class PdfExtractor extends PasswordBasedExtractor {
             throw e;
         } catch (final CrawlerSystemException e) {
             throw e;
+        } catch (final InvalidPasswordException e) {
+            // Name the reason in the message, which is the first line of the error log of the failure URL:
+            // without it, an encrypted PDF cannot be told from a broken one.
+            if (password == null) {
+                throw new ExtractException("Failed to load PDF: the PDF is encrypted and no password is configured for it.", e);
+            }
+            throw new ExtractException("Failed to load PDF: the PDF is encrypted and the configured password is incorrect.", e);
         } catch (final IOException e) {
             throw new ExtractException("Failed to load PDF.", e);
         } catch (final Exception e) {

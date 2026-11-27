@@ -25,10 +25,10 @@ public final class UserInfoUtil {
 
     /**
      * An absolute URL with a userinfo anywhere in a text: group 1 is the scheme with {@code ://}, followed by the
-     * userinfo up to its last {@code @} before the path, the query or the fragment. As in {@link #removeUserInfo}, a
-     * space does not end the userinfo, so that a password with a space is removed too.
+     * userinfo up to its last {@code @} before the path, the query, the fragment or a line break. As in
+     * {@link #removeUserInfo}, a space does not end the userinfo, so that a password with a space is removed too.
      */
-    private static final Pattern USER_INFO_IN_TEXT = Pattern.compile("([A-Za-z][A-Za-z0-9+.\\-]*://)[^/?#]*@");
+    private static final Pattern USER_INFO_IN_TEXT = Pattern.compile("([A-Za-z][A-Za-z0-9+.\\-]*://)[^/?#\\r\\n]*@");
 
     /** Separator between the scheme and the authority of an absolute URL. */
     private static final String SCHEME_SEPARATOR = "://";
@@ -74,6 +74,11 @@ public final class UserInfoUtil {
      * Removes the userinfo from every absolute URL of the form {@code scheme://userinfo@host...} in a text, such as
      * the message of an exception that names a URL in the middle of a sentence, and returns the rest of the text
      * unchanged. It never throws, whatever the input is.
+     * <p>
+     * A URL without a path that is followed on the same line by an {@code @}, as in
+     * {@code smb://host is down, ask admin@example.com}, loses the text up to that {@code @}: a space cannot end the
+     * userinfo, and removing too much is preferred to leaving a password in the text.
+     * </p>
      *
      * @param text the text (may be {@code null})
      * @return the text without the userinfo of its URLs, the text itself when none has one, or {@code null} for

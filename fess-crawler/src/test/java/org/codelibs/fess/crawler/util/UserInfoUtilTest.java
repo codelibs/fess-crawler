@@ -105,5 +105,16 @@ public class UserInfoUtilTest extends PlainTestCase {
         assertEquals("smb://host.example.com/share/a@b.txt", UserInfoUtil.removeUserInfoFromText("smb://host.example.com/share/a@b.txt"));
         assertEquals("mail user@example.com about smb://host.example.com/",
                 UserInfoUtil.removeUserInfoFromText("mail user@example.com about smb://host.example.com/"));
+        // a line break ends the userinfo
+        assertEquals("smb://host.example.com\nask admin@example.com",
+                UserInfoUtil.removeUserInfoFromText("smb://host.example.com\nask admin@example.com"));
+        assertEquals("smb://host.example.com\r\nCaused by: smb://other.example.com/share/",
+                UserInfoUtil.removeUserInfoFromText("smb://host.example.com\r\nCaused by: smb://user:secret@other.example.com/share/"));
+    }
+
+    @Test
+    public void test_removeUserInfoFromText_removesTooMuchRatherThanTooLittle() {
+        // a URL without a path followed by an at sign on the same line loses the text up to it
+        assertEquals("smb://example.com", UserInfoUtil.removeUserInfoFromText("smb://host is down, ask admin@example.com"));
     }
 }

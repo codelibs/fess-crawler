@@ -81,4 +81,40 @@ public class UserInfoUtilTest extends PlainTestCase {
         assertEquals("http://", UserInfoUtil.removeUserInfo("http://"));
         assertEquals("http://", UserInfoUtil.removeUserInfo("http://@"));
     }
+
+    @Test
+    public void test_removeUserInfoFromText_urlInSentence() {
+        assertEquals("The requested list operations is invalid: smb://host.example.com/share/",
+                UserInfoUtil.removeUserInfoFromText("The requested list operations is invalid: smb://user:secret@host.example.com/share/"));
+        assertEquals("smb://host.example.com/share/ directory must end with '/'",
+                UserInfoUtil.removeUserInfoFromText("smb://DOMAIN;user:secret@host.example.com/share/ directory must end with '/'"));
+        assertEquals("Failed to copy file from [smb://host.example.com/a] to [smb://other.example.com/b]",
+                UserInfoUtil.removeUserInfoFromText(
+                        "Failed to copy file from [smb://user:secret@host.example.com/a] to [smb://u2:s2@other.example.com/b]"));
+        assertEquals("smb://[::1]:445/share/", UserInfoUtil.removeUserInfoFromText("smb://user:secret@[::1]:445/share/"));
+        assertEquals("smb://host.example.com/share/", UserInfoUtil.removeUserInfoFromText("smb://user:my secret@host.example.com/share/"));
+        assertEquals("Could not list smb://host.example.com/share/",
+                UserInfoUtil.removeUserInfoFromText("Could not list smb://user:my secret@host.example.com/share/"));
+    }
+
+    @Test
+    public void test_removeUserInfoFromText_keepsTextWithoutUserInfo() {
+        assertNull(UserInfoUtil.removeUserInfoFromText(null));
+        assertEquals("", UserInfoUtil.removeUserInfoFromText(""));
+        assertEquals("Access is denied.", UserInfoUtil.removeUserInfoFromText("Access is denied."));
+        assertEquals("smb://host.example.com/share/a@b.txt", UserInfoUtil.removeUserInfoFromText("smb://host.example.com/share/a@b.txt"));
+        assertEquals("mail user@example.com about smb://host.example.com/",
+                UserInfoUtil.removeUserInfoFromText("mail user@example.com about smb://host.example.com/"));
+        // a line break ends the userinfo
+        assertEquals("smb://host.example.com\nask admin@example.com",
+                UserInfoUtil.removeUserInfoFromText("smb://host.example.com\nask admin@example.com"));
+        assertEquals("smb://host.example.com\r\nCaused by: smb://other.example.com/share/",
+                UserInfoUtil.removeUserInfoFromText("smb://host.example.com\r\nCaused by: smb://user:secret@other.example.com/share/"));
+    }
+
+    @Test
+    public void test_removeUserInfoFromText_removesTooMuchRatherThanTooLittle() {
+        // a URL without a path followed by an at sign on the same line loses the text up to it
+        assertEquals("smb://example.com", UserInfoUtil.removeUserInfoFromText("smb://host is down, ask admin@example.com"));
+    }
 }

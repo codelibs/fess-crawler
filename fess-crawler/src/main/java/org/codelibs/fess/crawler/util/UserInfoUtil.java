@@ -15,11 +15,20 @@
  */
 package org.codelibs.fess.crawler.util;
 
+import java.util.regex.Pattern;
+
 /**
  * Removes the user name and password from a URL, so that a URL like
  * {@code http://user:password@host/} does not reach a log.
  */
 public final class UserInfoUtil {
+
+    /**
+     * An absolute URL with a userinfo anywhere in a text: group 1 is the scheme with {@code ://}, followed by the
+     * userinfo up to its last {@code @} before the path, the query, the fragment or a line break. As in
+     * {@link #removeUserInfo}, a space does not end the userinfo, so that a password with a space is removed too.
+     */
+    private static final Pattern USER_INFO_IN_TEXT = Pattern.compile("([A-Za-z][A-Za-z0-9+.\\-]*://)[^/?#\\r\\n]*@");
 
     /** Separator between the scheme and the authority of an absolute URL. */
     private static final String SCHEME_SEPARATOR = "://";
@@ -59,6 +68,27 @@ public final class UserInfoUtil {
             return url;
         }
         return url.substring(0, authorityStart) + url.substring(at + 1);
+    }
+
+    /**
+     * Removes the userinfo from every absolute URL of the form {@code scheme://userinfo@host...} in a text, such as
+     * the message of an exception that names a URL in the middle of a sentence, and returns the rest of the text
+     * unchanged. It never throws, whatever the input is.
+     * <p>
+     * A URL without a path that is followed on the same line by an {@code @}, as in
+     * {@code smb://host is down, ask admin@example.com}, loses the text up to that {@code @}: a space cannot end the
+     * userinfo, and removing too much is preferred to leaving a password in the text.
+     * </p>
+     *
+     * @param text the text (may be {@code null})
+     * @return the text without the userinfo of its URLs, the text itself when none has one, or {@code null} for
+     *         {@code null}
+     */
+    public static String removeUserInfoFromText(final String text) {
+        if (text == null || text.indexOf('@') < 0) {
+            return text;
+        }
+        return USER_INFO_IN_TEXT.matcher(text).replaceAll("$1");
     }
 
     private static boolean isScheme(final String url, final int end) {

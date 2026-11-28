@@ -476,6 +476,38 @@ public class HtmlTransformerTest extends PlainTestCase {
         assertEquals("Shift_JIS", none.getCharSet());
     }
 
+    // a Western page whose Content-Type header declares ISO-8859-1 (or US-ASCII) and whose bytes are windows-1252: the
+    // detector takes a short Western text for another single-byte charset, such as IBM852 or x-MacRoman, which turns the
+    // 0x9C of the oe ligature into another letter
+    @Test
+    public void test_transform_reportedIso88591Windows1252Characters() throws Exception {
+        final String content = "<html><head><title>t</title></head><body><p>%s</p></body></html>";
+        for (final String text : new String[] { "na\u00efve fa\u00e7ade \u0153uvre",
+                "Les \u0153uvres d\u2019art \u2014 \u00ab na\u00efve \u00bb" }) {
+            for (final String reported : new String[] { "ISO-8859-1", "US-ASCII", "windows-1252" }) {
+                final ResponseData responseData = new ResponseData();
+                responseData.setUrl("http://hoge/test.html");
+                responseData.setResponseBody(String.format(content, text).getBytes("windows-1252"));
+                responseData.setCharSet(reported);
+                responseData.setMimeType("text/html");
+                final ResultData resultData = htmlTransformer.transform(responseData);
+                assertEquals("windows-1252", responseData.getCharSet());
+                assertEquals(String.format(content, text), new String(resultData.getData(), resultData.getEncoding()));
+            }
+        }
+    }
+
+    // a declared ISO-8859-1 does not hold against the bytes of a multi-byte charset, such as the ISO-8859-1 that a web
+    // server adds to a Content-Type header by default
+    @Test
+    public void test_transform_reportedIso88591MultiByteCharsetIsDetected() throws Exception {
+        for (final String charset : new String[] { "windows-31j", "EUC-JP", Constants.UTF_8 }) {
+            final ResponseData responseData = newUndeclaredPage(charset, "ISO-8859-1");
+            final ResultData resultData = htmlTransformer.transform(responseData);
+            assertEquals(JAPANESE_PAGE, new String(resultData.getData(), resultData.getEncoding()));
+        }
+    }
+
     @Test
     public void test_transform_utf8WithBomWithoutDeclaration() throws Exception {
         final byte[] body = JAPANESE_PAGE.getBytes(Constants.UTF_8);

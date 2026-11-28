@@ -126,6 +126,9 @@ public class HtmlTransformer extends AbstractTransformer {
     /** Header name for location redirects. */
     protected static final String LOCATION_HEADER = "Location";
 
+    /** The charset that a browser decodes a page declared as ISO-8859-1, US-ASCII or windows-1252 with. */
+    private static final String WINDOWS_1252 = "windows-1252";
+
     /** Precompiled pattern for stripping a trailing {@code ;jsessionid=...} segment in {@link #normalizeUrl(String)}. */
     private static final Pattern JSESSIONID_PATTERN = Pattern.compile(";jsessionid=[a-zA-Z0-9\\.]*");
 
@@ -409,7 +412,9 @@ public class HtmlTransformer extends AbstractTransformer {
      * is only a hint, and the bytes of the page decide, the same as for a text read by
      * {@link TikaExtractor}: the hint is kept when the bytes agree with it or are plain ASCII, and the
      * charset the bytes are in is taken when they do not. An HTTP client reports UTF-8 for a response whose
-     * Content-Type has no charset, so the hint cannot be trusted any more than the one of a local file.
+     * Content-Type has no charset, so the hint cannot be trusted any more than the one of a local file. A Western
+     * hint that a browser decodes as windows-1252 is kept against another single-byte charset, see
+     * {@link #keepDeclaredWesternCharset(String, String)}.
      *
      * @param responseData the response data to update
      */
@@ -419,7 +424,8 @@ public class HtmlTransformer extends AbstractTransformer {
             if (encoding == null) {
                 final String reported = responseData.getCharSet() != null ? responseData.getCharSet()
                         : defaultEncoding != null ? defaultEncoding : Constants.UTF_8;
-                responseData.setCharSet(detectCharset(responseData, isSupportedCharset(reported) ? reported : Constants.UTF_8));
+                final String hint = isSupportedCharset(reported) ? reported : Constants.UTF_8;
+                responseData.setCharSet(keepDeclaredWesternCharset(hint, detectCharset(responseData, hint)));
             } else {
                 // the page is written with the extension characters of Windows even when it declares Shift_JIS
                 responseData.setCharSet(TikaExtractor.decodeAs(encoding.trim()));
@@ -432,6 +438,41 @@ public class HtmlTransformer extends AbstractTransformer {
             throw e;
         } catch (final Exception e) {
             throw new CrawlerSystemException("Could not load response data: " + UserInfoUtil.removeUserInfo(responseData.getUrl()), e);
+        }
+    }
+
+    /**
+     * Returns the charset to decode a page with when the client reported, or the default encoding is, a Western charset
+     * that a browser decodes as windows-1252 (ISO-8859-1, US-ASCII or windows-1252 itself) and the detector took the bytes
+     * for another single-byte charset.
+     * <p>
+     * Every byte is valid in a single-byte charset, so the detector can only guess one from the letters, and it takes a
+     * short Western text for IBM852, windows-1250 or x-MacRoman, which decode the curly quotes, the dashes and the oe
+     * ligature of windows-1252 in 0x80-0x9F as other letters. Such a guess does not override the declared charset, which
+     * is decoded as windows-1252, the same as a charset declared in a {@code <meta>} tag. A multi-byte charset, such as
+     * UTF-8, Shift_JIS or EUC-JP, is recognised by the structure of its bytes and is still taken: a web server may add
+     * ISO-8859-1 to a Content-Type header by default.
+     *
+     * @param hint the charset the client reported, or the default encoding
+     * @param detected the charset detected from the bytes
+     * @return the charset to decode the page with
+     */
+    protected String keepDeclaredWesternCharset(final String hint, final String detected) {
+        if (hint.equalsIgnoreCase(detected)) {
+            return detected;
+        }
+        final String declared = TikaExtractor.decodeAs(hint);
+        if (WINDOWS_1252.equalsIgnoreCase(declared) && isSingleByteCharset(detected)) {
+            return declared;
+        }
+        return detected;
+    }
+
+    private static boolean isSingleByteCharset(final String charsetName) {
+        try {
+            return Charset.forName(charsetName).newEncoder().maxBytesPerChar() <= 1.0f;
+        } catch (final IllegalArgumentException | UnsupportedOperationException e) {
+            return false;
         }
     }
 
